@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Utility Guide - 地图选择</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #a0a0a0;
+        }
+        
+        /* 地图选择区域 */
+        .map-selection {
+            margin-top: 30px;
+        }
+        
+        .map-scroll-container {
+            overflow-x: auto;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #e63946 #1a1a2e;
+        }
+        
+        .map-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .map-scroll-container::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        .map-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #e63946;
+            border-radius: 4px;
+        }
+        
+        .maps-grid {
+            display: flex;
+            gap: 20px;
+            width: max-content;
+            padding: 0 10px;
+        }
+        
+        .map-card {
+            width: 280px;
+            background-color: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .map-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .map-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background-color: #0f3460;
+        }
+        
+        .map-info {
+            padding: 15px;
+        }
+        
+        .map-name {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .map-description {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        /* 2D地图界面 */
+        .map-2d-container {
+            display: none;
+            margin-top: 30px;
+            background-color: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #0f3460;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .map-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .back-button {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .back-button:hover {
+            background-color: #c1121f;
+        }
+        
+        .map-content {
+            display: flex;
+            height: 600px;
+        }
+        
+        .map-2d {
+            flex: 1;
+            background-color: #0d1b2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .map-controls {
+            width: 300px;
+            padding: 20px;
+            background-color: #16213e;
+            border-left: 1px solid #1a1a2e;
+            overflow-y: auto;
+        }
+        
+        .control-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .nade-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .nade-option {
+            padding: 8px 12px;
+            background-color: #0f3460;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .nade-option.active {
+            background-color: #e63946;
+        }
+        
+        .team-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .team-option {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            background-color: #0f3460;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .team-option.active {
+            background-color: #e63946;
+        }
+        
+        .callout-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .callout-toggle {
+            width: 40px;
+            height: 20px;
+            background-color: #0f3460;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .callout-toggle.active {
+            background-color: #e63946;
+        }
+        
+        .toggle-knob {
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+        
+        .callout-toggle.active .toggle-knob {
+            left: 22px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .map-content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .map-2d {
+                height: 400px;
+            }
+            
+            .map-controls {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #1a1a2e;
+            }
+            
+            .maps-grid {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .map-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">CS2UTIL</div>
+            <div class="nav-links">
+                <a href="#">首页</a>
+                <a href="#">地图</a>
+                <a href="#">职业选手</a>
+                <a href="#">准星</a>
+                <a href="#">社区</a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <h1 class="page-title">CS2 Utility Guide</h1>
+        <p class="page-subtitle">选择地图查看详细的投掷物点位</p>
+        
+        <!-- 地图选择区域 -->
+        <div class="map-selection">
+            <div class="map-scroll-container">
+                <div class="maps-grid">
+                    <!-- 地图卡片 - 示例数据 -->
+                    <div class="map-card" data-map="dust2">
+                        <div class="map-image" style="background: linear-gradient(45deg, #8b4513, #a0522d);"></div>
+                        <div class="map-info">
+                            <h3 class="map-name">Dust II</h3>
+                            <p class="map-description">经典沙漠地图，攻防平衡</p>
+                        </div>
+                    </div>
+                    
+                    <div class="map-card" data-map="mirage">
+                        <div class="map-image" style="background: linear-gradient(45deg, #b8860b, #daa520);"></div>
+                        <div class="map-info">
+                            <h3 class="map-name">Mirage</h3>
+                            <p class="map-description">中东风格城市地图</p>
+                        </div>
+                    </div>
+                    
+                    <div class="map-card" data-map="inferno">
+                        <div class="map-image" style="background: linear-gradient(45deg, #8b0000, #b22222);"></div>
+                        <div class="map-info">
+                            <h3 class="map-name">Inferno</h3>
+                            <p class="map-description">意大利风格小镇</p>
+                        </div>
+                    </div>
+                    
+                    <div class="map-card" data-map="nuke">
+                        <div class="map-image" style="background: linear-gradient(45deg, #2f4f4f, #708090);"></div>
+                        <div class="map-info">
+                            <h3 class="map-name">Nuke</h3>
+                            <p class="map-description">核电站主题地图</p>
+                        </div>
+                    </div>
+                    
+                    <div class="map-card" data-map="ancient">
+                        <div class="map-image" style="background: linear-gradient(45deg, #228b22, #32cd32);"></div>
+                        <div class="map-info">
+                            <h3 class="map-name">Ancient</h3>
+                            <p class="map-description">丛林遗迹主题地图</p>
+                        </div>
+                    </div>
+                    
+                    <div class="map-card" data-map="overpass">
+                        <div class="map-image" style="background: linear-gradient(45deg, #4682b4, #5f9ea0);"></div>
+                        <div class="map-info">
+                            <h3 class="map-name">Overpass</h3>
+                            <p class="map-description">柏林运河主题地图</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2D地图界面 -->
+        <div class="map-2d-container" id="map2dContainer">
+            <div class="map-header">
+                <h2 class="map-title" id="currentMapTitle">Dust II</h2>
+                <button class="back-button" id="backButton">返回地图选择</button>
+            </div>
+            <div class="map-content">
+                <div class="map-2d">
+                    <!-- 这里将放置2D地图 -->
+                    <div id="mapCanvas"></div>
+                </div>
+                <div class="map-controls">
+                    <div class="control-section">
+                        <h3 class="section-title">投掷物类型</h3>
+                        <div class="nade-options">
+                            <div class="nade-option active" data-type="smoke">烟雾弹</div>
+                            <div class="nade-option" data-type="flash">闪光弹</div>
+                            <div class="nade-option" data-type="molotov">燃烧弹</div>
+                            <div class="nade-option" data-type="grenade">手雷</div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3 class="section-title">队伍</h3>
+                        <div class="team-options">
+                            <div class="team-option active" data-team="all">全部</div>
+                            <div class="team-option" data-team="ct">CT</div>
+                            <div class="team-option" data-team="t">T</div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3 class="section-title">其他选项</h3>
+                        <div class="callout-option">
+                            <div class="callout-toggle active" id="calloutToggle">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>显示点位名称</span>
+                        </div>
+                        <div class="callout-option">
+                            <div class="callout-toggle" id="nadeToggle">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>显示投掷物</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const mapCards = document.querySelectorAll('.map-card');
+            const map2dContainer = document.getElementById('map2dContainer');
+            const currentMapTitle = document.getElementById('currentMapTitle');
+            const backButton = document.getElementById('backButton');
+            const nadeOptions = document.querySelectorAll('.nade-option');
+            const teamOptions = document.querySelectorAll('.team-option');
+            const calloutToggle = document.getElementById('calloutToggle');
+            const nadeToggle = document.getElementById('nadeToggle');
+            
+            // 地图数据
+            const mapData = {
+                dust2: { name: 'Dust II', color: '#8b4513' },
+                mirage: { name: 'Mirage', color: '#b8860b' },
+                inferno: { name: 'Inferno', color: '#8b0000' },
+                nuke: { name: 'Nuke', color: '#2f4f4f' },
+                ancient: { name: 'Ancient', color: '#228b22' },
+                overpass: { name: 'Overpass', color: '#4682b4' }
+            };
+            
+            // 点击地图卡片事件
+            mapCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const mapId = this.getAttribute('data-map');
+                    const mapInfo = mapData[mapId];
+                    
+                    // 更新当前地图标题
+                    currentMapTitle.textContent = mapInfo.name;
+                    
+                    // 显示2D地图界面
+                    map2dContainer.style.display = 'block';
+                    
+                    // 滚动到顶部
+                    window.scrollTo(0, 0);
+                    
+                    // 初始化2D地图（这里简化处理，实际应用中需要加载真实地图）
+                    initMap(mapId);
+                });
+            });
+            
+            // 返回按钮事件
+            backButton.addEventListener('click', function() {
+                map2dContainer.style.display = 'none';
+            });
+            
+            // 投掷物类型选择事件
+            nadeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除所有active类
+                    nadeOptions.forEach(opt => opt.classList.remove('active'));
+                    // 添加active类到当前选项
+                    this.classList.add('active');
+                    
+                    // 更新地图显示（这里简化处理）
+                    updateMapDisplay();
+                });
+            });
+            
+            // 队伍选择事件
+            teamOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除所有active类
+                    teamOptions.forEach(opt => opt.classList.remove('active'));
+                    // 添加active类到当前选项
+                    this.classList.add('active');
+                    
+                    // 更新地图显示（这里简化处理）
+                    updateMapDisplay();
+                });
+            });
+            
+            // 切换按钮事件
+            calloutToggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                updateMapDisplay();
+            });
+            
+            nadeToggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                updateMapDisplay();
+            });
+            
+            // 初始化2D地图
+            function initMap(mapId) {
+                const mapCanvas = document.getElementById('mapCanvas');
+                // 清空地图内容
+                mapCanvas.innerHTML = '';
+                
+                // 创建地图容器
+                const mapElement = document.createElement('div');
+                mapElement.style.width = '100%';
+                mapElement.style.height = '100%';
+                mapElement.style.backgroundColor = mapData[mapId].color;
+                mapElement.style.display = 'flex';
+                mapElement.style.justifyContent = 'center';
+                mapElement.style.alignItems = 'center';
+                mapElement.style.color = 'white';
+                mapElement.style.fontSize = '24px';
+                mapElement.textContent = `${mapData[mapId].name} 2D地图`;
+                
+                mapCanvas.appendChild(mapElement);
+                
+                // 实际应用中，这里应该加载真实的2D地图
+                // 例如使用SVG、Canvas或第三方地图库
+            }
+            
+            // 更新地图显示
+            function updateMapDisplay() {
+                // 实际应用中，这里应该根据选择的选项更新地图显示
+                console.log('更新地图显示');
+            }
+            
+            // 初始化默认显示第一个地图
+            initMap('dust2');
+        });
+    </script>
+</body>
+</html>
