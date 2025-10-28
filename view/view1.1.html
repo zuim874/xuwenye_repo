@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Utility Guide - 地图选择</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">CS2UTIL</div>
+            <div class="nav-links">
+                <a href="#">首页</a>
+                <a href="#">地图</a>
+                <a href="#">职业选手</a>
+                <a href="#">准星</a>
+                <a href="#">社区</a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <h1 class="page-title">CS2 Utility Guide</h1>
+        <p class="page-subtitle">选择地图查看详细的投掷物点位</p>
+        
+        <!-- 地图选择区域 -->
+        <div class="map-selection">
+            <div class="map-scroll-container">
+                <div class="maps-grid" id="mapsGrid">
+                    <!-- 地图卡片将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2D地图界面 -->
+        <div class="map-2d-container" id="map2dContainer">
+            <div class="map-header">
+                <h2 class="map-title" id="currentMapTitle">Dust II</h2>
+                <button class="back-button" id="backButton">返回地图选择</button>
+            </div>
+            <div class="map-content">
+                <div class="map-2d">
+                    <div id="mapCanvas"></div>
+                </div>
+                <div class="map-controls">
+                    <div class="control-section">
+                        <h3 class="section-title">投掷物类型</h3>
+                        <div class="nade-options" id="nadeOptions">
+                            <div class="nade-option active" data-type="smoke">烟雾弹</div>
+                            <div class="nade-option" data-type="flash">闪光弹</div>
+                            <div class="nade-option" data-type="molotov">燃烧弹</div>
+                            <div class="nade-option" data-type="grenade">手雷</div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3 class="section-title">队伍</h3>
+                        <div class="team-options" id="teamOptions">
+                            <div class="team-option active" data-team="all">全部</div>
+                            <div class="team-option" data-team="ct">CT</div>
+                            <div class="team-option" data-team="t">T</div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3 class="section-title">其他选项</h3>
+                        <div class="callout-option">
+                            <div class="callout-toggle active" id="calloutToggle">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>显示点位名称</span>
+                        </div>
+                        <div class="callout-option">
+                            <div class="callout-toggle" id="nadeToggle">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>显示投掷物</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../model/model.js"></script>
+    <script src="view.js"></script>
+    <script src="../controller/controller.js"></script>
+    <script src="../app.js"></script>
+</body>
+</html>
