@@ -85,9 +85,7 @@
         </div>
     </div>
 
-    <script src="../model/model.js"></script>
-    <script src="view.js"></script>
-    <script src="../controller/controller.js"></script>
-    <script src="../app.js"></script>
+    <!-- 仅用 module 入口，移除旧的非-module 脚本引用 -->
+    <script type="module" src="../controller/init.mjs"></script>
 </body>
 </html>
