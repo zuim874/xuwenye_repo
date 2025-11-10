@@ -304,8 +304,8 @@
             }
             
             .maps-grid {
-                flex-direction: column;
-                width: 100%;
+                gap: 12px;
+                padding: 0 8px;
             }
             
             .map-card {
@@ -320,11 +320,9 @@
         <div class="container header-content">
             <div class="logo">CS2UTIL</div>
             <div class="nav-links">
-                <a href="#">首页</a>
-                <a href="#">地图</a>
-                <a href="#">职业选手</a>
-                <a href="#">准星</a>
-                <a href="#">社区</a>
+                <a href="web测试1.0.html">首页</a>
+                <a href="community.html">社区</a>
+                <a href="login.html">登录</a>
             </div>
         </div>
     </header>
@@ -467,19 +465,11 @@
             // 点击地图卡片事件
             mapCards.forEach(card => {
                 card.addEventListener('click', function() {
-                    const mapId = this.getAttribute('data-map');
-                    const mapInfo = mapData[mapId];
-                    
-                    // 更新当前地图标题
-                    currentMapTitle.textContent = mapInfo.name;
-                    
-                    // 显示2D地图界面
+                    const mapId = card.dataset.map;
+                    if (!mapId) return;
+                    // 显示 2D 界面，并初始化地图数据
                     map2dContainer.style.display = 'block';
-                    
-                    // 滚动到顶部
-                    window.scrollTo(0, 0);
-                    
-                    // 初始化2D地图（这里简化处理，实际应用中需要加载真实地图）
+                    currentMapTitle.textContent = mapData[mapId]?.name || mapId;
                     initMap(mapId);
                 });
             });

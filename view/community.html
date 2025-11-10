@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Utility Guide - 社区</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #e6e6e6;
+        }
+        
+        .page-subtitle {
+            color: #a0a0a0;
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* 社区内容布局 */
+        .community-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+        
+        /* 帖子列表样式 */
+        .posts-section {
+            background-color: #16213e;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #0f3460;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .new-post-btn {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .new-post-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .posts-list {
+            padding: 20px;
+        }
+        
+        .post-card {
+            background-color: #1a1a2e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+            border-left: 3px solid #e63946;
+        }
+        
+        .post-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #e63946;
+        }
+        
+        .author-info h4 {
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+        
+        .post-date {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        .post-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        
+        .post-tag {
+            background-color: #0f3460;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #a0a0a0;
+        }
+        
+        .post-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #e6e6e6;
+        }
+        
+        .post-content p {
+            color: #a0a0a0;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .post-stats {
+            display: flex;
+            gap: 20px;
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        .post-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-widget {
+            background-color: #16213e;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .widget-header {
+            padding: 15px 20px;
+            background-color: #0f3460;
+            border-bottom: 1px solid #1a1a2e;
+            font-weight: bold;
+        }
+        
+        .widget-content {
+            padding: 20px;
+        }
+        
+        .community-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background-color: #1a1a2e;
+            border-radius: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #a0a0a0;
+        }
+        
+        .online-users {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .user-item:hover {
+            background-color: #1a1a2e;
+        }
+        
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #e63946;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: 14px;
+        }
+        
+        .user-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+        }
+        
+        .popular-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag {
+            background-color: #0f3460;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #a0a0a0;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        
+        .tag:hover {
+            background-color: #e63946;
+            color: white;
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: #16213e;
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid #0f3460;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #e6e6e6;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            color: #e63946;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #0f3460;
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 900px) {
+            .community-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                color: #e6e6e6;
+                font-size: 24px;
+                cursor: pointer;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="web测试1.0.html">首页</a>
+                <a href="community.html" style="color: #e63946;">社区</a>
+                <a href="login.html">登录</a>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <div class="page-header">
+            <h1 class="page-title">CS2 社区</h1>
+            <p class="page-subtitle">与全球CS2玩家交流战术、分享技巧、讨论最新更新</p>
+        </div>
+        
+        <div class="community-layout">
+            <!-- 帖子列表 -->
+            <div class="posts-section">
+                <div class="section-header">
+                    <h2 class="section-title">最新帖子</h2>
+                    <button class="new-post-btn">发布新帖子</button>
+                </div>
+                
+                <div class="posts-list">
+                    <!-- 帖子示例1 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">JD</div>
+                                <div class="author-info">
+                                    <h4>JohnDoe</h4>
+                                    <div class="post-date">2小时前</div>
+                                </div>
+                            </div>
+                            <div class="post-tags">
+                                <span class="post-tag">Mirage</span>
+                                <span class="post-tag">烟雾弹</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>分享一个Mirage A点进攻的完美烟雾组合</h3>
+                            <p>大家好，今天我想分享一个在Mirage上进攻A点的烟雾组合。这个组合可以帮助你安全进入A点，同时封锁CT的视线。需要3颗烟雾弹：一颗封跳台，一颗封连接，一颗封CT...</p>
+                        </div>
+                        <div class="post-stats">
+                            <div class="post-stat">👍 24</div>
+                            <div class="post-stat">💬 12</div>
+                            <div class="post-stat">👁 156</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 帖子示例2 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">CS</div>
+                                <div class="author-info">
+                                    <h4>CS_Pro</h4>
+                                    <div class="post-date">5小时前</div>
+                                </div>
+                            </div>
+                            <div class="post-tags">
+                                <span class="post-tag">Inferno</span>
+                                <span class="post-tag">燃烧弹</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>Inferno香蕉道燃烧弹点位合集</h3>
+                            <p>整理了15个在Inferno香蕉道使用的燃烧弹点位，包括T方和CT方都能使用的点位。这些点位可以帮助你控制香蕉道，阻止敌人推进...</p>
+                        </div>
+                        <div class="post-stats">
+                            <div class="post-stat">👍 42</div>
+                            <div class="post-stat">💬 18</div>
+                            <div class="post-stat">👁 203</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 帖子示例3 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">AG</div>
+                                <div class="author-info">
+                                    <h4>AWP_God</h4>
+                                    <div class="post-date">1天前</div>
+                                </div>
+                            </div>
+                            <div class="post-tags">
+                                <span class="post-tag">技巧</span>
+                                <span class="post-tag">狙击</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>如何提高AWP的快速狙击准确度</h3>
+                            <p>分享一些我个人练习AWP快速狙击的技巧。包括准星放置、预瞄点选择、移动停止时机等。这些技巧帮助我从黄金段位提升到了大地球...</p>
+                        </div>
+                        <div class="post-stats">
+                            <div class="post-stat">👍 67</div>
+                            <div class="post-stat">💬 29</div>
+                            <div class="post-stat">👁 312</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 帖子示例4 -->
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">TP</div>
+                                <div class="author-info">
+                                    <h4>TacticalPlayer</h4>
+                                    <div class="post-date">2天前</div>
+                                </div>
+                            </div>
+                            <div class="post-tags">
+                                <span class="post-tag">战术</span>
+                                <span class="post-tag">团队配合</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>5人小队必备的默认战术与沟通技巧</h3>
+                            <p>如果你经常和固定队友一起玩，这篇文章将帮助你提高团队配合。包括经济管理、默认战术、道具配合和有效的沟通方式...</p>
+                        </div>
+                        <div class="post-stats">
+                            <div class="post-stat">👍 53</div>
+                            <div class="post-stat">💬 31</div>
+                            <div class="post-stat">👁 278</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <!-- 社区统计 -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">社区统计</div>
+                    <div class="widget-content">
+                        <div class="community-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">12,458</div>
+                                <div class="stat-label">社区成员</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3,742</div>
+                                <div class="stat-label">在线用户</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">8,926</div>
+                                <div class="stat-label">帖子总数</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">24,153</div>
+                                <div class="stat-label">回复总数</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 在线用户 -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">在线用户 (24)</div>
+                    <div class="widget-content">
+                        <div class="online-users">
+                            <div class="user-item">
+                                <div class="user-avatar">JD</div>
+                                <div class="user-info">
+                                    <div class="user-name">JohnDoe</div>
+                                </div>
+                                <div class="user-status"></div>
+                            </div>
+                            <div class="user-item">
+                                <div class="user-avatar">CS</div>
+                                <div class="user-info">
+                                    <div class="user-name">CS_Pro</div>
+                                </div>
+                                <div class="user-status"></div>
+                            </div>
+                            <div class="user-item">
+                                <div class="user-avatar">AG</div>
+                                <div class="user-info">
+                                    <div class="user-name">AWP_God</div>
+                                </div>
+                                <div class="user-status"></div>
+                            </div>
+                            <div class="user-item">
+                                <div class="user-avatar">TP</div>
+                                <div class="user-info">
+                                    <div class="user-name">TacticalPlayer</div>
+                                </div>
+                                <div class="user-status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 热门标签 -->
+                <div class="sidebar-widget">
+                    <div class="widget-header">热门标签</div>
+                    <div class="widget-content">
+                        <div class="popular-tags">
+                            <span class="tag">Mirage</span>
+                            <span class="tag">Inferno</span>
+                            <span class="tag">Dust2</span>
+                            <span class="tag">烟雾弹</span>
+                            <span class="tag">燃烧弹</span>
+                            <span class="tag">闪光弹</span>
+                            <span class="tag">狙击</span>
+                            <span class="tag">战术</span>
+                            <span class="tag">职业选手</span>
+                            <span class="tag">准星设置</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>CS2UTIL</h3>
+                    <p>提供最全面的CS2实用指南，帮助玩家提升游戏水平。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="maps.html">地图指南</a></li>
+                        <li><a href="pros.html">职业选手设置</a></li>
+                        <li><a href="crosshairs.html">准星库</a></li>
+                        <li><a href="community.html">社区</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>支持</h3>
+                    <ul class="footer-links">
+                        <li><a href="help.html">帮助中心</a></li>
+                        <li><a href="contact.html">联系我们</a></li>
+                        <li><a href="privacy.html">隐私政策</a></li>
+                        <li><a href="terms.html">使用条款</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 移动端菜单按钮功能
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinks = document.querySelector('.nav-links');
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+            });
+            
+            // 调整窗口大小时重新隐藏导航（在移动端）
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    navLinks.style.display = 'flex';
+                } else {
+                    navLinks.style.display = 'none';
+                }
+            });
+            
+            // 发布新帖子按钮功能
+            const newPostBtn = document.querySelector('.new-post-btn');
+            
+            newPostBtn.addEventListener('click', function() {
+                alert('在实际应用中，这里会打开发布新帖子的表单。');
+            });
+            
+            // 帖子点击功能
+            const postCards = document.querySelectorAll('.post-card');
+            
+            postCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 在实际应用中，这里会跳转到帖子详情页
+                    alert('在实际应用中，这里会跳转到帖子详情页。');
+                });
+            });
+            
+            // 标签点击功能
+            const tags = document.querySelectorAll('.tag');
+            
+            tags.forEach(tag => {
+                tag.addEventListener('click', function(e) {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    const tagName = this.textContent;
+                    alert(`在实际应用中，这里会筛选显示与"${tagName}"相关的帖子。`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

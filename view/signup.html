@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Utility Guide - 用户注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 16px;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
+        }
+        
+        .signup-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .signup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .signup-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #e6e6e6;
+        }
+        
+        .signup-subtitle {
+            color: #a0a0a0;
+            font-size: 16px;
+        }
+        
+        /* 表单样式 */     
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #e6e6e6;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 5px;
+            color: #e6e6e6;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #e63946;
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 12px;
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .signup-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+        }
+        
+        .signup-btn:active {
+            transform: translateY(0);
+        }
+        
+        .signup-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #a0a0a0;
+        }
+        
+        .login-link a {
+            color: #e63946;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .login-link a:hover {
+            color: #c1121f;
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #e63946;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success-message {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #16213e;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid #0f3460;
+        }
+        
+        .footer-content {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .signup-container {
+                padding: 30px 20px;
+                margin: 0 20px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                color: #e6e6e6;
+                font-size: 24px;
+                cursor: pointer;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .terms {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="web测试1.0.html">首页</a>
+                <a href="community.html">社区</a>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <div class="container">
+            <div class="signup-container">
+                <div class="signup-header">
+                    <h1 class="signup-title">创建账号</h1>
+                    <p class="signup-subtitle">注册以访问个性化设置和社区功能</p>
+                </div>
+                
+                <div class="success-message" id="successMessage">
+                    注册成功！正在跳转至登录页面...
+                </div>
+                
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" id="username" class="form-input" placeholder="请输入用户名（3-20个字符）">
+                        <div class="error-message" id="usernameError">用户名必须为3-20个字符，只能包含字母、数字和下划线</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">密码</label>
+                        <div class="password-container">
+                            <input type="password" id="password" class="form-input" placeholder="请输入密码（至少8个字符）">
+                            <button type="button" class="password-toggle" id="togglePassword">显示</button>
+                        </div>
+                        <div class="error-message" id="passwordError">密码必须至少8个字符，包含字母和数字</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">确认密码</label>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="请再次输入密码">
+                        <div class="error-message" id="confirmPasswordError">两次输入的密码不一致</div>
+                    </div>
+
+                    <button type="submit" class="signup-btn" id="signupBtn">注册账号</button>
+                </form>
+                
+                <div class="login-link">
+                    已有账户？ <a href="login.html">立即登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('signupForm');
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirmPassword');
+    const agreeCheckbox = document.getElementById('agreeTerms');
+    const btn = document.querySelector('.signup-btn');
+
+    // 简单校验函数
+    function validate() {
+        const username = usernameInput ? usernameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        const confirm = confirmInput ? confirmInput.value : '';
+        if (!username) { alert('请输入用户名'); return false; }
+        if (!password || password.length < 6) { alert('密码长度至少6位'); return false; }
+        if (password !== confirm) { alert('两次输入的密码不一致'); return false; }
+        if (agreeCheckbox && !agreeCheckbox.checked) { alert('请同意服务条款'); return false; }
+        return true;
+    }
+
+    if (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (!validate()) return;
+
+            const payload = {
+                username: usernameInput.value.trim(),
+                email: emailInput.value.trim(),
+                password: passwordInput.value
+            };
+
+            btn && (btn.disabled = true, btn.textContent = '注册中...');
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('注册成功，正在跳转到登录页');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(data.message || '注册失败');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('网络错误，请稍后重试');
+            } finally {
+                btn && (btn.disabled = false, btn.textContent = '注册');
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>

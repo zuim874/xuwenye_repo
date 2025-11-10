@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Utility Guide - 用户登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 16px;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #e6e6e6;
+        }
+        
+        .login-subtitle {
+            color: #a0a0a0;
+            font-size: 16px;
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #e6e6e6;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 5px;
+            color: #e6e6e6;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #e63946;
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .signup-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #a0a0a0;
+        }
+        
+        .signup-link a {
+            color: #e63946;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .signup-link a:hover {
+            color: #c1121f;
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #e63946;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success-message {
+            color: #4CAF50;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: #16213e;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid #0f3460;
+        }
+        
+        .footer-content {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 0 20px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                color: #e6e6e6;
+                font-size: 24px;
+                cursor: pointer;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-options {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .forgot-password {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="web测试1.0.html">首页</a>
+                <a href="community.html">社区</a>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <div class="container">
+            <div class="login-container">
+                <div class="login-header">
+                    <h1 class="login-title">用户登录</h1>
+                    <p class="login-subtitle">登录以访问您的个性化设置和上传您的内容</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" id="username" class="form-input" placeholder="请输入用户名或邮箱">
+                        <div class="error-message" id="usernameError">请输入有效的用户名或邮箱</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" id="password" class="form-input" placeholder="请输入密码">
+                        <div class="error-message" id="passwordError">密码不能为空</div>
+                    </div>
+                    
+                    <button type="submit" class="login-btn">登录</button>
+                    
+                    <div class="success-message" id="loginSuccess">登录成功！正在跳转...</div>
+                </form>
+                
+                <div class="signup-link">
+                    还没有账户？ <a href="signup.html">立即注册</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const usernameError = document.getElementById('usernameError');
+    const passwordError = document.getElementById('passwordError');
+    const loginSuccess = document.getElementById('loginSuccess');
+    const loginBtn = document.querySelector('.login-btn');
+
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!username) {
+            usernameError.style.display = 'block';
+            return;
+        }
+        if (!password) {
+            passwordError.style.display = 'block';
+            return;
+        }
+
+        loginBtn.textContent = '登录中...';
+        loginBtn.disabled = true;
+
+        try {
+            const resp = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await resp.json();
+            if (resp.ok) {
+                loginSuccess.style.display = 'block';
+                setTimeout(() => { window.location.href = 'web测试1.0.html'; }, 800);
+            } else {
+                alert(result.message || '登录失败');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误，请稍后重试');
+        } finally {
+            loginBtn.textContent = '登录';
+            loginBtn.disabled = false;
+        }
+    });
+
+    usernameInput.addEventListener('input', () => { usernameError.style.display = 'none'; });
+    passwordInput.addEventListener('input', () => { passwordError.style.display = 'none'; });
+
+    // 移动端菜单逻辑（保留原逻辑）
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const navLinks = document.querySelector('.nav-links');
+    mobileMenuBtn.addEventListener('click', function() {
+        navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+    });
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) navLinks.style.display = 'flex';
+        else navLinks.style.display = 'none';
+    });
+});
+    </script>
+</body>
+</html>
