@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 
 // POST /api/login（登录接口）
-router.post('/login', async (req, res) => {
+router.post('/', async (req, res) => {
     const { username, password } = req.body || {};
     if (!username || !password) {
         return res.status(400).json({ message: '用户名和密码为必填项' });

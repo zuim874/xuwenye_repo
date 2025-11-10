@@ -285,69 +285,18 @@
     </footer>
 
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const usernameError = document.getElementById('usernameError');
-    const passwordError = document.getElementById('passwordError');
-    const loginSuccess = document.getElementById('loginSuccess');
-    const loginBtn = document.querySelector('.login-btn');
-
-    loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value;
-
-        if (!username) {
-            usernameError.style.display = 'block';
-            return;
-        }
-        if (!password) {
-            passwordError.style.display = 'block';
-            return;
-        }
-
-        loginBtn.textContent = '登录中...';
-        loginBtn.disabled = true;
-
-        try {
-            const resp = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const result = await resp.json();
-            if (resp.ok) {
-                loginSuccess.style.display = 'block';
-                setTimeout(() => { window.location.href = 'web测试1.0.html'; }, 800);
-            } else {
-                alert(result.message || '登录失败');
-            }
-        } catch (err) {
-            console.error(err);
-            alert('网络错误，请稍后重试');
-        } finally {
-            loginBtn.textContent = '登录';
-            loginBtn.disabled = false;
-        }
-    });
-
-    usernameInput.addEventListener('input', () => { usernameError.style.display = 'none'; });
-    passwordInput.addEventListener('input', () => { passwordError.style.display = 'none'; });
-
-    // 移动端菜单逻辑（保留原逻辑）
-    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-    const navLinks = document.querySelector('.nav-links');
-    mobileMenuBtn.addEventListener('click', function() {
-        navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-    });
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) navLinks.style.display = 'flex';
-        else navLinks.style.display = 'none';
-    });
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const body = JSON.stringify({ username, password });
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body
+  });
+  // 处理响应...
 });
-    </script>
+</script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(20) NOT NULL UNIQUE, -- 用户名唯一
-    password VARCHAR(100) NOT NULL, -- 存储加密后的密码
+    password_hash VARCHAR(100) NOT NULL, -- 存储加密后的密码
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
