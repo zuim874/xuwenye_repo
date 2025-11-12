@@ -7,8 +7,9 @@ const cors = require('cors');
 const expressJson = require('express').json; // 解析JSON请求体
 const registerRouter = require('./routes/register'); // 注册路由（后续创建）
 const loginRouter = require('./routes/login'); // 登录路由（后续创建）
+const userRouter = require('./routes/user'); // 用户查询路由（后续创建）
 const { errorHandler } = require('./middleware/errorHandler'); // 全局错误处理（后续创建）
-
+const logoutRouter = require('./routes/logout'); // 注销路由
 // 1. 创建 Express 实例
 const app = express();
 
@@ -61,6 +62,8 @@ process.env.DB_NAME
 // 3. 注册业务路由（按功能拆分，便于维护）
 app.use('/api/register', registerRouter); // 注册接口：/api/register
 app.use('/api/login', loginRouter); // 登录接口：/api/login
+app.use('/api/users', userRouter); // 查询所有用户接口：GET /api/users
+app.use('/api/logout', logoutRouter); // 注销接口：/api/logout
 
 // 临时测试路由：确认 POST 能被接收
 app.post('/api/login-test', (req, res) => {

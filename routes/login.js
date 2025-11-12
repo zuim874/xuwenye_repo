@@ -25,12 +25,27 @@ router.post('/', async (req, res) => {
             return res.status(401).json({ message: '用户名或密码错误' });
         }
 
-        // 登录成功：此处可生成 JWT / session；示例返回最小信息
-        return res.status(200).json({ message: '登录成功', user: { id: user.id, username: user.username } });
-    } catch (err) {
-        console.error('登录错误:', err);
-        return res.status(500).json({ message: '服务器内部错误' });
-    }
+    // 3. 登录成功：同步更新 is_online、last_login、last_active
+    await pool.execute(
+      `UPDATE users 
+       SET is_online = 1, 
+           last_login = CURRENT_TIMESTAMP, 
+           last_active = CURRENT_TIMESTAMP 
+       WHERE username = ?`,
+      [username]
+    );
+
+    // 4. 返回响应
+    res.status(200).json({
+      code: 200,
+      message: '登录成功',
+      data: { username: user.username }
+    });
+
+  } catch (err) {
+    console.error('登录接口错误:', err);
+    res.status(500).json({ code: 500, message: '服务器内部错误' });
+  }
 });
 
 module.exports = router;

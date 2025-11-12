@@ -282,10 +282,12 @@
                     <div class="form-group">
                         <label for="password" class="form-label">密码</label>
                         <div class="password-container">
-                            <input type="password" id="password" class="form-input" placeholder="请输入密码（至少8个字符）">
+                            <!-- 占位符改为“至少6位数字” -->
+                            <input type="password" id="password" class="form-input" placeholder="请输入密码（至少6位数字）">
                             <button type="button" class="password-toggle" id="togglePassword">显示</button>
                         </div>
-                        <div class="error-message" id="passwordError">密码必须至少8个字符，包含字母和数字</div>
+                        <!-- 错误提示改为“密码必须至少6位数字” -->
+                        <div class="error-message" id="passwordError">密码必须至少6位数字</div>
                     </div>
                     
                     <div class="form-group">
@@ -317,59 +319,118 @@
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('signupForm');
     const usernameInput = document.getElementById('username');
-    const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirmPassword');
-    const agreeCheckbox = document.getElementById('agreeTerms');
-    const btn = document.querySelector('.signup-btn');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const signupBtn = document.getElementById('signupBtn');
+    
+    // 错误提示元素
+    const usernameError = document.getElementById('usernameError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmPasswordError = document.getElementById('confirmPasswordError');
+    const successMessage = document.getElementById('successMessage');
 
-    // 简单校验函数
-    function validate() {
-        const username = usernameInput ? usernameInput.value.trim() : '';
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value : '';
-        const confirm = confirmInput ? confirmInput.value : '';
-        if (!username) { alert('请输入用户名'); return false; }
-        if (!password || password.length < 6) { alert('密码长度至少6位'); return false; }
-        if (password !== confirm) { alert('两次输入的密码不一致'); return false; }
-        if (agreeCheckbox && !agreeCheckbox.checked) { alert('请同意服务条款'); return false; }
-        return true;
+    // 1. 密码显示/隐藏切换
+    togglePasswordBtn.addEventListener('click', function () {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        confirmInput.type = type; // 同步切换确认密码
+        this.textContent = type === 'password' ? '显示' : '隐藏';
+    });
+
+    // 2. 完善前端校验函数（密码改为：至少6位数字）
+    function validateForm() {
+        let isValid = true;
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmInput.value;
+
+        // 用户名校验：3-20字符，仅字母、数字、下划线（保持不变）
+        const usernameReg = /^[a-zA-Z0-9_]{3,20}$/;
+        if (!username) {
+            usernameError.textContent = '用户名不能为空';
+            usernameError.style.display = 'block';
+            isValid = false;
+        } else if (!usernameReg.test(username)) {
+            usernameError.textContent = '用户名必须为3-20个字符，只能包含字母、数字和下划线';
+            usernameError.style.display = 'block';
+            isValid = false;
+        } else {
+            usernameError.style.display = 'none';
+        }
+
+        // 密码校验：改为「至少6位数字」（核心修改）
+        const passwordReg = /^\d{6,}$/;
+        if (!password) {
+            passwordError.textContent = '密码不能为空';
+            passwordError.style.display = 'block';
+            isValid = false;
+        } else if (!passwordReg.test(password)) {
+            passwordError.textContent = '密码必须至少6位数字';
+            passwordError.style.display = 'block';
+            isValid = false;
+        } else {
+            passwordError.style.display = 'none';
+        }
+
+        // 确认密码校验（保持不变：需与密码一致）
+        if (password !== confirmPassword) {
+            confirmPasswordError.style.display = 'block';
+            isValid = false;
+        } else {
+            confirmPasswordError.style.display = 'none';
+        }
+
+        return isValid;
     }
 
-    if (form) {
-        form.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            if (!validate()) return;
+    // 3. 表单提交逻辑（保持不变）
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        successMessage.style.display = 'none';
 
-            const payload = {
-                username: usernameInput.value.trim(),
-                email: emailInput.value.trim(),
-                password: passwordInput.value
-            };
+        // 前端校验
+        if (!validateForm()) return;
 
-            btn && (btn.disabled = true, btn.textContent = '注册中...');
+        // 构造请求数据（仅用户名和密码）
+        const payload = {
+            username: usernameInput.value.trim(),
+            password: passwordInput.value
+        };
 
-            try {
-                const res = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    alert('注册成功，正在跳转到登录页');
-                    window.location.href = 'login.html';
-                } else {
-                    alert(data.message || '注册失败');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('网络错误，请稍后重试');
-            } finally {
-                btn && (btn.disabled = false, btn.textContent = '注册');
+        // 按钮状态切换
+        signupBtn.disabled = true;
+        signupBtn.textContent = '注册中...';
+
+        try {
+            // 发送注册请求
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // 注册成功：显示提示并跳转
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = 'login.html'; // 跳转到登录页
+                }, 1500);
+            } else {
+                // 注册失败：显示后端返回的错误（如用户名已存在）
+                alert(data.message || '注册失败，请稍后重试');
             }
-        });
-    }
+        } catch (err) {
+            console.error('注册网络错误:', err);
+            alert('网络异常，请检查服务器是否启动');
+        } finally {
+            // 恢复按钮状态
+            signupBtn.disabled = false;
+            signupBtn.textContent = '注册账号';
+        }
+    });
 });
 </script>
 </body>

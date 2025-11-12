@@ -234,7 +234,7 @@
         <div class="container header-content">
             <a href="index.html" class="logo">CS2UTIL</a>
             <div class="nav-links">
-                <a href="web测试1.0.html">首页</a>
+                <a href="index.html">首页</a>
                 <a href="community.html">社区</a>
             </div>
             <button class="mobile-menu-btn">☰</button>
@@ -285,18 +285,99 @@
     </footer>
 
     <script>
-document.getElementById('loginForm').addEventListener('submit', async function(e){
-  e.preventDefault();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const body = JSON.stringify({ username, password });
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body
-  });
-  // 处理响应...
-});
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // 获取输入值并重置提示
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const loginSuccess = document.getElementById('loginSuccess');
+        
+        usernameError.style.display = 'none';
+        passwordError.style.display = 'none';
+        loginSuccess.style.display = 'none';
+
+        // 前端字段校验
+        if (!username) {
+            usernameError.style.display = 'block';
+            return;
+        }
+        if (!password) {
+            passwordError.style.display = 'block';
+            return;
+        }
+
+        try {
+            // 发送登录请求
+            const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+            });
+            
+            const data = await res.json();
+
+            if (!res.ok) {
+                // 失败逻辑：抛出后端返回的错误信息
+                throw new Error(data.message || '登录请求失败');
+            }
+
+            // 成功逻辑：存储用户信息 + 跳转页面 + 显示成功提示
+            // 注意：根据后端返回结构调整（如果后端返回 {message: "成功", username: "xxx"}，则用 data.username）
+            localStorage.setItem('currentUser', data.user?.username || data.username); 
+            loginSuccess.style.display = 'block'; // 显示登录成功提示（可选）
+            console.log('登录成功', data);
+            localStorage.setItem('currentUser', username); // 存储当前登录用户
+
+            // 启动心跳机制（关键：登录成功后立即启动）
+            startHeartbeat();
+
+            // 延迟跳转（让用户看到成功提示，可根据需求调整延迟时间或直接跳转）
+            setTimeout(() => {
+                window.location.href = 'index.html'; // 跳转到首页
+            }, 800);
+
+            // 此处可添加跳转逻辑，例如：
+            // setTimeout(() => {
+            //   window.location.href = 'index.html';
+            // }, 1500);
+            // login.html 中登录请求的成功回调
+
+        } catch (err) {
+            // 捕获并处理所有异常
+            console.error('登录异常', err);
+            // 假设后端返回的错误信息包含在 err.message 中
+            const errorMsg = err.message || '服务器内部错误';
+            // 可根据业务需求选择显示到某个 error 元素，或统一提示
+            alert(errorMsg);
+        }
+        });
+
+        // 心跳函数（全局定义，登录成功后调用）
+        let heartbeatTimer = null; // 保存定时器ID，用于后续清除
+        function startHeartbeat() {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) return;
+
+        // 清除已有定时器（避免重复创建）
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+
+        // 每60秒发送一次心跳（可调整频率，如30秒/次）
+        heartbeatTimer = setInterval(async () => {
+            try {
+            await fetch('/api/users/heartbeat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser })
+            });
+            // 心跳成功无需提示，失败打印日志
+            } catch (err) {
+            console.error('心跳请求失败（可能已离线）:', err);
+            }
+        }, 60 * 1000); // 60秒 = 60*1000毫秒
+        }
 </script>
 </body>
 </html>

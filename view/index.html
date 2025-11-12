@@ -285,6 +285,41 @@
         .callout-toggle.active .toggle-knob {
             left: 22px;
         }
+
+        /* 用户信息样式 */
+        .user-info {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-initial {
+            color: #e6e6e6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #16213e;
+            border: 1px solid #1a1a2e;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+            margin-top: 5px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .logout-btn:hover {
+            background-color: #e63946;
+        }
+
+        .user-info:hover .logout-btn {
+            display: block;
+        }
         
         /* 响应式设计 */
         @media (max-width: 768px) {
@@ -320,9 +355,18 @@
         <div class="container header-content">
             <div class="logo">CS2UTIL</div>
             <div class="nav-links">
-                <a href="web测试1.0.html">首页</a>
+                <a href="index.html">首页</a>
                 <a href="community.html">社区</a>
-                <a href="login.html">登录</a>
+                <!-- 在index.html的导航栏部分修改userArea -->
+                <div id="userArea" style="display: none;">
+                    <div class="user-info">
+                        <span class="user-initial" id="userNamePrefix"></span>
+                        <div class="logout-btn" id="logoutBtn">注销</div>
+                    </div>
+                </div>
+                <div id="loginBtnArea">
+                    <a href="login.html">登录</a>
+                </div>
             </div>
         </div>
     </header>
@@ -554,5 +598,6 @@
             initMap('dust2');
         });
     </script>
+    <script src="index.js"></script>
 </body>
 </html>
