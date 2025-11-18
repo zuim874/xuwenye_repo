@@ -132,30 +132,9 @@
             padding: 20px;
         }
         
-        .post-card {
-            background-color: #1a1a2e;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            transition: transform 0.2s;
-            border-left: 3px solid #e63946;
-        }
-        
         .post-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .post-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
         .author-avatar {
@@ -394,25 +373,13 @@
             }
         }
         
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-                background: none;
-                border: none;
-                color: #e6e6e6;
-                font-size: 24px;
-                cursor: pointer;
-            }
-            
+        @media (max-width: 768px) {                 
             .footer-content {
                 flex-direction: column;
             }
         }
     </style>
+    <link rel="stylesheet" href="post_list.css"> <!-- 引入帖子样式文件 -->
 </head>
 <body>
     <!-- 导航栏 -->
@@ -422,9 +389,16 @@
             <div class="nav-links">
                 <a href="index.html">首页</a>
                 <a href="community.html" style="color: #e63946;">社区</a>
-                <a href="login.html">登录</a>
+                <!-- 在index.html的导航栏部分修改userArea -->
+                <div id="userArea" style="display: none;">
+                    <div class="user-info">
+                        <span class="user-initial" id="userNamePrefix"></span>
+                    </div>
+                </div>
+                <div id="loginBtnArea">
+                    <a href="login.html">登录</a>
+                </div>
             </div>
-            <button class="mobile-menu-btn">☰</button>
         </div>
     </header>
     
@@ -443,112 +417,10 @@
                     <button class="new-post-btn">发布新帖子</button>
                 </div>
                 
-                <div class="posts-list">
-                    <!-- 帖子示例1 -->
-                    <div class="post-card">
-                        <div class="post-header">
-                            <div class="post-author">
-                                <div class="author-avatar">JD</div>
-                                <div class="author-info">
-                                    <h4>JohnDoe</h4>
-                                    <div class="post-date">2小时前</div>
-                                </div>
-                            </div>
-                            <div class="post-tags">
-                                <span class="post-tag">Mirage</span>
-                                <span class="post-tag">烟雾弹</span>
-                            </div>
-                        </div>
-                        <div class="post-content">
-                            <h3>分享一个Mirage A点进攻的完美烟雾组合</h3>
-                            <p>大家好，今天我想分享一个在Mirage上进攻A点的烟雾组合。这个组合可以帮助你安全进入A点，同时封锁CT的视线。需要3颗烟雾弹：一颗封跳台，一颗封连接，一颗封CT...</p>
-                        </div>
-                        <div class="post-stats">
-                            <div class="post-stat">👍 24</div>
-                            <div class="post-stat">💬 12</div>
-                            <div class="post-stat">👁 156</div>
-                        </div>
-                    </div>
-                    
-                    <!-- 帖子示例2 -->
-                    <div class="post-card">
-                        <div class="post-header">
-                            <div class="post-author">
-                                <div class="author-avatar">CS</div>
-                                <div class="author-info">
-                                    <h4>CS_Pro</h4>
-                                    <div class="post-date">5小时前</div>
-                                </div>
-                            </div>
-                            <div class="post-tags">
-                                <span class="post-tag">Inferno</span>
-                                <span class="post-tag">燃烧弹</span>
-                            </div>
-                        </div>
-                        <div class="post-content">
-                            <h3>Inferno香蕉道燃烧弹点位合集</h3>
-                            <p>整理了15个在Inferno香蕉道使用的燃烧弹点位，包括T方和CT方都能使用的点位。这些点位可以帮助你控制香蕉道，阻止敌人推进...</p>
-                        </div>
-                        <div class="post-stats">
-                            <div class="post-stat">👍 42</div>
-                            <div class="post-stat">💬 18</div>
-                            <div class="post-stat">👁 203</div>
-                        </div>
-                    </div>
-                    
-                    <!-- 帖子示例3 -->
-                    <div class="post-card">
-                        <div class="post-header">
-                            <div class="post-author">
-                                <div class="author-avatar">AG</div>
-                                <div class="author-info">
-                                    <h4>AWP_God</h4>
-                                    <div class="post-date">1天前</div>
-                                </div>
-                            </div>
-                            <div class="post-tags">
-                                <span class="post-tag">技巧</span>
-                                <span class="post-tag">狙击</span>
-                            </div>
-                        </div>
-                        <div class="post-content">
-                            <h3>如何提高AWP的快速狙击准确度</h3>
-                            <p>分享一些我个人练习AWP快速狙击的技巧。包括准星放置、预瞄点选择、移动停止时机等。这些技巧帮助我从黄金段位提升到了大地球...</p>
-                        </div>
-                        <div class="post-stats">
-                            <div class="post-stat">👍 67</div>
-                            <div class="post-stat">💬 29</div>
-                            <div class="post-stat">👁 312</div>
-                        </div>
-                    </div>
-                    
-                    <!-- 帖子示例4 -->
-                    <div class="post-card">
-                        <div class="post-header">
-                            <div class="post-author">
-                                <div class="author-avatar">TP</div>
-                                <div class="author-info">
-                                    <h4>TacticalPlayer</h4>
-                                    <div class="post-date">2天前</div>
-                                </div>
-                            </div>
-                            <div class="post-tags">
-                                <span class="post-tag">战术</span>
-                                <span class="post-tag">团队配合</span>
-                            </div>
-                        </div>
-                        <div class="post-content">
-                            <h3>5人小队必备的默认战术与沟通技巧</h3>
-                            <p>如果你经常和固定队友一起玩，这篇文章将帮助你提高团队配合。包括经济管理、默认战术、道具配合和有效的沟通方式...</p>
-                        </div>
-                        <div class="post-stats">
-                            <div class="post-stat">👍 53</div>
-                            <div class="post-stat">💬 31</div>
-                            <div class="post-stat">👁 278</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <div class="posts-list" id="postsList">
+            <!-- 这里将由JavaScript动态填充 -->
+            <div class="loading-indicator">加载中...</div>
+        </div>
             
             <!-- 侧边栏 -->
             <div class="sidebar">
@@ -558,19 +430,19 @@
                     <div class="widget-content">
                         <div class="community-stats">
                             <div class="stat-item">
-                                <div class="stat-value">12,458</div>
+                                <div class="stat-value" id="totalUsers">0</div>
                                 <div class="stat-label">社区成员</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">3,742</div>
+                                <div class="stat-value" id="onlineCount">0</div>
                                 <div class="stat-label">在线用户</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">8,926</div>
+                                <div class="stat-value">0</div>
                                 <div class="stat-label">帖子总数</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">24,153</div>
+                                <div class="stat-value">0</div>
                                 <div class="stat-label">回复总数</div>
                             </div>
                         </div>
@@ -671,14 +543,23 @@
     </footer>
 
     <script>
+        // 获取按钮元素
+        const postBtn = document.querySelector('.new-post-btn');
+        // 绑定点击事件，跳转页面
+        postBtn.addEventListener('click', function() {
+            window.location.href = 'writer.html';
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             // 移动端菜单按钮功能
-            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
             const navLinks = document.querySelector('.nav-links');
             
             mobileMenuBtn.addEventListener('click', function() {
                 navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
             });
+
+            // 初始化自动登出功能
+            initAutoLogout(); 
             
             // 调整窗口大小时重新隐藏导航（在移动端）
             window.addEventListener('resize', function() {
@@ -717,6 +598,65 @@
                 });
             });
         });
+
+        // 定时更新在线人数的函数
+        function updateOnlineUsers() {
+            // 调用后端在线用户接口
+            fetch('/api/users/online_users')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应异常');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        // 获取在线人数并格式化（添加千位分隔符）
+                        const count = data.data.onlineCount;
+                        const formattedCount = count.toLocaleString();
+                        // 更新页面显示
+                        document.getElementById('onlineCount').textContent = formattedCount;
+                    }
+                })
+                .catch(error => {
+                    console.error('更新在线人数失败:', error);
+                });
+        }
+
+        // 页面加载完成后立即执行一次，获取初始数据
+        updateOnlineUsers();
+
+        // 设置定时器，每30秒更新一次（可根据需求调整间隔，建议10-60秒）
+        setInterval(updateOnlineUsers, 30000); // 30000毫秒 = 30秒
+
+        // 定时更新总注册用户数的函数
+        function updateTotalUsers() {
+            fetch('/api/users')
+                .then(response => {
+                    if (!response.ok) throw new Error('网络响应异常');
+                    return response.json();
+                })
+                .then(data => {
+                    // 关键：先判断data.total是否存在，避免报错
+                    if (data && typeof data.total === 'number') {
+                        const formattedTotal = data.total.toLocaleString();
+                        document.getElementById('totalUsers').textContent = formattedTotal;
+                    } else {
+                        console.error('接口未返回total字段', data);
+                    }
+                })
+                .catch(error => console.error('更新总用户数失败:', error));
+        }
+
+        // 页面加载时立即执行一次，获取初始数据
+        updateTotalUsers();
+
+        // 设置定时器，每5分钟更新一次（总用户数变化频率低，可适当延长间隔）
+        setInterval(updateTotalUsers, 300000); // 300000毫秒 = 5分钟
     </script>
+
+    <!-- 所有页面都添加这行引入，位置建议在其他脚本之前 -->
+    <script src="community.js"></script>
+    <script src="post_list.js"></script>
 </body>
 </html>

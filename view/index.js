@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const userNamePrefix = document.getElementById('userNamePrefix');
   const logoutBtn = document.getElementById('logoutBtn');
   let heartbeatTimer = window.heartbeatTimer || null;
-  let inactivityTimer = null;
+  let inactivityTimer = null;  
 
   // 1. 还原用户名前三位显示（已修复，无改动）
   let currentUser = localStorage.getItem('currentUser'); // 初始获取
@@ -173,12 +173,37 @@ function resetInactivityTimer() {
       localStorage.removeItem('currentUser');
       window.location.href = 'login.html';
     }
-  }, 60000); // 30秒阈值
+  }, 30000); // 30秒阈值
   }
 
-  // 监听用户交互事件
-  document.addEventListener('click', resetInactivityTimer);
-  document.addEventListener('keydown', resetInactivityTimer);
+  // 扩展：覆盖PC+移动端所有合理用户交互事件
+  const userActivityEvents = [
+      // PC端核心操作
+      'click',        // 鼠标点击（按钮、链接、帖子等）
+      'keydown',      // 键盘按键（输入、方向键、快捷键等）
+      'mousemove',    // 鼠标移动（浏览页面时的鼠标滑动）
+      'wheel',        // 鼠标滚轮（滚动页面、缩放等）
+      'scroll',       // 页面滚动（滚轮、触摸、键盘方向键触发的滚动）
+      'mouseup',      // 鼠标松开（点击后的收尾动作，补充点击完整性）
+      'dblclick',     // 双击（双击查看、放大等操作）
+      'focusin',      // 元素获得焦点（输入框、下拉框、按钮等）
+      'input',        // 输入框输入（发帖、评论时的文字输入）
+      'change',       // 表单元素变更（下拉选择、复选框、单选框等）
+      // 移动端核心操作（适配手机/平板用户）
+      'touchstart',   // 触摸开始（手指触碰屏幕）
+      'touchmove',    // 触摸滑动（手指在屏幕上滑动浏览）
+      'touchend',     // 触摸结束（手指离开屏幕，补充触摸完整性）
+      'touchcancel',  // 触摸取消（意外中断触摸，如来电、弹窗）
+      // 其他潜在操作
+      'contextmenu',  // 右键菜单（右键点击操作）
+      'selectstart'   // 文本选择（选中帖子内容、评论等）
+  ];
+
+  // 批量绑定事件：委托到document，确保动态元素（如JS渲染的帖子）也能触发
+  userActivityEvents.forEach(event => {
+      // passive: true 优化性能，避免滚动/触摸事件卡顿
+      document.addEventListener(event, resetInactivityTimer, { passive: true });
+  });
 
   // 初始化时启动计时器
   resetInactivityTimer();

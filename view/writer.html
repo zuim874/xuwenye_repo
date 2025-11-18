@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Utility Guide - 发布新帖子</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        .nav-links a.active {
+            color: #e63946;
+            font-weight: 500;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 40px 0;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .page-subtitle {
+            color: #a0a0a0;
+        }
+        
+        /* 表单样式 */
+        .post-form-container {
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 5px;
+            color: #e6e6e6;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #e63946;
+        }
+        
+        .form-textarea {
+            min-height: 200px;
+            resize: vertical;
+            line-height: 1.8;
+        }
+        
+        /* 视频上传区域 */
+        .video-upload {
+            border: 2px dashed #0f3460;
+            border-radius: 5px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        
+        .video-upload:hover {
+            border-color: #e63946;
+            background-color: rgba(15, 52, 96, 0.2);
+        }
+        
+        .video-upload-icon {
+            font-size: 48px;
+            color: #0f3460;
+            margin-bottom: 15px;
+            transition: color 0.3s;
+        }
+        
+        .video-upload:hover .video-upload-icon {
+            color: #e63946;
+        }
+        
+        .video-upload-text {
+            color: #a0a0a0;
+            margin-bottom: 10px;
+        }
+        
+        .video-upload-info {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+        
+        #videoFile {
+            display: none;
+        }
+        
+        .video-preview {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .video-preview.active {
+            display: block;
+        }
+        
+        .preview-video {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .remove-video {
+            color: #e63946;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0 auto;
+        }
+        
+        /* 标签选择区域 */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .tag {
+            background-color: #0f3460;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            color: #e6e6e6;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .tag:hover {
+            background-color: #1a3a6e;
+        }
+        
+        .tag.selected {
+            background-color: #e63946;
+        }
+        
+        .custom-tag {
+            display: flex;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .tag-input {
+            flex: 1;
+        }
+        
+        .add-tag-btn {
+            background-color: #0f3460;
+            color: #e6e6e6;
+            border: none;
+            padding: 0 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .add-tag-btn:hover {
+            background-color: #e63946;
+        }
+        
+        /* 按钮区域 */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+        }
+        
+        .cancel-btn, .submit-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .cancel-btn {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            border: 1px solid #0f3460;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #2a2a42;
+        }
+        
+        .submit-btn {
+            background-color: #e63946;
+            color: white;
+            border: none;
+        }
+        
+        .submit-btn:hover {
+            background-color: #c1121f;
+        }
+        
+        /* 错误提示 */
+        .error-message {
+            color: #e63946;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+        
+        /* 成功提示 */
+        .success-message {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+        
+        .success-message.active {
+            display: block;
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: #16213e;
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid #0f3460;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #e6e6e6;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            color: #e63946;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #0f3460;
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .post-form-container {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .cancel-btn, .submit-btn {
+                width: 100%;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="community.html" class="active">社区</a>
+                <div id="userArea" style="display: none;">
+                    <div class="user-info">
+                        <span class="user-initial" id="userNamePrefix"></span>
+                    </div>
+                </div>
+                <div id="loginBtnArea">
+                    <a href="login.html">登录</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <div class="page-header">
+            <h1 class="page-title">发布新帖子</h1>
+            <p class="page-subtitle">分享你的CS2战术、技巧或视频</p>
+        </div>
+        
+        <div class="post-form-container">
+            <div class="success-message" id="successMessage">
+                帖子发布成功！正在返回社区页面...
+            </div>
+            
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="postTitle" class="form-label">标题</label>
+                    <input type="text" id="postTitle" class="form-input" placeholder="请输入帖子标题（至少5个字符）">
+                    <div class="error-message" id="titleError">标题不能为空且至少需要5个字符</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="postContent" class="form-label">内容介绍</label>
+                    <textarea id="postContent" class="form-textarea" placeholder="请详细描述你的技巧、战术或视频内容..."></textarea>
+                    <div class="error-message" id="contentError">内容不能为空且至少需要20个字符</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">上传视频</label>
+                    <div class="video-upload" id="videoUploadArea">
+                        <div class="video-upload-icon">📹</div>
+                        <p class="video-upload-text">点击或拖拽视频文件到这里上传</p>
+                        <p class="video-upload-info">支持MP4、WebM格式，最大文件大小50MB</p>
+                        <input type="file" id="videoFile" accept="video/mp4,video/webm">
+                    </div>
+                    
+                    <div class="video-preview" id="videoPreview">
+                        <video class="preview-video" id="previewVideo" controls></video>
+                        <button type="button" class="remove-video" id="removeVideo">
+                            <span>移除视频</span>
+                        </button>
+                    </div>
+                    <div class="error-message" id="videoError">请上传有效的视频文件</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">标签</label>
+                    <p class="video-upload-info">选择相关标签（最多5个）</p>
+                    <div class="tags-container">
+                        <div class="tag" data-tag="Mirage">Mirage</div>
+                        <div class="tag" data-tag="Inferno">Inferno</div>
+                        <div class="tag" data-tag="Dust2">Dust2</div>
+                        <div class="tag" data-tag="烟雾弹">烟雾弹</div>
+                        <div class="tag" data-tag="闪光弹">闪光弹</div>
+                        <div class="tag" data-tag="燃烧弹">燃烧弹</div>
+                        <div class="tag" data-tag="手雷">手雷</div>
+                        <div class="tag" data-tag="战术">战术</div>
+                        <div class="tag" data-tag="瞄准">瞄准</div>
+                        <div class="tag" data-tag="攻略">攻略</div>
+                    </div>
+                    
+                    <div class="custom-tag">
+                        <input type="text" class="form-input tag-input" id="customTagInput" placeholder="添加自定义标签">
+                        <button type="button" class="add-tag-btn" id="addTagBtn">添加</button>
+                    </div>
+                    <div class="error-message" id="tagsError">请至少选择一个标签</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelBtn">取消</button>
+                    <button type="submit" class="submit-btn" id="submitBtn">发布帖子</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>CS2UTIL</h3>
+                    <p>提供最全面的CS2实用指南，帮助玩家提升游戏水平。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="maps.html">地图指南</a></li>
+                        <li><a href="pros.html">职业选手设置</a></li>
+                        <li><a href="crosshairs.html">准星库</a></li>
+                        <li><a href="community.html">社区</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>支持</h3>
+                    <ul class="footer-links">
+                        <li><a href="help.html">帮助中心</a></li>
+                        <li><a href="contact.html">联系我们</a></li>
+                        <li><a href="privacy.html">隐私政策</a></li>
+                        <li><a href="terms.html">使用条款</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 视频上传功能
+            const videoUploadArea = document.getElementById('videoUploadArea');
+            const videoFileInput = document.getElementById('videoFile');
+            const videoPreview = document.getElementById('videoPreview');
+            const previewVideo = document.getElementById('previewVideo');
+            const removeVideoBtn = document.getElementById('removeVideo');
+            
+            // 点击上传区域触发文件选择
+            videoUploadArea.addEventListener('click', function() {
+                videoFileInput.click();
+            });
+            
+            // 处理文件选择
+            videoFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    previewVideoFile(file);
+                }
+            });
+            
+            // 预览视频
+            function previewVideoFile(file) {
+                // 检查文件类型
+                if (!file.type.startsWith('video/')) {
+                    showError('videoError', '请上传视频文件');
+                    return;
+                }
+                
+                // 检查文件大小 (50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    showError('videoError', '视频文件不能超过50MB');
+                    return;
+                }
+                
+                hideError('videoError');
+                
+                const fileURL = URL.createObjectURL(file);
+                previewVideo.src = fileURL;
+                videoPreview.classList.add('active');
+            }
+            
+            // 移除视频
+            removeVideoBtn.addEventListener('click', function() {
+                videoPreview.classList.remove('active');
+                previewVideo.src = '';
+                videoFileInput.value = '';
+            });
+            
+            // 标签选择功能
+            const tags = document.querySelectorAll('.tag');
+            const selectedTags = new Set();
+            
+            tags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const tagValue = this.getAttribute('data-tag');
+                    
+                    // 限制最多选择5个标签
+                    if (selectedTags.has(tagValue)) {
+                        // 取消选择
+                        selectedTags.delete(tagValue);
+                        this.classList.remove('selected');
+                    } else if (selectedTags.size < 5) {
+                        // 新增选择
+                        selectedTags.add(tagValue);
+                        this.classList.add('selected');
+                    } else {
+                        alert('最多只能选择5个标签');
+                    }
+                    
+                    hideError('tagsError');
+                });
+            });
+            
+            // 添加自定义标签
+            const addTagBtn = document.getElementById('addTagBtn');
+            const customTagInput = document.getElementById('customTagInput');
+            const tagsContainer = document.querySelector('.tags-container');
+            
+            addTagBtn.addEventListener('click', function() {
+                const tagText = customTagInput.value.trim();
+                
+                if (tagText && tagText.length <= 10) {
+                    // 检查是否已存在相同标签
+                    if ([...selectedTags].includes(tagText)) {
+                        alert('该标签已被选择');
+                        return;
+                    }
+                    
+                    // 检查是否已达到标签上限
+                    if (selectedTags.size >= 5) {
+                        alert('最多只能选择5个标签');
+                        return;
+                    }
+                    
+                    // 创建新标签
+                    const newTag = document.createElement('div');
+                    newTag.className = 'tag selected';
+                    newTag.setAttribute('data-tag', tagText);
+                    newTag.textContent = tagText;
+                    
+                    // 添加点击事件
+                    newTag.addEventListener('click', function() {
+                        selectedTags.delete(tagText);
+                        this.remove();
+                    });
+                    
+                    // 添加到容器并更新选择集合
+                    tagsContainer.appendChild(newTag);
+                    selectedTags.add(tagText);
+                    
+                    // 清空输入框
+                    customTagInput.value = '';
+                    
+                    hideError('tagsError');
+                } else if (tagText.length > 10) {
+                    alert('标签不能超过10个字符');
+                }
+            });
+            
+            // 取消按钮功能
+            const cancelBtn = document.getElementById('cancelBtn');
+            cancelBtn.addEventListener('click', function() {
+                if (confirm('确定要取消发布吗？已输入的内容将会丢失。')) {
+                    window.location.href = 'community.html';
+                }
+            });
+            
+            // 表单提交处理
+            const postForm = document.getElementById('postForm');
+            postForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // 获取表单数据
+                const title = document.getElementById('postTitle').value.trim();
+                const content = document.getElementById('postContent').value.trim();
+                const videoFile = videoFileInput.files[0];
+                
+                // 表单验证
+                let isValid = true;
+                
+                if (!title || title.length < 5) {
+                    showError('titleError');
+                    isValid = false;
+                } else {
+                    hideError('titleError');
+                }
+                
+                if (!content || content.length < 20) {
+                    showError('contentError');
+                    isValid = false;
+                } else {
+                    hideError('contentError');
+                }
+                
+                if (!videoFile) {
+                    showError('videoError');
+                    isValid = false;
+                } else {
+                    hideError('videoError');
+                }
+                
+                if (selectedTags.size === 0) {
+                    showError('tagsError');
+                    isValid = false;
+                } else {
+                    hideError('tagsError');
+                }
+                
+                if (!isValid) return;
+                
+                // 准备表单数据
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('content', content);
+                formData.append('video', videoFile);
+                formData.append('tags', Array.from(selectedTags).join(','));
+                
+                // 替换原有的模拟上传部分，实现真实的数据库上传逻辑
+                try {
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '发布中...';
+
+                    // 获取用户ID（从localStorage中获取，之前已通过checkLoginStatus存储）
+                    const userId = localStorage.getItem('userId');
+                    if (!userId) {
+                        throw new Error('未获取到用户信息，请重新登录');
+                    }
+
+                    // 准备表单数据，添加用户ID
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('content', content);
+                    formData.append('video', videoFile);
+                    formData.append('tags', Array.from(selectedTags).join(','));
+                    formData.append('userId', userId);
+
+                    // 发送POST请求到后端接口
+                    const response = await fetch('/api/posts/create', {
+                        method: 'POST',
+                        headers: {
+                            // 如果需要身份验证，添加token
+                            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || '发布失败，请稍后重试');
+                    }
+
+                    // 发布成功处理
+                    document.getElementById('successMessage').classList.add('active');
+                    
+                    // 3秒后跳转到社区页面
+                    setTimeout(() => {
+                        window.location.href = 'community.html';
+                    }, 3000);
+
+                } catch (error) {
+                    console.error('发布帖子失败:', error);
+                    alert(`发布失败: ${error.message}`);
+                    // 恢复按钮状态
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '发布帖子';
+                }
+            });
+            
+            // 错误提示显示/隐藏函数
+            function showError(elementId) {
+                const errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    errorElement.classList.add('active');
+                }
+            }
+            
+            function hideError(elementId) {
+                const errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    errorElement.classList.remove('active');
+                }
+            }
+            
+            // 检查用户登录状态（实际项目中会从后端获取）
+            // 修改checkLoginStatus函数，添加获取用户ID的逻辑
+            // 修改writer.html中的checkLoginStatus函数
+            function checkLoginStatus() {
+                const currentUser = localStorage.getItem('currentUser'); // 已确认有值
+                
+                if (currentUser) {
+                    document.getElementById('userArea').style.display = 'block';
+                    document.getElementById('loginBtnArea').style.display = 'none';
+                    
+                    const username = currentUser;
+                    document.getElementById('userNamePrefix').textContent = username.charAt(0).toUpperCase();
+                    
+                    // 关键修改：修正接口路径（根据后端实际路径调整）
+                    const apiUrl = `/api/users/id?username=${encodeURIComponent(username)}`; 
+                    console.log('请求用户ID的接口地址：', apiUrl); // 打印出来确认路径是否正确
+                    
+                    fetch(apiUrl)
+                        .then(response => {
+                            console.log('接口响应状态码：', response.status); // 打印状态码
+                            if (!response.ok) {
+                                // 把后端返回的错误信息打印出来，避免盲目报错
+                                return response.json().then(errData => {
+                                    throw new Error(`接口返回错误：${errData.message || response.statusText}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('接口返回完整数据：', data); // 打印后端返回的所有数据
+                            // 确认后端返回格式，再提取userId（关键！避免拿错字段）
+                            if (data.data && data.data.userId) {
+                                localStorage.setItem('userId', data.data.userId);
+                                console.log('获取用户ID成功：', data.data.userId);
+                            } else {
+                                throw new Error('后端返回格式错误，未找到userId');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取用户ID失败详情：', error.message); // 打印具体失败原因
+                            // 优化：只在“登录失效”时跳转，获取ID失败不清除登录状态（避免误跳）
+                            alert(`获取用户信息失败：${error.message}\n但您已登录，可尝试重新发布`);
+                            // 注释掉这两行，避免误清除登录状态和跳转
+                            // localStorage.removeItem('currentUser');
+                            // window.location.href = 'login.html';
+                        });
+                } else {
+                    // 真正未登录时才跳转（这部分是对的）
+                    document.getElementById('userArea').style.display = 'none';
+                    document.getElementById('loginBtnArea').style.display = 'block';
+                    window.location.href = 'login.html';
+                }
+            }
+            
+            // 初始化页面
+            checkLoginStatus();
+        });
+    </script>
+    <script src="community.js"></script>
+</body>
+</html>

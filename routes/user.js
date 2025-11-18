@@ -185,4 +185,55 @@ router.get('/online_users', async (req, res) => {
   }
 });
 
+router.get('/id', async (req, res) => {
+  try {
+    // 1. 获取查询参数中的 username（前端通过 ?username=xxx 传入）
+    const { username } = req.query;
+
+    // 2. 校验参数：username 不能为空
+    if (!username || username.trim() === '') {
+      return res.status(400).json({
+        code: 400,
+        message: '参数错误：username 不能为空',
+        data: null
+      });
+    }
+
+    // 3. 数据库查询：根据 username 查找对应的 id（参数化查询防 SQL 注入）
+    const [rows] = await pool.execute(
+      'SELECT id FROM users WHERE username = ? LIMIT 1', // 只查1条匹配记录
+      [username.trim()] // 传入参数（自动转义，避免注入）
+    );
+
+    // 4. 处理查询结果
+    if (rows.length > 0) {
+      // 找到用户：返回 id
+      return res.status(200).json({
+        code: 200,
+        message: '查询成功',
+        data: {
+          username: username.trim(),
+          userId: rows[0].id // 返回查询到的用户 id
+        }
+      });
+    } else {
+      // 未找到用户：返回 404
+      return res.status(404).json({
+        code: 404,
+        message: `未找到用户名 ${username.trim()} 对应的用户`,
+        data: null
+      });
+    }
+
+  } catch (err) {
+    // 5. 捕获数据库/服务器错误
+    console.error('查询用户 id 接口错误：', err);
+    return res.status(500).json({
+      code: 500,
+      message: '服务器内部错误，查询失败',
+      error: err.message // 生产环境可删除此字段，避免泄露敏感信息
+    });
+  }
+});
+
 module.exports = router;

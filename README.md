@@ -29,3 +29,15 @@ Node.js + Express + MySQL
     对密码进行加密（使用 bcrypt，防止明文泄露）。
     将加密后的密码和用户名存入数据库。
     结果反馈：后端返回成功 / 失败信息，前端根据结果提示用户或跳转至登录页。
+
+npm install morgan --save
+const morgan = require('morgan'); // 引入 morgan
+
+npm install multer --save
+const express = require('express');
+const router = express.Router();
+const multer = require('multer');
+const pool = require('../db/config'); // 你的数据库连接配置（和 login.js 一致）
+const path = require('path');
+const fs = require('fs');
+
