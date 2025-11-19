@@ -208,3 +208,6 @@ function resetInactivityTimer() {
   // 初始化时启动计时器
   resetInactivityTimer();
 });
+
+mapElement.style.backgroundImage =
+    `url('/assets/map_view/maps/${mapId}.jpg')`;

@@ -86,3 +86,5 @@ app.listen(port, () => console.log(`Server listening on ${port}`));
 
 // 5. 导出 app 实例（供 server.js 启动服务器）
 module.exports = app;
+
+app.use('/assets', express.static('assets'));
