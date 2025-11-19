@@ -49,3 +49,5 @@ const pool = require('../db/config'); // 你的数据库连接配置（和 login
 const path = require('path');
 const fs = require('fs');
 
+npm install jsonwebtoken mysql2 express
+

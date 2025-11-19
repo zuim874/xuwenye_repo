@@ -317,8 +317,28 @@
             background-color: #e63946;
         }
 
-        .user-info:hover .logout-btn {
-            display: block;
+        /* 在用户信息样式部分添加 */
+        .myinfo-btn {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #16213e;
+            border: 1px solid #1a1a2e;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .myinfo-btn:hover {
+            background-color: #e63946;
+        }
+
+        /* 调整登出按钮位置，使其在我的按钮下方 */
+        .logout-btn {
+            top: calc(100% + 30px); /* 增加top值，在我的按钮下方 */
         }
         
         /* 响应式设计 */
@@ -361,7 +381,8 @@
                 <div id="userArea" style="display: none;">
                     <div class="user-info">
                         <span class="user-initial" id="userNamePrefix"></span>
-                        <div class="logout-btn" id="logoutBtn">注销</div>
+                        <div class="logout-btn" id="logoutBtn">登出</div>
+                        <div class="myinfo-btn" id="myinfoBtn">我的</div>
                     </div>
                 </div>
                 <div id="loginBtnArea">

@@ -39,7 +39,10 @@ router.post('/', async (req, res) => {
     res.status(200).json({
       code: 200,
       message: '登录成功',
-      data: { username: user.username }
+      data: { 
+        username: user.username,
+        user_id:user.id
+      }
     });
 
   } catch (err) {
