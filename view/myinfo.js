@@ -73,7 +73,6 @@ function checkLoginStatus() {
 /**
  * 获取用户详情（注册时间等）
  * @param {string} userId - 用户ID
- * @param {string} token - 登录凭证Token
  */
 async function fetchUserProfile(userId) {
     try {

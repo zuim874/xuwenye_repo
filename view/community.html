@@ -653,6 +653,35 @@
 
         // 设置定时器，每5分钟更新一次（总用户数变化频率低，可适当延长间隔）
         setInterval(updateTotalUsers, 300000); // 300000毫秒 = 5分钟
+
+        // 1. 定义获取并更新帖子总数的函数
+        function updateTotalPosts() {
+            // 调用后端 postRoutes.js 的 /api/posts 接口（已返回 total）
+            fetch('/api/posts?page=1&limit=1') // 只拿1条数据，减少传输量，重点要 total
+            .then(response => {
+                if (!response.ok) throw new Error('接口请求失败');
+                return response.json();
+            })
+            .then(data => {
+                // 从接口返回的 pagination 中拿到 total（后端已统计好的总数）
+                if (data.code === 200 && data.data.pagination) {
+                const total = data.data.pagination.total;
+                // 格式化数字（比如 1234 → 1,234），和其他统计数据格式一致
+                const formattedTotal = total.toLocaleString();
+                // 渲染到页面的 totalPosts 元素中
+                document.getElementById('totalPosts').textContent = formattedTotal;
+                }
+            })
+            .catch(error => {
+                console.error('更新帖子总数失败：', error);
+            });
+        }
+
+        // 2. 页面加载时立即更新一次
+        updateTotalPosts();
+
+        // 3. 定时更新（每5分钟更新一次，和其他统计数据同步）
+        setInterval(updateTotalPosts, 300000); // 300000毫秒 = 5分钟
     </script>
 
     <!-- 所有页面都添加这行引入，位置建议在其他脚本之前 -->
