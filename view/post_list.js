@@ -111,31 +111,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 9. 辅助函数：格式化相对时间（如：10分钟前、2小时前）
     function formatRelativeDate(dateString) {
         if (!dateString) return '未知时间';
-
-        const postDate = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - postDate; // 时间差（毫秒）
-
-        const second = 1000;
-        const minute = second * 60;
-        const hour = minute * 60;
-        const day = hour * 24;
-        const month = day * 30;
-        const year = day * 365;
-
-        if (diffMs < minute) {
-            return `${Math.floor(diffMs / second)}秒前`;
-        } else if (diffMs < hour) {
-            return `${Math.floor(diffMs / minute)}分钟前`;
-        } else if (diffMs < day) {
-            return `${Math.floor(diffMs / hour)}小时前`;
-        } else if (diffMs < month) {
-            return `${Math.floor(diffMs / day)}天前`;
-        } else if (diffMs < year) {
-            return `${Math.floor(diffMs / month)}个月前`;
-        } else {
-            return `${Math.floor(diffMs / year)}年前`;
-        }
+        
+        // 核心：直接截取字符串前19位（覆盖两种常见格式），替换T为空格
+        const pureDateTime = dateString.slice(0, 19).replace('T', ' ');
+        
+        // 验证格式是否正确（避免异常字符串）
+        const reg = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+        return reg.test(pureDateTime) ? pureDateTime : '无效时间';
     }
 
     // 10. 辅助函数：HTML转义（防止XSS攻击）
