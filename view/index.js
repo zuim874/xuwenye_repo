@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     try {
-      await fetch('/api/users/logout', { // 注意：注销接口路径是 /api/users/logout（之前可能写错）
+      await fetch('/api/logout', { // 注意：注销接口路径是 /api/users/logout（之前可能写错）
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: currentUser })
@@ -47,13 +47,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 3. 点击其他区域关闭注销按钮（无改动）
   document.addEventListener('click', function() {
-    logoutBtn.style.display = 'none';
+      logoutBtn.style.display = 'none';
+      myinfoBtn.style.display = 'none';
   });
 
   // 4. 点击用户名前缀显示注销按钮（无改动）
   userNamePrefix.addEventListener('click', function(e) {
-    e.stopPropagation();
-    logoutBtn.style.display = logoutBtn.style.display === 'block' ? 'none' : 'block';
+      e.stopPropagation();
+      // 同时切换两个按钮的显示状态
+      const isShowing = logoutBtn.style.display === 'block';
+      logoutBtn.style.display = isShowing ? 'none' : 'block';
+      myinfoBtn.style.display = isShowing ? 'none' : 'block';
   });
 
   // 5. 登录按钮跳转（无改动）
@@ -63,6 +67,14 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       window.location.href = 'login.html';
     });
+  }
+  // 我的信息按钮跳转
+  const myinfoBtn = document.getElementById('myinfoBtn');
+  if (myinfoBtn) {
+      myinfoBtn.addEventListener('click', function(e) {
+          e.stopPropagation(); // 防止事件冒泡导致按钮立即隐藏
+          window.location.href = 'myinfo.html'; // 跳转到我的信息页面
+      });
   }
 
   // 6. 核心修复：心跳函数（解决 username=undefined 问题）

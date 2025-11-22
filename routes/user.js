@@ -236,4 +236,156 @@ router.get('/id', async (req, res) => {
   }
 });
 
+// 接口 1：GET /api/users/:id → 查询用户详情（仅本人或管理员可访问）
+router.get('/:id', async (req, res) => {
+  const userId = req.params.id;
+  // 关键修改：从请求头获取前端传递的「登录用户ID」（替代原 req.user.userId）
+  // 前端需在请求头添加：X-Login-User-Id: 登录用户的id（从localStorage取userId）
+  const loginUserId = req.headers['x-login-user-id'];
+
+  // 新增：校验前端是否传递了登录状态（避免未登录访问）
+  if (!loginUserId) {
+    return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+  }
+
+  try {
+    const [rows] = await pool.execute(
+      'SELECT id, username, created_at, avatar, user_power FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ code: 404, message: '用户不存在' });
+    }
+
+    const user = rows[0];
+    // 权限校验逻辑不变（仅本人或管理员可看），但用新的 loginUserId 对比
+    // 注意：数据库 id 可能是数字，这里转字符串避免类型不一致问题
+    if (String(user.id) !== loginUserId && user.user_power !== 0) {
+      return res.status(403).json({ code: 403, message: '无权限查看他人资料' });
+    }
+
+    res.status(200).json({
+      code: 200,
+      data: {
+        id: user.id,
+        username: user.username,
+        created_at: user.created_at,
+        avatar: user.avatar || null,
+        user_power: user.user_power
+      }
+    });
+  } catch (error) {
+    console.error('查询用户详情失败（连接池）：', error);
+    res.status(500).json({ code: 500, message: '服务器错误，获取用户资料失败' });
+  }
+});
+
+// 接口 2：GET /api/users/:id/posts → 查询用户发布的帖子（仅本人可访问）
+router.get('/:id/posts', async (req, res) => {
+  const userId = req.params.id;
+  // 关键修改：从请求头获取前端传递的「登录用户ID」
+  const loginUserId = req.headers['x-login-user-id'];
+
+  // 新增：校验登录状态
+  if (!loginUserId) {
+    return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+  }
+
+  try {
+    // 权限校验：仅本人可看（用新的 loginUserId 对比，转字符串避免类型问题）
+    if (userId !== loginUserId) {
+      return res.status(403).json({ code: 403, message: '无权限查看他人帖子' });
+    }
+
+    const [posts] = await pool.execute(
+      `SELECT id, user_id, title, content, tags, video_url, created_at, updated_at, view_count, like_count, comment_count 
+       FROM posts WHERE user_id = ? AND is_deleted = 0 
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    const [statsRows] = await pool.execute(
+      `SELECT COUNT(*) as post_count, SUM(like_count) as total_likes, SUM(comment_count) as total_comments 
+       FROM posts WHERE user_id = ? AND is_deleted = 0`,
+      [userId]
+    );
+
+    const stats = statsRows[0];
+
+    res.status(200).json({
+      code: 200,
+      data: {
+        posts: posts,
+        stats: {
+          post_count: stats.post_count || 0,
+          total_likes: stats.total_likes || 0,
+          total_comments: stats.total_comments || 0
+        }
+      }
+    });
+  } catch (error) {
+    console.error('查询用户帖子失败（连接池）：', error);
+    res.status(500).json({ code: 500, message: '服务器错误，获取帖子失败' });
+  }
+});
+
+// 新增：删除用户帖子接口（DELETE /api/users/:id/posts/:postId）
+// 路径呼应查询接口，权限：仅帖子作者本人可删除
+router.delete('/:id/posts/:postId', async (req, res) => {
+  try {
+    // 1. 获取路径参数：用户ID（:id）、帖子ID（:postId）
+    const targetUserId = req.params.id;
+    const postId = req.params.postId;
+    // 2. 从请求头获取当前登录用户ID（和现有查询接口权限逻辑一致）
+    const loginUserId = req.headers['x-login-user-id'];
+
+    // 3. 基础校验：登录状态 + 参数有效性
+    if (!loginUserId) {
+      return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+    }
+    if (!postId || isNaN(postId)) {
+      return res.status(400).json({ code: 400, message: '帖子ID无效' });
+    }
+
+    // 4. 权限校验：仅本人可删除自己的帖子（和查询接口逻辑一致）
+    if (targetUserId !== loginUserId) {
+      return res.status(403).json({ code: 403, message: '无权限删除他人帖子' });
+    }
+
+    // 5. 校验帖子是否存在 + 是否属于当前用户（防删不存在/他人帖子）
+    const [existingPosts] = await pool.execute(
+      `SELECT id FROM posts 
+       WHERE id = ? AND user_id = ? AND is_deleted = 0`, // 只删未被软删除的帖子
+      [postId, loginUserId]
+    );
+    if (existingPosts.length === 0) {
+      return res.status(404).json({ code: 404, message: '帖子不存在或已被删除' });
+    }
+
+    // 6. 执行软删除（和查询接口的 is_deleted 逻辑呼应，不物理删除数据）
+    await pool.execute(
+      `UPDATE posts 
+       SET is_deleted = 1, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = ? AND user_id = ?`,
+      [postId, loginUserId]
+    );
+
+    // 7. 返回成功响应（格式和现有接口一致）
+    res.status(200).json({
+      code: 200,
+      message: '帖子删除成功'
+    });
+
+  } catch (error) {
+    // 8. 错误处理（和现有接口风格一致）
+    console.error('删除用户帖子失败：', error);
+    res.status(500).json({
+      code: 500,
+      message: '服务器错误，删除帖子失败',
+      errorMessage: error.message
+    });
+  }
+});
+
 module.exports = router;

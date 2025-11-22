@@ -312,11 +312,11 @@
 
             // 成功逻辑：存储用户信息 + 跳转页面 + 显示成功提示
             // 注意：根据后端返回结构调整（如果后端返回 {message: "成功", username: "xxx"}，则用 data.username）
-            localStorage.setItem('currentUser', data.user?.username || data.username); 
             loginSuccess.style.display = 'block'; // 显示登录成功提示（可选）
             console.log('登录成功', data);
-            localStorage.setItem('currentUser', username); // 存储当前登录用户
-
+            localStorage.setItem('currentUser', data.data.username); // 缓存用户名
+            localStorage.setItem('userId', data.data.user_id);      // 新增：缓存用户ID
+            
             // 启动心跳机制（关键：登录成功后立即启动）
             startHeartbeat();
 

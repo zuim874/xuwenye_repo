@@ -1,3 +1,11 @@
+本机测试项目：
+需使用my sql作为数据库软件
+修改config/db.js中的配置文件
+    password: process.env.DB_PASSWORD || '884560',
+将' '中的密码改成自己数据库的密码
+在项目文件夹地址栏输入cmd打开终端，输入node app.js打开服务
+win+r输入services.msc找到MYSQL..字样打开服务即可（确保数据库'cs2_utility'存在，数据表存于model）
+
 20251024
 
 20251110
@@ -40,4 +48,6 @@ const multer = require('multer');
 const pool = require('../db/config'); // 你的数据库连接配置（和 login.js 一致）
 const path = require('path');
 const fs = require('fs');
+
+npm install jsonwebtoken mysql2 express
 

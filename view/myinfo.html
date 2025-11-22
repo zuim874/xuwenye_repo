@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的内容 - CS2UTIL</title>
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏样式 */
+        header {
+            background-color: #1e293b;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: #e63946;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a.active,
+        .nav-links a:hover {
+            color: #e63946;
+        }
+
+        .user-info {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-initial {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            color: #e63946;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            width: 180px;
+            padding: 10px 0;
+            display: none;
+            z-index: 100;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu button {
+            width: 100%;
+            padding: 10px 15px;
+            text-align: left;
+            background: none;
+            border: none;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .user-menu button:hover {
+            background-color: #0f3460;
+        }
+
+        /* 主内容样式 */
+        .main-content {
+            flex: 1;
+            padding: 40px 0;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #f8fafc;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        /* 个人资料区域 */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            color: #e63946;
+            font-weight: bold;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: #f8fafc;
+        }
+
+        .profile-joined {
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e63946;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #a0a0a0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 我的帖子区域 */
+        .my-posts-section {
+            background-color: #16213e;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 30px;
+            background-color: #0f3460;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: "📝";
+        }
+
+        .new-post-btn {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .new-post-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(230, 57, 70, 0.3);
+        }
+
+        .posts-list {
+            padding: 20px;
+        }
+
+        .post-card {
+            background-color: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .post-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e63946;
+            font-weight: bold;
+        }
+
+        .author-info h4 {
+            color: #f8fafc;
+            margin-bottom: 3px;
+        }
+
+        .post-date {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 8px;
+        }
+
+        .post-tag {
+            background-color: #0f3460;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #e2e8f0;
+        }
+
+        .post-content h3 {
+            color: #f8fafc;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .post-content p {
+            color: #94a3b8;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .post-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .post-video {
+            margin-bottom: 15px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .post-video video {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .edit-btn {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: #2563eb;
+        }
+
+        .delete-btn {
+            background-color: #e63946;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #c1121f;
+        }
+
+        /* 状态提示样式 */
+        .loading-indicator, .error-message, .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .loading-indicator::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #e63946;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #e63946;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #16213e;
+            padding: 30px 0;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid #0f3460;
+        }
+
+        .footer-content {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+
+        .footer-section {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer-section h3 {
+            color: #e6e6e6;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .profile-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 30px 20px;
+                gap: 25px;
+            }
+
+            .profile-stats {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .stat-item {
+                flex: 1 0 30%;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .posts-list {
+                padding: 20px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-links {
+                gap: 15px;
+            }
+
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 48px;
+            }
+
+            .profile-name {
+                font-size: 26px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="post_list.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="community.html">社区</a>
+                <a href="myinfo.html" class="active">我的</a>
+                <div id="userArea" style="display: none;">
+                    <div class="user-info">
+                        <span class="user-initial" id="userNamePrefix"></span>
+                        <div class="user-menu" id="userMenu">
+                            <button id="logoutBtn">退出登录</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="loginBtnArea">
+                    <a href="login.html">登录</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <div class="page-header">
+            <h1 class="page-title">我的内容</h1>
+            <p class="page-subtitle">管理和查看您发布的所有帖子，跟踪您的社区贡献和互动</p>
+        </div>
+        
+        <!-- 用户资料区域 -->
+        <div class="profile-section">
+            <div class="profile-avatar" id="profileAvatar">U</div>
+            <div class="profile-info">
+                <h2 class="profile-name" id="profileName">加载中...</h2>
+                <div class="profile-joined" id="profileJoined">注册时间：加载中...</div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="postCount">0</div>
+                        <div class="stat-label">发布帖子</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="likeCount">0</div>
+                        <div class="stat-label">获得点赞</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="commentCount">0</div>
+                        <div class="stat-label">收到评论</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 我的帖子区域 -->
+        <div class="my-posts-section">
+            <div class="section-header">
+                <h2 class="section-title">我的帖子</h2>
+                <a href="writer.html" class="new-post-btn">发布新帖子</a>
+            </div>
+            
+            <div class="posts-list" id="myPostsList">
+                <!-- 帖子列表将由JavaScript动态生成 -->
+                <div class="loading-indicator">加载中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>CS2UTIL</h3>
+                    <p>提供最全面的CS2实用指南，帮助玩家提升游戏水平。</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="myinfo.js"></script>
+</body>
+</html>
