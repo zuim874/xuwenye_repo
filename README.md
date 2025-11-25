@@ -51,3 +51,7 @@ const fs = require('fs');
 
 npm install jsonwebtoken mysql2 express
 
+npm install mongoose
+
+npm install mysql2@latest dotenv --save
+

@@ -12,6 +12,7 @@ const userRouter = require('./routes/user'); // 用户查询路由（后续创�
 const { errorHandler } = require('./middleware/errorHandler'); // 全局错误处理（后续创建）
 const logoutRouter = require('./routes/logout'); // 注销路由
 const postRoutes = require('./routes/postRoutes'); // 帖子相关路由
+const statsRoutes = require('./routes/statsRoutes');
 // 1. 创建 Express 实例
 const app = express();
 
@@ -70,6 +71,7 @@ app.use('/api/users', userRouter); // 查询所有用户接口：GET /api/users
 app.use('/api/logout', logoutRouter); // 注销接口：/api/logout
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // 静态托管上传文件目录
 app.use('/api/posts', postRoutes); // 帖子相关接口：/api/posts
+app.use('/api/stats', statsRoutes); // 统计相关接口：/api/stats
 
 // 临时测试路由：确认 POST 能被接收
 app.post('/api/login-test', (req, res) => {

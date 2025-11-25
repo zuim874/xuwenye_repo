@@ -5,265 +5,375 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CS2 Utility Guide - 地图选择</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body {
-      background-color: #1a1a2e;
-      color: #e6e6e6;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    header {
-      background-color: #16213e;
-      padding: 15px 0;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      font-size: 24px;
-      font-weight: bold;
-      color: #e63946;
-    }
-    .nav-links {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-    .nav-links a {
-      color: #e6e6e6;
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-    .nav-links a:hover {
-      color: #e63946;
-    }
-    .main-content {
-      padding: 40px 0;
-    }
-    .page-title {
-      font-size: 32px;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .page-subtitle {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #a0a0a0;
-    }
-    .map-selection {
-      margin-top: 30px;
-    }
-    .map-scroll-container {
-      overflow-x: auto;
-      padding: 10px 0;
-      scrollbar-width: thin;
-      scrollbar-color: #e63946 #1a1a2e;
-    }
-    .map-scroll-container::-webkit-scrollbar {
-      height: 8px;
-    }
-    .map-scroll-container::-webkit-scrollbar-track {
-      background: #1a1a2e;
-    }
-    .map-scroll-container::-webkit-scrollbar-thumb {
-      background-color: #e63946;
-      border-radius: 4px;
-    }
-    .maps-grid {
-      display: flex;
-      gap: 20px;
-      width: max-content;
-      padding: 0 10px;
-    }
-    .map-card {
-      width: 280px;
-      background-color: #16213e;
-      border-radius: 8px;
-      overflow: hidden;
-      transition: transform 0.3s, box-shadow 0.3s;
-      cursor: pointer;
-    }
-    .map-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    }
-    .map-image {
-      width: 100%;
-      height: 160px;
-      background-size: cover;
-      background-position: center;
-    }
-    .map-info {
-      padding: 15px;
-    }
-    .map-name {
-      font-size: 20px;
-      margin-bottom: 5px;
-    }
-    .map-description {
-      color: #a0a0a0;
-      font-size: 14px;
-    }
-    .map-2d-container {
-      display: none;
-      margin-top: 30px;
-      background-color: #16213e;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    .map-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 20px;
-      background-color: #0f3460;
-      border-bottom: 1px solid #1a1a2e;
-    }
-    .map-title {
-      font-size: 24px;
-      font-weight: bold;
-    }
-    .back-button {
-      background-color: #e63946;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .back-button:hover {
-      background-color: #c1121f;
-    }
-    .map-content {
-      display: flex;
-      height: 600px;
-    }
-    .map-2d {
-      flex: 1;
-      background-color: #0d1b2a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-    #mapCanvas img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-    .map-controls {
-      width: 300px;
-      padding: 20px;
-      background-color: #16213e;
-      border-left: 1px solid #1a1a2e;
-      overflow-y: auto;
-    }
-    .control-section {
-      margin-bottom: 25px;
-    }
-    .section-title {
-      font-size: 18px;
-      margin-bottom: 15px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid #1a1a2e;
-    }
-    .nade-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .nade-option {
-      padding: 8px 12px;
-      background-color: #0f3460;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .nade-option.active {
-      background-color: #e63946;
-    }
-    .team-options {
-      display: flex;
-      gap: 10px;
-    }
-    .team-option {
-      flex: 1;
-      padding: 8px;
-      text-align: center;
-      background-color: #0f3460;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .team-option.active {
-      background-color: #e63946;
-    }
-    .callout-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .callout-toggle {
-      width: 40px;
-      height: 20px;
-      background-color: #0f3460;
-      border-radius: 10px;
-      position: relative;
-      cursor: pointer;
-    }
-    .callout-toggle.active {
-      background-color: #e63946;
-    }
-    .toggle-knob {
-      width: 16px;
-      height: 16px;
-      background-color: white;
-      border-radius: 50%;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      transition: left 0.3s;
-    }
-    .callout-toggle.active .toggle-knob {
-      left: 22px;
-    }
-    @media (max-width: 768px) {
-      .map-content {
-        flex-direction: column;
-        height: auto;
-      }
-      .map-2d {
-        height: 400px;
-      }
-      .map-controls {
-        width: 100%;
-        border-left: none;
-        border-top: 1px solid #1a1a2e;
-      }
-      .maps-grid {
-        gap: 12px;
-        padding: 0 8px;
-      }
-      .map-card {
-        width: 100%;
-      }
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #a0a0a0;
+        }
+        
+        /* 地图选择区域 */
+        .map-selection {
+            margin-top: 30px;
+        }
+        
+        .map-scroll-container {
+            overflow-x: auto;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #e63946 #1a1a2e;
+        }
+        
+        .map-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .map-scroll-container::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        .map-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #e63946;
+            border-radius: 4px;
+        }
+        
+        .maps-grid {
+            display: flex;
+            gap: 20px;
+            width: max-content;
+            padding: 0 10px;
+        }
+        
+        .map-card {
+            width: 280px;
+            background-color: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .map-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .map-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background-position: center;
+        }
+        
+        .map-info {
+            padding: 15px;
+        }
+        
+        .map-name {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .map-description {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        /* 2D地图界面 */
+        .map-2d-container {
+            display: none;
+            margin-top: 30px;
+            background-color: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #0f3460;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .map-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .back-button {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .back-button:hover {
+            background-color: #c1121f;
+        }
+        
+        .map-content {
+            display: flex;
+            height: 600px;
+        }
+        
+        .map-2d {
+            flex: 1;
+            background-color: #0d1b2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #mapCanvas img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+
+        .map-controls {
+            width: 300px;
+            padding: 20px;
+            background-color: #16213e;
+            border-left: 1px solid #1a1a2e;
+            overflow-y: auto;
+        }
+        
+        .control-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .nade-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .nade-option {
+            padding: 8px 12px;
+            background-color: #0f3460;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .nade-option.active {
+            background-color: #e63946;
+        }
+        
+        .team-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .team-option {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            background-color: #0f3460;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .team-option.active {
+            background-color: #e63946;
+        }
+        
+        .callout-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .callout-toggle {
+            width: 40px;
+            height: 20px;
+            background-color: #0f3460;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .callout-toggle.active {
+            background-color: #e63946;
+        }
+        
+        .toggle-knob {
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+        
+        .callout-toggle.active .toggle-knob {
+            left: 22px;
+        }
+
+        /* 用户信息样式 */
+        .user-info {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-initial {
+            color: #e6e6e6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #16213e;
+            border: 1px solid #1a1a2e;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+            margin-top: 5px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .logout-btn:hover {
+            background-color: #e63946;
+        }
+
+        /* 在用户信息样式部分添加 */
+        .myinfo-btn {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #16213e;
+            border: 1px solid #1a1a2e;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .myinfo-btn:hover {
+            background-color: #e63946;
+        }
+
+        /* 调整登出按钮位置，使其在我的按钮下方 */
+        .logout-btn {
+            top: calc(100% + 30px); /* 增加top值，在我的按钮下方 */
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .map-content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .map-2d {
+                height: 400px;
+            }
+            
+            .map-controls {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #1a1a2e;
+            }
+            
+            .maps-grid {
+                gap: 12px;
+                padding: 0 8px;
+            }
+            
+            .map-card {
+                width: 100%;
+            }
+        }
   </style>
 </head>
 <body>
@@ -271,9 +381,19 @@
     <div class="container header-content">
       <div class="logo">CS2UTIL</div>
       <div class="nav-links">
-        <a href="index.html">首页</a>
-        <a href="community.html">社区</a>
-        <!-- 用户区略，可以按你原来逻辑保留 -->
+          <a href="index.html">首页</a>
+          <a href="community.html">社区</a>
+          <!-- 在index.html的导航栏部分修改userArea -->
+          <div id="userArea" style="display: none;">
+              <div class="user-info">
+                  <span class="user-initial" id="userNamePrefix"></span>
+                  <div class="logout-btn" id="logoutBtn">登出</div>
+                  <div class="myinfo-btn" id="myinfoBtn">我的</div>
+              </div>
+          </div>
+          <div id="loginBtnArea">
+              <a href="login.html">登录</a>
+          </div>
       </div>
     </div>
   </header>
@@ -386,7 +506,9 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      // 获取DOM元素
       const mapCards = document.querySelectorAll('.map-card');
       const map2dContainer = document.getElementById('map2dContainer');
       const currentMapTitle = document.getElementById('currentMapTitle');
@@ -396,6 +518,7 @@
       const calloutToggle = document.getElementById('calloutToggle');
       const nadeToggle = document.getElementById('nadeToggle');
 
+      // 地图数据
       const mapData = {
         dust2: { name: 'Dust II', image: '../assets/maps/dust2.jpg' },
         mirage: { name: 'Mirage', image: '../assets/maps/mirage.jpg' },
@@ -405,37 +528,50 @@
         overpass: { name: 'Overpass', image: '../assets/maps/overpass.jpg' }
       };
 
+      // 点击地图卡片事件
       mapCards.forEach(card => {
         card.addEventListener('click', function () {
           const mapId = card.dataset.map;
           if (!mapId || !mapData[mapId]) return;
 
+          // 显示 2D 界面，并初始化地图数据
           currentMapTitle.textContent = mapData[mapId].name;
           initMap(mapId);
           map2dContainer.style.display = 'block';
         });
       });
 
+      // 返回按钮事件
       backButton.addEventListener('click', function () {
         map2dContainer.style.display = 'none';
       });
 
+      // 投掷物类型选择事件
       nadeOptions.forEach(opt => {
         opt.addEventListener('click', function () {
+          // 移除所有active类
           nadeOptions.forEach(o => o.classList.remove('active'));
+          // 添加active类到当前选项
           this.classList.add('active');
+          // 更新地图显示（这里简化处理）
           updateMapDisplay();
         });
       });
 
-      teamOptions.forEach(opt => {
-        opt.addEventListener('click', function () {
-          teamOptions.forEach(o => o.classList.remove('active'));
-          this.classList.add('active');
-          updateMapDisplay();
+        // 队伍选择事件
+        teamOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // 移除所有active类
+                teamOptions.forEach(opt => opt.classList.remove('active'));
+                // 添加active类到当前选项
+                this.classList.add('active');
+                
+                // 更新地图显示（这里简化处理）
+                updateMapDisplay();
+            });
         });
-      });
 
+      // 切换按钮事件
       calloutToggle.addEventListener('click', function () {
         this.classList.toggle('active');
         updateMapDisplay();
@@ -446,10 +582,13 @@
         updateMapDisplay();
       });
 
+      // 初始化2D地图
       function initMap(mapId) {
         const mapCanvas = document.getElementById('mapCanvas');
+        // 清空地图内容
         mapCanvas.innerHTML = '';
 
+        // 创建地图容器
         const img = document.createElement('img');
         img.src = mapData[mapId].image;
         img.alt = mapData[mapId].name + ' 2D 图';
@@ -470,5 +609,6 @@
       initMap('dust2');
     });
   </script>
+  <script src="index.js"></script>
 </body>
 </html>

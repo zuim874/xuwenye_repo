@@ -520,19 +520,18 @@
                     <h3>快速链接</h3>
                     <ul class="footer-links">
                         <li><a href="index.html">首页</a></li>
-                        <li><a href="maps.html">地图指南</a></li>
-                        <li><a href="pros.html">职业选手设置</a></li>
-                        <li><a href="crosshairs.html">准星库</a></li>
+                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
+                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
                         <li><a href="community.html">社区</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h3>支持</h3>
                     <ul class="footer-links">
-                        <li><a href="help.html">帮助中心</a></li>
-                        <li><a href="contact.html">联系我们</a></li>
-                        <li><a href="privacy.html">隐私政策</a></li>
-                        <li><a href="terms.html">使用条款</a></li>
+                        <li><a href="">帮助中心</a></li>
+                        <li><a href="">联系我们</a></li>
+                        <li><a href="">隐私政策</a></li>
+                        <li><a href="">使用条款</a></li>
                     </ul>
                 </div>
             </div>
@@ -682,6 +681,35 @@
 
         // 3. 定时更新（每5分钟更新一次，和其他统计数据同步）
         setInterval(updateTotalPosts, 300000); // 300000毫秒 = 5分钟
+
+        async function fetchAndUpdateDailyViews() {
+            try {
+                console.log('🔄 开始获取每日访问量...');
+                
+                const response = await fetch('/api/stats/daily-views');
+                const result = await response.json();
+                
+                console.log('📊 访问量接口返回:', result);
+                
+                const viewsElement = document.getElementById('totalLooks');
+                if (result.success) {
+                    viewsElement.textContent = result.dailyViews.toLocaleString();
+                    console.log(`✅ 访问量更新成功: ${result.dailyViews}`);
+                } else {
+                    viewsElement.textContent = '0';
+                    console.error('❌ 访问量接口返回失败:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 访问量获取失败：', error);
+                document.getElementById('totalLooks').textContent = '获取失败';
+            }
+        }
+
+        // 页面加载时立即执行
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 页面加载完成，开始统计访问量');
+            fetchAndUpdateDailyViews();
+        });
     </script>
 
     <!-- 所有页面都添加这行引入，位置建议在其他脚本之前 -->
