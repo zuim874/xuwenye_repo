@@ -88,6 +88,42 @@ router.get('/id', async (req, res) => {
 });
 
 /**
+ * 在线用户查询接口（自动同步在线状态）
+ * GET /api/users/online_users
+ */
+router.get('/online_users', async (req, res) => {
+    try {
+        // 批量更新在线状态（1分钟无活跃视为离线）
+        await pool.execute(`
+            UPDATE users 
+            SET is_online = CASE 
+                WHEN last_active > DATE_SUB(NOW(), INTERVAL 1 MINUTE) THEN 1
+                ELSE 0
+            END
+        `);
+
+        // 查询在线用户
+        const [onlineUsers] = await pool.execute(
+            `SELECT username, last_active 
+             FROM users 
+             WHERE is_online = 1 
+             ORDER BY last_active DESC`
+        );
+
+        res.status(200).json({
+            code: 200,
+            message: '查询成功',
+            data: {
+                onlineUsers: onlineUsers,
+                onlineCount: onlineUsers.length
+            }
+        });
+    } catch (err) {
+        handleError(res, err, '查询在线用户');
+    }
+});
+
+/**
  * 查询用户详情（需登录，仅本人或管理员可访问）
  * GET /api/users/:id
  */
@@ -259,42 +295,6 @@ router.post('/heartbeat', async (req, res) => {
         res.status(200).json({ code: 200, message: '心跳成功' });
     } catch (err) {
         handleError(res, err, '心跳接口');
-    }
-});
-
-/**
- * 在线用户查询接口（自动同步在线状态）
- * GET /api/users/online_users
- */
-router.get('/online_users', async (req, res) => {
-    try {
-        // 批量更新在线状态（1分钟无活跃视为离线）
-        await pool.execute(`
-            UPDATE users 
-            SET is_online = CASE 
-                WHEN last_active > DATE_SUB(NOW(), INTERVAL 1 MINUTE) THEN 1
-                ELSE 0
-            END
-        `);
-
-        // 查询在线用户
-        const [onlineUsers] = await pool.execute(
-            `SELECT username, last_active 
-             FROM users 
-             WHERE is_online = 1 
-             ORDER BY last_active DESC`
-        );
-
-        res.status(200).json({
-            code: 200,
-            message: '查询成功',
-            data: {
-                onlineUsers: onlineUsers,
-                onlineCount: onlineUsers.length
-            }
-        });
-    } catch (err) {
-        handleError(res, err, '查询在线用户');
     }
 });
 
