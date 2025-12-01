@@ -360,6 +360,45 @@
             top: calc(100% + 30px); /* 增加top值，在我的按钮下方 */
         }
         
+
+        /* 投掷物图标样式 */
+        .nade-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 10;
+        }
+
+        .nade-marker:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .nade-marker.smoke {
+            background-color: #4CAF50; /* 绿色 */
+        }
+
+        .nade-marker.flash {
+            background-color: #FFC107; /* 黄色 */
+        }
+
+        .nade-marker.molotov {
+            background-color: #F44336; /* 红色 */
+        }
+
+        .nade-marker.grenade {
+            background-color: #2196F3; /* 蓝色 */
+        }
         /* 响应式设计 */
         /* 响应式设计 */
         @media (max-width: 768px) {
@@ -505,18 +544,11 @@
           <div class="control-section">
             <h3 class="section-title">投掷物类型</h3>
             <div class="nade-options">
+              <div class="nade-option active" data-type="all">全部</div>
               <div class="nade-option active" data-type="smoke">烟雾弹</div>
               <div class="nade-option" data-type="flash">闪光弹</div>
               <div class="nade-option" data-type="molotov">燃烧弹</div>
               <div class="nade-option" data-type="grenade">手雷</div>
-            </div>
-          </div>
-          <div class="control-section">
-            <h3 class="section-title">队伍</h3>
-            <div class="team-options">
-              <div class="team-option active" data-team="all">全部</div>
-              <div class="team-option" data-team="ct">CT</div>
-              <div class="team-option" data-team="t">T</div>
             </div>
           </div>
           <div class="control-section">
@@ -549,7 +581,6 @@
       const currentMapTitle = document.getElementById('currentMapTitle');
       const backButton = document.getElementById('backButton');
       const nadeOptions = document.querySelectorAll('.nade-option');
-      const teamOptions = document.querySelectorAll('.team-option');
       const calloutToggle = document.getElementById('calloutToggle');
       const nadeToggle = document.getElementById('nadeToggle');
 
@@ -563,11 +594,32 @@
         overpass: { name: 'Overpass', image: '../assets/maps/overpass.jpg' }
       };
 
+      // 投掷物点位数据 - 按地图分组
+      const nadeSpots = {
+        dust2: [
+          { type: 'smoke', x: 30, y: 25, title: 'A点烟雾', videoUrl: 'https://example.com/video1' },
+          { type: 'flash', x: 60, y: 40, title: 'A点闪光', videoUrl: 'https://example.com/video2' },
+          { type: 'molotov', x: 45, y: 60, title: '中路燃烧', videoUrl: 'https://example.com/video3' },
+          { type: 'grenade', x: 75, y: 30, title: 'B点手雷', videoUrl: 'https://example.com/video4' }
+        ],
+        mirage: [
+          { type: 'smoke', x: 40, y: 35, title: '中路烟雾', videoUrl: 'https://example.com/video5' },
+          { type: 'flash', x: 55, y: 50, title: 'B点闪光', videoUrl: 'https://example.com/video6' }
+        ],
+        // 为其他地图添加数据...
+      };
+
+      // 添加当前状态变量
+      let currentMapId = 'dust2';
+      let currentNadeType = 'all';
+
       // 点击地图卡片事件
       mapCards.forEach(card => {
         card.addEventListener('click', function () {
           const mapId = card.dataset.map;
           if (!mapId || !mapData[mapId]) return;
+
+          currentMapId = mapId;
 
           // 显示 2D 界面，并初始化地图数据
           currentMapTitle.textContent = mapData[mapId].name;
@@ -581,30 +633,20 @@
         map2dContainer.style.display = 'none';
       });
 
+  
       // 投掷物类型选择事件
       nadeOptions.forEach(opt => {
-        opt.addEventListener('click', function () {
+        opt.addEventListener('click', function() {
           // 移除所有active类
           nadeOptions.forEach(o => o.classList.remove('active'));
           // 添加active类到当前选项
           this.classList.add('active');
-          // 更新地图显示（这里简化处理）
-          updateMapDisplay();
+          // 更新当前选中的投掷物类型
+          currentNadeType = this.dataset.type;
+          // 更新地图显示
+          updateNadeMarkers();
         });
       });
-
-        // 队伍选择事件
-        teamOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                // 移除所有active类
-                teamOptions.forEach(opt => opt.classList.remove('active'));
-                // 添加active类到当前选项
-                this.classList.add('active');
-                
-                // 更新地图显示（这里简化处理）
-                updateMapDisplay();
-            });
-        });
 
       // 切换按钮事件
       calloutToggle.addEventListener('click', function () {
@@ -619,39 +661,42 @@
 
       // 初始化2D地图
      function initMap(mapId) {
-    const mapCanvas = document.getElementById('mapCanvas');
-    // 清空地图内容
-    mapCanvas.innerHTML = '';
+        const mapCanvas = document.getElementById('mapCanvas');
+        // 清空地图内容
+        mapCanvas.innerHTML = '';
 
-    // 创建加载提示
-    const loadingText = document.createElement('div');
-    loadingText.textContent = '加载中...';
-    loadingText.style.color = '#a0a0a0';
-    mapCanvas.appendChild(loadingText);
+        // 创建加载提示
+        const loadingText = document.createElement('div');
+        loadingText.textContent = '加载中...';
+        loadingText.style.color = '#a0a0a0';
+        mapCanvas.appendChild(loadingText);
 
-    // 创建地图容器
-    const img = document.createElement('img');
-    img.src = mapData[mapId].image;
-    img.alt = mapData[mapId].name + ' 2D 图';
-    img.style.maxWidth = '100%';
-    img.style.maxHeight = '100%';
-    img.style.objectFit = 'contain';
-    
-    // 图片加载完成后的处理
-    img.onload = function() {
-        mapCanvas.removeChild(loadingText);
-        mapCanvas.appendChild(img);
+        // 创建地图容器
+        const img = document.createElement('img');
+        img.src = mapData[mapId].image;
+        img.alt = mapData[mapId].name + ' 2D 图';
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '100%';
+        img.style.objectFit = 'contain';
         
-        // 确保图片适应容器
-        adjustImageSize(img, mapCanvas);
-    };
-    
-    // 图片加载失败的处理
-    img.onerror = function() {
-        loadingText.textContent = '图片加载失败';
-        console.error('地图图片加载失败:', mapData[mapId].image);
-    };
-}
+        // 图片加载完成后的处理
+        img.onload = function() {
+            mapCanvas.removeChild(loadingText);
+            mapCanvas.appendChild(img);
+            
+            // 确保图片适应容器
+            adjustImageSize(img, mapCanvas);
+
+            // 添加投掷物标记
+            updateNadeMarkers();
+        };
+        
+        // 图片加载失败的处理
+        img.onerror = function() {
+            loadingText.textContent = '图片加载失败';
+            console.error('地图图片加载失败:', mapData[mapId].image);
+        };
+      }
 
 // 新增函数：调整图片尺寸以适应容器
       function adjustImageSize(img, container) {
@@ -676,6 +721,50 @@
           team: document.querySelector('.team-option.active')?.dataset.team,
           showCallout: calloutToggle.classList.contains('active'),
           showNade: nadeToggle.classList.contains('active')
+        });
+      }
+
+      // 更新投掷物标记
+      function updateNadeMarkers() {
+        const mapCanvas = document.getElementById('mapCanvas');
+        // 移除现有的标记
+        const existingMarkers = document.querySelectorAll('.nade-marker');
+        existingMarkers.forEach(marker => marker.remove());
+        
+        // 获取当前地图的投掷物数据
+        const spots = nadeSpots[currentMapId] || [];
+        
+        // 筛选出当前类型的投掷物
+        const filteredSpots = currentNadeType === 'all' 
+          ? spots 
+          : spots.filter(spot => spot.type === currentNadeType);
+        
+        // 创建标记
+        filteredSpots.forEach(spot => {
+          const marker = document.createElement('div');
+          marker.className = `nade-marker ${spot.type}`;
+          marker.style.left = `${spot.x}%`;
+          marker.style.top = `${spot.y}%`;
+          marker.title = spot.title;
+          marker.dataset.videoUrl = spot.videoUrl;
+          
+          // 设置标记文本（根据类型显示不同字母）
+          let markerText = '';
+          switch(spot.type) {
+            case 'smoke': markerText = 'S'; break;
+            case 'flash': markerText = 'F'; break;
+            case 'molotov': markerText = 'M'; break;
+            case 'grenade': markerText = 'G'; break;
+          }
+          marker.textContent = markerText;
+          
+          // 添加点击事件
+          marker.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.open(this.dataset.videoUrl, '_blank');
+          });
+          
+          mapCanvas.appendChild(marker);
         });
       }
 
