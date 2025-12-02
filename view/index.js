@@ -185,7 +185,7 @@ function resetInactivityTimer() {
       localStorage.removeItem('currentUser');
       window.location.href = 'login.html';
     }
-  }, 30000); // 30秒阈值 
+  }, 300000); // 300秒阈值 
   }
 
   // 扩展：覆盖PC+移动端所有合理用户交互事件

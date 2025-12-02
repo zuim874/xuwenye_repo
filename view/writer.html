@@ -422,13 +422,13 @@
                 <div class="form-group">
                     <label for="postTitle" class="form-label">标题</label>
                     <input type="text" id="postTitle" class="form-input" placeholder="请输入帖子标题（至少5个字符）">
-                    <div class="error-message" id="titleError">标题不能为空且至少需要5个字符</div>
+                    <div class="error-message" id="titleError">标题不能为空且至少需要1个字符</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="postContent" class="form-label">内容介绍</label>
                     <textarea id="postContent" class="form-textarea" placeholder="请详细描述你的技巧、战术或视频内容..."></textarea>
-                    <div class="error-message" id="contentError">内容不能为空且至少需要20个字符</div>
+                    <div class="error-message" id="contentError">内容不能为空且至少需要1个字符</div>
                 </div>
                 
                 <div class="form-group">
@@ -656,14 +656,14 @@
                 // 表单验证
                 let isValid = true;
                 
-                if (!title || title.length < 5) {
+                if (!title || title.length < 1) {
                     showError('titleError');
                     isValid = false;
                 } else {
                     hideError('titleError');
                 }
                 
-                if (!content || content.length < 20) {
+                if (!content || content.length < 1) {
                     showError('contentError');
                     isValid = false;
                 } else {
