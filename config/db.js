@@ -9,7 +9,8 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME || 'cs2_utility',
     waitForConnections: true,
     connectionLimit: Number(process.env.DB_CONN_LIMIT) || 10,
-    queueLimit: 0
+    queueLimit: 0,
+    timezone: 'Z', // 使用 UTC 时间，避免时区问题
 });
 
 // 2. 测试连接（验证 Promise 接口可用，正确解构结果）
