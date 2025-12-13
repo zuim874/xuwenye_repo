@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>帖子详情 - CS2UTIL</title>
+    <title>帖子详情 - CS2 Utility Guide</title>
     <style>
         * {
             margin: 0;
@@ -16,9 +16,6 @@
             background-color: #1a1a2e;
             color: #e6e6e6;
             line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
         
         .container {
@@ -61,61 +58,13 @@
             transition: color 0.3s;
         }
         
-        .nav-links a:hover, .nav-links a.active {
-            color: #e63946;
-        }
-        
-        .user-info {
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .user-initial {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #0f3460;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+        .nav-links a:hover {
             color: #e63946;
         }
         
         /* 主内容区域 */
         .main-content {
             padding: 40px 0;
-            flex: 1;
-        }
-        
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-title {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #e6e6e6;
-        }
-        
-        .breadcrumbs {
-            color: #a0a0a0;
-            font-size: 14px;
-        }
-        
-        .breadcrumbs a {
-            color: #a0a0a0;
-            text-decoration: none;
-        }
-        
-        .breadcrumbs a:hover {
-            color: #e63946;
-        }
-        
-        .content-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 30px;
         }
         
         /* 帖子详情样式 */
@@ -123,18 +72,18 @@
             background-color: #16213e;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
         }
         
         .post-header {
-            padding: 25px 30px;
-            border-bottom: 1px solid #0f3460;
+            padding: 20px;
+            border-bottom: 1px solid #1a1a2e;
         }
         
         .post-title {
-            font-size: 26px;
-            margin-bottom: 20px;
-            color: #f8fafc;
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #e6e6e6;
         }
         
         .post-meta {
@@ -146,26 +95,23 @@
         .author-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
         
         .author-avatar {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background-color: #0f3460;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
             font-weight: bold;
             color: #e63946;
         }
         
-        .author-details h4 {
-            font-size: 18px;
-            color: #f8fafc;
-            margin-bottom: 3px;
+        .author-name {
+            font-weight: 600;
         }
         
         .post-date {
@@ -173,115 +119,66 @@
             font-size: 14px;
         }
         
-        .post-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .edit-btn, .delete-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-        }
-        
-        .edit-btn {
-            background-color: #0f3460;
-            color: #e6e6e6;
-        }
-        
-        .delete-btn {
-            background-color: #e63946;
-            color: white;
-        }
-        
         .post-content {
-            padding: 30px;
-            color: #e6e6e6;
-            line-height: 1.8;
-            font-size: 16px;
-        }
-        
-        .post-content p {
-            margin-bottom: 20px;
-        }
-        
-        .post-content h3, .post-content h4 {
-            margin: 25px 0 15px;
-            color: #f8fafc;
+            padding: 20px;
         }
         
         .post-video {
-            margin: 30px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: #0f172a;
-        }
-        
-        .post-video video {
             width: 100%;
             max-height: 600px;
-            object-fit: cover;
+            object-fit: contain;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            background-color: #0f3460;
+        }
+        
+        .post-text {
+            color: #e6e6e6;
+            line-height: 1.8;
+            margin-bottom: 20px;
         }
         
         .post-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-            padding-top: 20px;
-            border-top: 1px solid #0f3460;
+            gap: 8px;
+            margin-bottom: 20px;
         }
         
         .post-tag {
             background-color: #0f3460;
-            padding: 5px 12px;
+            padding: 5px 10px;
             border-radius: 15px;
-            font-size: 14px;
-            color: #e2e8f0;
+            font-size: 12px;
+            color: #a0a0a0;
         }
         
-        .post-stats {
+        .post-actions {
             display: flex;
-            gap: 30px;
-            padding: 15px 30px;
-            background-color: #0f172a;
-            border-top: 1px solid #0f3460;
-            border-bottom: 1px solid #0f3460;
+            gap: 20px;
+            padding: 15px 20px;
+            background-color: #0f3460;
+            border-top: 1px solid #1a1a2e;
+            border-bottom: 1px solid #1a1a2e;
         }
         
-        .post-stat {
+        .action-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: #a0a0a0;
-            font-size: 16px;
-        }
-        
-        .post-stat .value {
-            font-weight: bold;
-            color: #e63946;
-            font-size: 18px;
-        }
-        
-        .like-btn {
+            gap: 5px;
             background: none;
             border: none;
             color: #a0a0a0;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
+            font-size: 14px;
             transition: color 0.3s;
         }
         
-        .like-btn:hover, .like-btn.liked {
+        .action-btn:hover {
+            color: #e63946;
+        }
+        
+        .action-btn.liked, .action-btn.favorited {
             color: #e63946;
         }
         
@@ -289,67 +186,60 @@
         .comments-section {
             background-color: #16213e;
             border-radius: 10px;
-            padding: 30px;
-            margin-top: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
         
-        .section-title {
-            font-size: 22px;
-            margin-bottom: 25px;
-            color: #f8fafc;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .section-header {
+            padding: 20px;
+            background-color: #0f3460;
+            border-bottom: 1px solid #1a1a2e;
+            font-weight: bold;
+            font-size: 18px;
         }
         
         .comment-form {
-            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #1a1a2e;
         }
         
-        .form-textarea {
+        .comment-input {
             width: 100%;
-            padding: 15px;
-            background-color: #1a1a2e;
+            padding: 12px 15px;
             border: 1px solid #0f3460;
             border-radius: 5px;
+            background-color: #1a1a2e;
             color: #e6e6e6;
-            resize: vertical;
-            min-height: 120px;
-            font-size: 16px;
-            margin-bottom: 15px;
+            resize: none;
+            min-height: 100px;
+            margin-bottom: 10px;
         }
         
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-        
-        .submit-btn {
+        .submit-comment {
             background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
             transition: transform 0.2s;
         }
         
-        .submit-btn:hover {
+        .submit-comment:hover {
             transform: translateY(-2px);
         }
         
         .comments-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            padding: 20px;
         }
         
         .comment-item {
-            padding: 20px;
-            background-color: #1a1a2e;
-            border-radius: 8px;
+            padding: 15px 0;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        
+        .comment-item:last-child {
+            border-bottom: none;
         }
         
         .comment-header {
@@ -365,180 +255,45 @@
         }
         
         .comment-avatar {
-            width: 36px;
-            height: 36px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background-color: #0f3460;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-size: 12px;
             color: #e63946;
         }
         
-        .comment-author-name {
-            font-weight: 500;
-            color: #f8fafc;
-        }
-        
-        .comment-date {
-            font-size: 14px;
-            color: #a0a0a0;
-        }
-        
-        .comment-content {
+        .comment-text {
             color: #e6e6e6;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         
-        .comment-actions {
-            display: flex;
-            gap: 15px;
-            font-size: 14px;
-        }
-        
-        .comment-action {
+        .comment-time {
             color: #a0a0a0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 12px;
         }
         
-        .comment-action:hover {
-            color: #e63946;
-        }
-        
-        /* 侧边栏样式 */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .sidebar-widget {
-            background-color: #16213e;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .widget-header {
-            padding: 15px 20px;
-            background-color: #0f3460;
-            border-bottom: 1px solid #1a1a2e;
-            font-weight: bold;
-            color: #f8fafc;
-        }
-        
-        .widget-content {
-            padding: 20px;
-        }
-        
-        .author-card {
+        .no-comments {
             text-align: center;
-            padding: 10px 0;
-        }
-        
-        .author-card .author-avatar {
-            margin: 0 auto 15px;
-        }
-        
-        .author-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #f8fafc;
-            margin-bottom: 5px;
-        }
-        
-        .author-joined {
-            font-size: 14px;
-            color: #a0a0a0;
-            margin-bottom: 15px;
-        }
-        
-        .author-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .author-stat {
-            padding: 10px 5px;
-        }
-        
-        .author-stat .value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #e63946;
-            margin-bottom: 3px;
-        }
-        
-        .author-stat .label {
-            font-size: 12px;
+            padding: 30px;
             color: #a0a0a0;
         }
         
-        .follow-btn {
-            background-color: #0f3460;
-            color: #e6e6e6;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            width: 100%;
-            transition: background-color 0.3s;
-        }
-        
-        .follow-btn:hover {
-            background-color: #e63946;
-            color: white;
-        }
-        
-        .related-posts {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .related-post {
-            padding: 15px;
-            background-color: #1a1a2e;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .related-post:hover {
-            transform: translateY(-3px);
-        }
-        
-        .related-post-title {
-            font-size: 16px;
-            color: #f8fafc;
-            margin-bottom: 5px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .related-post-meta {
-            font-size: 12px;
+        .loading {
+            text-align: center;
+            padding: 20px;
             color: #a0a0a0;
-            display: flex;
-            justify-content: space-between;
         }
         
         /* 页脚样式 */
         footer {
             background-color: #16213e;
-            padding: 40px 0 20px;
-            color: #a0a0a0;
-            margin-top: 60px;
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid #0f3460;
         }
         
         .footer-content {
@@ -546,7 +301,6 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 30px;
-            margin-bottom: 30px;
         }
         
         .footer-section {
@@ -555,59 +309,47 @@
         }
         
         .footer-section h3 {
-            color: #e6e6e6;
-            margin-bottom: 15px;
             font-size: 18px;
+            margin-bottom: 15px;
+            color: #e6e6e6;
         }
         
-        .footer-section p {
-            margin-bottom: 10px;
-            font-size: 14px;
+        .footer-links {
+            list-style: none;
         }
         
-        .footer-section a {
+        .footer-links li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-links a {
             color: #a0a0a0;
             text-decoration: none;
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
+            transition: color 0.2s;
         }
         
-        .footer-section a:hover {
+        .footer-links a:hover {
             color: #e63946;
         }
         
-        .copyright {
+        .footer-bottom {
             text-align: center;
+            margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #0f3460;
+            color: #a0a0a0;
             font-size: 14px;
+        }
+
+        .delete-comment-btn:hover {
+            color: #e63946 !important;
+            text-decoration: underline;
         }
         
         /* 响应式设计 */
-        @media (max-width: 900px) {
-            .content-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        
         @media (max-width: 768px) {
-            .post-header, .post-content {
-                padding: 20px;
-            }
-            
             .post-title {
-                font-size: 22px;
-            }
-            
-            .post-stats {
-                flex-wrap: wrap;
-                gap: 15px;
-                padding: 15px 20px;
-            }
-            
-            .comments-section {
-                padding: 20px;
+                font-size: 24px;
             }
             
             .footer-content {
@@ -623,8 +365,7 @@
             <a href="index.html" class="logo">CS2UTIL</a>
             <div class="nav-links">
                 <a href="index.html">首页</a>
-                <a href="community.html" class="active">社区</a>
-                <a href="myinfo.html">我的</a>
+                <a href="community.html">社区</a>
                 <div id="userArea" style="display: none;">
                     <div class="user-info">
                         <span class="user-initial" id="userNamePrefix"></span>
@@ -639,222 +380,22 @@
     
     <!-- 主内容区域 -->
     <div class="container main-content">
-        <div class="page-header">
-            <div class="breadcrumbs">
-                <a href="index.html">首页</a> > <a href="community.html">社区</a> > <span>帖子详情</span>
-            </div>
+        <!-- 帖子详情 -->
+        <div class="post-detail" id="postDetail">
+            <div class="loading">加载帖子内容中...</div>
         </div>
         
-        <div class="content-layout">
-            <!-- 帖子详情 -->
-            <div class="main-column">
-                <article class="post-detail">
-                    <div class="post-header">
-                        <h1 class="post-title" id="postTitle">如何在Dust II中有效使用烟雾弹封锁中路</h1>
-                        <div class="post-meta">
-                            <div class="author-info">
-                                <div class="author-avatar" id="authorAvatar">J</div>
-                                <div class="author-details">
-                                    <h4 id="authorName">JohnDoe</h4>
-                                    <div class="post-date" id="postDate">发布于 2023-10-15 14:30</div>
-                                </div>
-                            </div>
-                            <div class="post-actions" id="postActions">
-                                <button class="edit-btn">✏️ 编辑</button>
-                                <button class="delete-btn">🗑️ 删除</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="post-content" id="postContent">
-                        <p>在Dust II地图中，中路的控制权往往决定了比赛的走向。今天我要分享几个非常实用的烟雾弹点位，可以帮助你的团队有效封锁中路视野，为进攻或防守创造有利条件。</p>
-                        
-                        <h3>1. 匪家封中门烟雾</h3>
-                        <p>这个烟雾弹可以从匪家出发，精准封锁中门，阻止CT从A平台或CT spawn观察到匪家动向。</p>
-                        <p>投掷方法：</p>
-                        <ul>
-                            <li>站在匪家卡车靠近墙壁的角落</li>
-                            <li>瞄准中门上方特定砖块缝隙</li>
-                            <li>使用常规投掷力度</li>
-                        </ul>
-                        
-                        <div class="post-video">
-                            <video src="/videos/dust2-mid-smoke1.mp4" controls></video>
-                        </div>
-                        
-                        <h3>2. 中路过点封A小烟雾</h3>
-                        <p>当你的团队决定从中路推进时，这个烟雾可以有效封锁A小方向的视野，防止被CT架枪。</p>
-                        <p>投掷方法：</p>
-                        <ul>
-                            <li>站在中路木箱旁</li>
-                            <li>瞄准墙壁特定位置</li>
-                            <li>使用跳投</li>
-                        </ul>
-                        
-                        <p>这些烟雾弹技巧需要反复练习才能掌握投掷时机和精准度。建议在练习模式中多尝试几次，找到最适合自己的投掷感觉。</p>
-                    </div>
-                    
-                    <div class="post-tags" id="postTags">
-                        <span class="post-tag">烟雾弹</span>
-                        <span class="post-tag">Dust II</span>
-                        <span class="post-tag">战术</span>
-                        <span class="post-tag">CT</span>
-                    </div>
-                    
-                    <div class="post-stats">
-                        <button class="like-btn" id="likeBtn">
-                            <span>👍</span>
-                            <span class="value" id="likeCount">42</span>
-                            <span>点赞</span>
-                        </button>
-                        <div class="post-stat">
-                            <span>💬</span>
-                            <span class="value" id="commentCount">18</span>
-                            <span>评论</span>
-                        </div>
-                        <div class="post-stat">
-                            <span>👁</span>
-                            <span class="value" id="viewCount">1256</span>
-                            <span>浏览</span>
-                        </div>
-                    </div>
-                </article>
-                
-                <!-- 评论区 -->
-                <section class="comments-section">
-                    <h3 class="section-title">💬 评论 (18)</h3>
-                    
-                    <div class="comment-form">
-                        <textarea class="form-textarea" placeholder="分享你的想法..."></textarea>
-                        <div class="form-actions">
-                            <button class="submit-btn">发表评论</button>
-                        </div>
-                    </div>
-                    
-                    <div class="comments-list" id="commentsList">
-                        <!-- 评论项1 -->
-                        <div class="comment-item">
-                            <div class="comment-header">
-                                <div class="comment-author">
-                                    <div class="comment-avatar">C</div>
-                                    <div>
-                                        <div class="comment-author-name">CounterStriker</div>
-                                        <div class="comment-date">2023-10-15 15:42</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="comment-content">
-                                非常实用的技巧！我一直找不到中门烟雾的精准点位，这个视频演示太清楚了，谢谢分享！
-                            </div>
-                            <div class="comment-actions">
-                                <div class="comment-action">👍 12</div>
-                                <div class="comment-action">回复</div>
-                            </div>
-                        </div>
-                        
-                        <!-- 评论项2 -->
-                        <div class="comment-item">
-                            <div class="comment-header">
-                                <div class="comment-author">
-                                    <div class="comment-avatar">P</div>
-                                    <div>
-                                        <div class="comment-author-name">ProGamer</div>
-                                        <div class="comment-date">2023-10-15 16:15</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="comment-content">
-                                补充一点：在职业比赛中，很多战队会结合闪光弹使用这些烟雾弹战术，效果更好。可以尝试在烟雾弹落地前0.5秒投掷闪光弹。
-                            </div>
-                            <div class="comment-actions">
-                                <div class="comment-action">👍 8</div>
-                                <div class="comment-action">回复</div>
-                            </div>
-                        </div>
-                        
-                        <!-- 更多评论... -->
-                    </div>
-                </section>
+        <!-- 评论区 -->
+        <div class="comments-section">
+            <div class="section-header">评论区</div>
+            
+            <div class="comment-form">
+                <textarea class="comment-input" id="commentInput" placeholder="分享你的想法..."></textarea>
+                <button class="submit-comment" id="submitComment">发表评论</button>
             </div>
             
-            <!-- 侧边栏 -->
-            <div class="sidebar">
-                <!-- 作者信息 -->
-                <div class="sidebar-widget">
-                    <div class="widget-header">作者信息</div>
-                    <div class="widget-content">
-                        <div class="author-card">
-                            <div class="author-avatar">J</div>
-                            <div class="author-name">JohnDoe</div>
-                            <div class="author-joined">加入于 2023-05-20</div>
-                            
-                            <div class="author-stats">
-                                <div class="author-stat">
-                                    <div class="value">24</div>
-                                    <div class="label">帖子</div>
-                                </div>
-                                <div class="author-stat">
-                                    <div class="value">1.2k</div>
-                                    <div class="label">获赞</div>
-                                </div>
-                                <div class="author-stat">
-                                    <div class="value">358</div>
-                                    <div class="label">粉丝</div>
-                                </div>
-                            </div>
-                            
-                            <button class="follow-btn">关注作者</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 相关帖子 -->
-                <div class="sidebar-widget">
-                    <div class="widget-header">相关推荐</div>
-                    <div class="widget-content">
-                        <div class="related-posts">
-                            <div class="related-post">
-                                <div class="related-post-title">Dust II A大进攻的最佳时机分析</div>
-                                <div class="related-post-meta">
-                                    <span>2天前</span>
-                                    <span>👁 842</span>
-                                </div>
-                            </div>
-                            <div class="related-post">
-                                <div class="related-post-title">CS2烟雾弹机制变化及应对策略</div>
-                                <div class="related-post-meta">
-                                    <span>1周前</span>
-                                    <span>👁 1.5k</span>
-                                </div>
-                            </div>
-                            <div class="related-post">
-                                <div class="related-post-title">职业选手常用的5个闪光弹技巧</div>
-                                <div class="related-post-meta">
-                                    <span>2周前</span>
-                                    <span>👁 2.3k</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 热门标签 -->
-                <div class="sidebar-widget">
-                    <div class="widget-header">热门标签</div>
-                    <div class="widget-content">
-                        <div class="popular-tags">
-                            <div class="post-tag">烟雾弹</div>
-                            <div class="post-tag">Dust II</div>
-                            <div class="post-tag">战术</div>
-                            <div class="post-tag">瞄准</div>
-                            <div class="post-tag">武器</div>
-                            <div class="post-tag">地图</div>
-                            <div class="post-tag">闪光弹</div>
-                            <div class="post-tag">攻略</div>
-                            <div class="post-tag">职业赛事</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="comments-list" id="commentsList">
+                <div class="loading">加载评论中...</div>
             </div>
         </div>
     </div>
@@ -869,296 +410,29 @@
                 </div>
                 <div class="footer-section">
                     <h3>快速链接</h3>
-                    <a href="index.html">首页</a>
-                    <a href="community.html">社区</a>
-                    <a href="about.html">关于我们</a>
-                    <a href="contact.html">联系我们</a>
+                    <ul class="footer-links">
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
+                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
+                        <li><a href="community.html">社区</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>资源</h3>
-                    <a href="guides.html">游戏指南</a>
-                    <a href="maps.html">地图解析</a>
-                    <a href="weapons.html">武器数据</a>
-                    <a href="updates.html">更新日志</a>
-                </div>
-                <div class="footer-section">
-                    <h3>法律</h3>
-                    <a href="terms.html">使用条款</a>
-                    <a href="privacy.html">隐私政策</a>
+                    <h3>支持</h3>
+                    <ul class="footer-links">
+                        <li><a href="">帮助中心</a></li>
+                        <li><a href="">联系我们</a></li>
+                        <li><a href="">隐私政策</a></li>
+                        <li><a href="">使用条款</a></li>
+                    </ul>
                 </div>
             </div>
-            <div class="copyright">
-                &copy; 2023 CS2UTIL. 保留所有权利。
+            <div class="footer-bottom">
+                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
             </div>
         </div>
     </footer>
-    
-    <script>
-        // 页面加载完成后执行
-        document.addEventListener('DOMContentLoaded', function() {
-            // 验证用户登录状态
-            checkLoginStatus();
-            
-            // 获取帖子ID（从URL参数中）
-            const postId = getUrlParam('id');
-            if (postId) {
-                fetchPostDetail(postId);
-            } else {
-                alert('未找到帖子信息');
-                window.location.href = 'community.html';
-            }
-            
-            // 点赞功能
-            document.getElementById('likeBtn').addEventListener('click', function() {
-                this.classList.toggle('liked');
-                const likeCount = this.querySelector('.value');
-                let count = parseInt(likeCount.textContent);
-                likeCount.textContent = this.classList.contains('liked') ? count + 1 : count - 1;
-                
-                // 实际应用中，这里应该发送请求到后端更新点赞状态
-            });
-            
-            // 编辑按钮功能
-            const editBtn = document.querySelector('.edit-btn');
-            if (editBtn) {
-                editBtn.addEventListener('click', function() {
-                    window.location.href = `edit-post.html?id=${postId}`;
-                });
-            }
-            
-            // 删除按钮功能
-            const deleteBtn = document.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', async function() {
-                    if (confirm('确定要删除这篇帖子吗？此操作不可撤销！')) {
-                        try {
-                            // 实际应用中，这里应该发送删除请求到后端
-                            await deletePost(postId);
-                            window.location.href = 'community.html';
-                        } catch (error) {
-                            alert(`删除失败：${error.message}`);
-                        }
-                    }
-                });
-            }
-            
-            // 发表评论功能
-            document.querySelector('.submit-btn').addEventListener('click', function() {
-                const commentText = document.querySelector('.form-textarea').value.trim();
-                if (commentText) {
-                    // 实际应用中，这里应该发送评论到后端
-                    alert('评论发表成功！');
-                    document.querySelector('.form-textarea').value = '';
-                    // 重新加载评论列表
-                    fetchComments(postId);
-                } else {
-                    alert('请输入评论内容');
-                }
-            });
-        });
-        
-        // 获取URL参数
-        function getUrlParam(name) {
-            const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
-            const r = window.location.search.substr(1).match(reg);
-            return r ? decodeURIComponent(r[2]) : null;
-        }
-        
-        // 验证登录状态
-        function checkLoginStatus() {
-            const userId = localStorage.getItem('userId');
-            const userArea = document.getElementById('userArea');
-            const loginBtnArea = document.getElementById('loginBtnArea');
-            
-            if (userId) {
-                // 用户已登录
-                userArea.style.display = 'block';
-                loginBtnArea.style.display = 'none';
-                // 显示用户名首字母
-                const userName = localStorage.getItem('userName') || '用户';
-                document.getElementById('userNamePrefix').textContent = userName.charAt(0).toUpperCase();
-            } else {
-                // 用户未登录
-                userArea.style.display = 'none';
-                loginBtnArea.style.display = 'block';
-                // 隐藏编辑和删除按钮
-                document.getElementById('postActions').style.display = 'none';
-            }
-        }
-        
-        // 获取帖子详情
-        async function fetchPostDetail(postId) {
-            try {
-                const response = await fetch(`/api/posts/${postId}`);
-                if (!response.ok) {
-                    throw new Error('获取帖子详情失败');
-                }
-                
-                const result = await response.json();
-                if (result.code === 200 && result.data) {
-                    renderPostDetail(result.data);
-                    // 检查是否是当前用户的帖子，决定是否显示编辑/删除按钮
-                    const userId = localStorage.getItem('userId');
-                    if (userId && result.data.author_id !== userId) {
-                        document.getElementById('postActions').style.display = 'none';
-                    }
-                } else {
-                    throw new Error('帖子不存在或已被删除');
-                }
-            } catch (error) {
-                console.error('获取帖子详情失败：', error);
-                alert(error.message);
-                window.location.href = 'community.html';
-            }
-        }
-        
-        // 渲染帖子详情
-        function renderPostDetail(post) {
-            document.getElementById('postTitle').textContent = post.title;
-            document.getElementById('authorName').textContent = post.author_name || '匿名用户';
-            document.getElementById('authorAvatar').textContent = getAuthorInitials(post.author_name);
-            document.getElementById('postDate').textContent = `发布于 ${formatRelativeDate(post.created_at)}`;
-            document.getElementById('postContent').innerHTML = formatPostContent(post.content);
-            document.getElementById('likeCount').textContent = post.like_count || 0;
-            document.getElementById('commentCount').textContent = post.comment_count || 0;
-            document.getElementById('viewCount').textContent = post.view_count ? post.view_count.toLocaleString() : 0;
-            
-            // 渲染标签
-            const tagsContainer = document.getElementById('postTags');
-            tagsContainer.innerHTML = '';
-            if (post.tags && post.tags.length) {
-                post.tags.forEach(tag => {
-                    const tagElement = document.createElement('span');
-                    tagElement.className = 'post-tag';
-                    tagElement.textContent = tag;
-                    tagsContainer.appendChild(tagElement);
-                });
-            }
-            
-            // 渲染视频（如果有）
-            if (post.video_url) {
-                const videoContainer = document.querySelector('.post-video');
-                if (videoContainer) {
-                    videoContainer.innerHTML = `<video src="${post.video_url}" controls></video>`;
-                } else {
-                    const contentContainer = document.getElementById('postContent');
-                    const videoElement = document.createElement('div');
-                    videoElement.className = 'post-video';
-                    videoElement.innerHTML = `<video src="${post.video_url}" controls></video>`;
-                    contentContainer.appendChild(videoElement);
-                }
-            }
-        }
-        
-        // 获取评论列表
-        async function fetchComments(postId) {
-            try {
-                const response = await fetch(`/api/posts/${postId}/comments`);
-                if (!response.ok) {
-                    throw new Error('获取评论失败');
-                }
-                
-                const result = await response.json();
-                if (result.code === 200 && Array.isArray(result.data)) {
-                    renderComments(result.data);
-                }
-            } catch (error) {
-                console.error('获取评论失败：', error);
-            }
-        }
-        
-        // 渲染评论列表
-        function renderComments(comments) {
-            const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = '';
-            
-            if (comments.length === 0) {
-                commentsList.innerHTML = '<div class="no-comments">暂无评论，快来发表第一条评论吧～</div>';
-                return;
-            }
-            
-            comments.forEach(comment => {
-                const commentElement = document.createElement('div');
-                commentElement.className = 'comment-item';
-                
-                commentElement.innerHTML = `
-                    <div class="comment-header">
-                        <div class="comment-author">
-                            <div class="comment-avatar">${getAuthorInitials(comment.author_name)}</div>
-                            <div>
-                                <div class="comment-author-name">${comment.author_name || '匿名用户'}</div>
-                                <div class="comment-date">${formatRelativeDate(comment.created_at)}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="comment-content">
-                        ${escapeHtml(comment.content)}
-                    </div>
-                    <div class="comment-actions">
-                        <div class="comment-action">👍 ${comment.like_count || 0}</div>
-                        <div class="comment-action">回复</div>
-                    </div>
-                `;
-                
-                commentsList.appendChild(commentElement);
-            });
-        }
-        
-        // 删除帖子
-        async function deletePost(postId) {
-            const userId = localStorage.getItem('userId');
-            if (!userId) {
-                throw new Error('用户未登录');
-            }
-            
-            const response = await fetch(`/api/users/${userId}/posts/${postId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Login-User-Id': userId
-                }
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: '删除失败' }));
-                throw new Error(errorData.message || '删除帖子失败');
-            }
-            
-            return true;
-        }
-        
-        // 辅助函数：获取作者姓名首字母
-        function getAuthorInitials(name) {
-            if (!name) return '?';
-            return name.trim().charAt(0).toUpperCase();
-        }
-        
-        // 辅助函数：格式化相对时间
-        function formatRelativeDate(dateString) {
-            if (!dateString) return '未知时间';
-            
-            const pureDateTime = dateString.slice(0, 19).replace('T', ' ');
-            const reg = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-            return reg.test(pureDateTime) ? pureDateTime : '无效时间';
-        }
-        
-        // 辅助函数：HTML转义
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-        
-        // 辅助函数：格式化帖子内容（简单处理换行）
-        function formatPostContent(content) {
-            if (!content) return '';
-            // 将换行符转换为<br>，并进行HTML转义
-            return escapeHtml(content).replace(/\n/g, '<br>');
-        }
-    </script>
+
+    <script src="postdetail.js"></script>
 </body>
 </html>

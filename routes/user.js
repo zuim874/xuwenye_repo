@@ -2,6 +2,42 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// 确保上传目录存在
+const uploadDir = path.join(__dirname, '../uploads/videos');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 配置multer用于处理视频上传
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/videos/'); // 视频存储目录，确保该目录存在
+  },
+  filename: function (req, file, cb) {
+    // 生成唯一文件名，避免重复
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB限制
+  },
+  fileFilter: function(req, file, cb) {
+    // 验证视频格式
+    if (file.mimetype === 'video/mp4' || file.mimetype === 'video/webm') {
+      cb(null, true);
+    } else {
+      cb(new Error('只支持MP4和WebM格式的视频'), false);
+    }
+  }
+});
 
 // ==================== 公共工具函数 ====================
 
@@ -371,6 +407,134 @@ router.delete('/:username', async (req, res) => {
 
     } catch (err) {
         handleError(res, err, '删除用户');
+    }
+});
+
+/**
+ * 编辑用户帖子（仅本人可操作）
+ * PUT /api/users/:userId/posts/:postId
+ */
+router.put('/:userId/posts/:postId', upload.single('video'), async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const postId = req.params.postId;
+        const loginUserId = req.headers['x-login-user-id'];
+
+        // 1. 基础验证
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+        if (userId !== loginUserId) {
+            return res.status(403).json({ code: 403, message: '无权限编辑他人帖子' });
+        }
+        if (!postId || isNaN(postId)) {
+            return res.status(400).json({ code: 400, message: '帖子ID无效' });
+        }
+
+        // 2. 解析表单数据（前端使用FormData，需确保后端已配置multer等中间件处理文件）
+        const { title, content, tags, removeExistingVideo } = req.body;
+        const newVideoFile = req.file; // 假设使用multer处理视频文件，文件信息在req.file中
+
+        // 3. 验证必填字段
+        if (!title?.trim()) {
+            return res.status(400).json({ code: 400, message: '帖子标题不能为空' });
+        }
+        if (!content?.trim()) {
+            return res.status(400).json({ code: 400, message: '帖子内容不能为空' });
+        }
+        if (!tags?.trim()) {
+            return res.status(400).json({ code: 400, message: '请至少选择一个标签' });
+        }
+
+        // 4. 验证帖子是否存在且属于当前用户
+        const [existingPosts] = await pool.execute(
+            'SELECT id, video_url FROM posts WHERE id = ? AND user_id = ? AND is_deleted = 0',
+            [postId, loginUserId]
+        );
+        if (existingPosts.length === 0) {
+            return res.status(404).json({ code: 404, message: '帖子不存在或已被删除' });
+        }
+        const existingPost = existingPosts[0];
+
+        // 5. 处理视频逻辑
+        let videoUrl = existingPost.video_url; // 默认保留原视频
+        if (removeExistingVideo === 'true') {
+            // 标记删除现有视频（实际项目中可能需要删除存储的视频文件）
+            videoUrl = null;
+        }
+        if (newVideoFile) {
+            // 处理新上传的视频（实际项目中需上传至存储服务并获取URL）
+            // 示例：假设已上传至服务器，视频URL为 `/uploads/videos/${newVideoFile.filename}`
+            videoUrl = `/uploads/videos/${newVideoFile.filename}`;
+        }
+
+        // 6. 更新帖子信息
+        await pool.execute(
+            `UPDATE posts 
+             SET title = ?, content = ?, tags = ?, video_url = ?, updated_at = CURRENT_TIMESTAMP 
+             WHERE id = ? AND user_id = ?`,
+            [title.trim(), content.trim(), tags.trim(), videoUrl, postId, loginUserId]
+        );
+
+        res.status(200).json({
+            code: 200,
+            message: '帖子更新成功',
+            data: { postId }
+        });
+
+    } catch (error) {
+        handleError(res, error, '编辑帖子');
+    }
+});
+
+/**
+ * 获取用户指定帖子详情（仅本人可访问）
+ * GET /api/users/:userId/posts/:postId
+ */
+router.get('/:userId/posts/:postId', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const postId = req.params.postId;
+        const loginUserId = req.headers['x-login-user-id'];
+
+        // 1. 登录状态验证
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        // 2. 权限验证（仅本人可访问）
+        if (userId !== loginUserId) {
+            return res.status(403).json({ code: 403, message: '无权限查看他人帖子' });
+        }
+
+        // 3. 帖子ID有效性验证
+        if (!postId || isNaN(postId)) {
+            return res.status(400).json({ code: 400, message: '帖子ID无效' });
+        }
+
+        // 4. 查询帖子详情（仅查询未删除的帖子）
+        const [posts] = await pool.execute(
+            `SELECT id, title, content, tags, video_url, updated_at 
+             FROM posts 
+             WHERE id = ? AND user_id = ? AND is_deleted = 0 
+             LIMIT 1`,
+            [postId, loginUserId]
+        );
+
+        // 5. 验证帖子是否存在
+        if (posts.length === 0) {
+            return res.status(404).json({ code: 404, message: '帖子不存在或已被删除' });
+        }
+
+        // 6. 返回帖子数据
+        res.status(200).json({
+            code: 200,
+            message: '查询帖子成功',
+            data: posts[0] // 返回单个帖子详情
+        });
+
+    } catch (error) {
+        handleError(res, error, '查询帖子详情');
     }
 });
 

@@ -232,23 +232,45 @@
             border-bottom: 1px solid #1a1a2e;
         }
         
-        .nade-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
+        .nade-options-vertical {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
-        
+
         .nade-option {
-            padding: 8px 12px;
-            background-color: #0f3460;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+          display: flex;
+          align-items: center;
+          padding: 6px 10px;
+          background-color: #0f3460;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: 1px solid transparent;
+          min-height: 32px;
         }
-        
+
+        .nade-option:hover {
+          background-color: #1e4a7e;
+          transform: translateX(2px);
+        }
+
         .nade-option.active {
-            background-color: #e63946;
+          background-color: #e63946;
+          border-color: #ff6b7a;
+          box-shadow: 0 2px 4px rgba(230, 57, 70, 0.3);
+        }
+
+        .nade-icon {
+          font-size: 12px;
+          margin-right: 8px;
+          width: 16px;
+          text-align: center;
+        }
+
+        .nade-text {
+          font-size: 13px;
+          font-weight: 500;
         }
         
         .team-options {
@@ -541,29 +563,29 @@
           <div id="mapCanvas"></div>
         </div>
         <div class="map-controls">
-          <div class="control-section">
-            <h3 class="section-title">投掷物类型</h3>
-            <div class="nade-options">
-              <div class="nade-option active" data-type="all">全部</div>
-              <div class="nade-option active" data-type="smoke">烟雾弹</div>
-              <div class="nade-option" data-type="flash">闪光弹</div>
-              <div class="nade-option" data-type="molotov">燃烧弹</div>
-              <div class="nade-option" data-type="grenade">手雷</div>
+        <!-- 投掷物类型选择 - 纵向精致布局 -->
+        <div class="control-section">
+          <h3 class="section-title">投掷物类型</h3>
+          <div class="nade-options-vertical">
+            <div class="nade-option active" data-type="all">
+              <span class="nade-icon">●</span>
+              <span class="nade-text">全部投掷物</span>
             </div>
-          </div>
-          <div class="control-section">
-            <h3 class="section-title">其他选项</h3>
-            <div class="callout-option">
-              <div class="callout-toggle active" id="calloutToggle">
-                <div class="toggle-knob"></div>
-              </div>
-              <span>显示点位名称</span>
+            <div class="nade-option active" data-type="smoke">
+              <span class="nade-icon" style="color: #4CAF50;">●</span>
+              <span class="nade-text">烟雾弹</span>
             </div>
-            <div class="callout-option">
-              <div class="callout-toggle" id="nadeToggle">
-                <div class="toggle-knob"></div>
-              </div>
-              <span>显示投掷物</span>
+            <div class="nade-option" data-type="flash">
+              <span class="nade-icon" style="color: #FFC107;">●</span>
+              <span class="nade-text">闪光弹</span>
+            </div>
+            <div class="nade-option" data-type="molotov">
+              <span class="nade-icon" style="color: #F44336;">●</span>
+              <span class="nade-text">燃烧弹</span>
+            </div>
+            <div class="nade-option" data-type="grenade">
+              <span class="nade-icon" style="color: #2196F3;">●</span>
+              <span class="nade-text">高爆手雷</span>
             </div>
           </div>
         </div>
@@ -597,7 +619,8 @@
       // 投掷物点位数据 - 按地图分组
       const nadeSpots = {
         dust2: [
-          { type: 'smoke', x: 30, y: 25, title: 'A点烟雾', videoUrl: 'https://example.com/video1' },
+          { type: 'smoke', x: 26, y: 12, title: '高台烟', videoUrl: 'C:/Users/Administrator/Desktop/window-smoke-from-upper-tunnels2.mp4' },
+          { type: 'smoke', x: 26, y: 21.5, title: 'B门烟', videoUrl: 'https://example.com/video1'},
           { type: 'flash', x: 60, y: 40, title: 'A点闪光', videoUrl: 'https://example.com/video2' },
           { type: 'molotov', x: 45, y: 60, title: '中路燃烧', videoUrl: 'https://example.com/video3' },
           { type: 'grenade', x: 75, y: 30, title: 'B点手雷', videoUrl: 'https://example.com/video4' }

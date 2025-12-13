@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑帖子 - CS2UTIL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        header {
+            background-color: #16213e;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e63946;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #e63946;
+        }
+        
+        .nav-links a.active {
+            color: #e63946;
+            font-weight: 500;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 40px 0;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .page-subtitle {
+            color: #a0a0a0;
+        }
+        
+        /* 表单样式 */
+        .post-form-container {
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 5px;
+            color: #e6e6e6;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #e63946;
+        }
+        
+        .form-textarea {
+            min-height: 200px;
+            resize: vertical;
+            line-height: 1.8;
+        }
+        
+        /* 视频上传区域 */
+        .video-upload {
+            border: 2px dashed #0f3460;
+            border-radius: 5px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        
+        .video-upload:hover {
+            border-color: #e63946;
+            background-color: rgba(15, 52, 96, 0.2);
+        }
+        
+        .video-upload-icon {
+            font-size: 48px;
+            color: #0f3460;
+            margin-bottom: 15px;
+            transition: color 0.3s;
+        }
+        
+        .video-upload:hover .video-upload-icon {
+            color: #e63946;
+        }
+        
+        .video-upload-text {
+            color: #a0a0a0;
+            margin-bottom: 10px;
+        }
+        
+        .video-upload-info {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+        
+        #videoFile {
+            display: none;
+        }
+        
+        .video-preview {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .video-preview.active {
+            display: block;
+        }
+        
+        .preview-video {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .remove-video {
+            color: #e63946;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0 auto;
+        }
+        
+        /* 标签选择区域 */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .tag {
+            background-color: #0f3460;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            color: #e6e6e6;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .tag:hover {
+            background-color: #1a3a6e;
+        }
+        
+        .tag.selected {
+            background-color: #e63946;
+        }
+        
+        .custom-tag {
+            display: flex;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .tag-input {
+            flex: 1;
+        }
+        
+        .add-tag-btn {
+            background-color: #0f3460;
+            color: #e6e6e6;
+            border: none;
+            padding: 0 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .add-tag-btn:hover {
+            background-color: #e63946;
+        }
+        
+        /* 按钮区域 */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+        }
+        
+        .cancel-btn, .submit-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .cancel-btn {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            border: 1px solid #0f3460;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #2a2a42;
+        }
+        
+        .submit-btn {
+            background-color: #e63946;
+            color: white;
+            border: none;
+        }
+        
+        .submit-btn:hover {
+            background-color: #c1121f;
+        }
+        
+        /* 错误提示 */
+        .error-message {
+            color: #e63946;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+        
+        /* 成功提示 */
+        .success-message {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message.active {
+            display: block;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .post-form-container {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .cancel-btn, .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="community.html" class="active">社区</a>
+                <a href="myinfo.html">我的</a>
+                <div id="userArea" style="display: none;">
+                    <div class="user-info">
+                        <span class="user-initial" id="userNamePrefix"></span>
+                    </div>
+                </div>
+                <div id="loginBtnArea">
+                    <a href="login.html">登录</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <div class="page-header">
+            <h1 class="page-title">编辑帖子</h1>
+            <p class="page-subtitle">修改你的帖子内容和信息</p>
+        </div>
+        
+        <div class="post-form-container">
+            <div class="success-message" id="successMessage">
+                帖子更新成功！正在返回我的内容页面...
+            </div>
+            
+            <form id="editPostForm">
+                <div class="form-group">
+                    <label for="postTitle" class="form-label">标题</label>
+                    <input type="text" id="postTitle" class="form-input" placeholder="请输入帖子标题">
+                    <div class="error-message" id="titleError">标题不能为空</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="postContent" class="form-label">内容介绍</label>
+                    <textarea id="postContent" class="form-textarea" placeholder="请详细描述你的技巧、战术或视频内容..."></textarea>
+                    <div class="error-message" id="contentError">内容不能为空</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">视频</label>
+                    <div class="current-video" id="currentVideoContainer" style="margin-bottom: 20px; display: none;">
+                        <p style="margin-bottom: 10px; font-size: 14px; color: #a0a0a0;">当前视频：</p>
+                        <video class="preview-video" id="currentVideo" controls></video>
+                        <button type="button" class="remove-video" id="removeCurrentVideo">
+                            <span>移除当前视频</span>
+                        </button>
+                    </div>
+                    
+                    <div class="video-upload" id="videoUploadArea">
+                        <div class="video-upload-icon">📹</div>
+                        <p class="video-upload-text">点击或拖拽视频文件到这里上传新视频</p>
+                        <p class="video-upload-info">支持MP4、WebM格式，最大文件大小50MB</p>
+                        <input type="file" id="videoFile" accept="video/mp4,video/webm">
+                    </div>
+                    
+                    <div class="video-preview" id="newVideoPreview">
+                        <video class="preview-video" id="newPreviewVideo" controls></video>
+                        <button type="button" class="remove-video" id="removeNewVideo">
+                            <span>移除新视频</span>
+                        </button>
+                    </div>
+                    <div class="error-message" id="videoError">请上传有效的视频文件</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">标签</label>
+                    <p class="video-upload-info">选择相关标签（最多5个）</p>
+                    <div class="tags-container" id="tagsContainer">
+                        <div class="tag" data-tag="Mirage">Mirage</div>
+                        <div class="tag" data-tag="Inferno">Inferno</div>
+                        <div class="tag" data-tag="Dust2">Dust2</div>
+                        <div class="tag" data-tag="烟雾弹">烟雾弹</div>
+                        <div class="tag" data-tag="闪光弹">闪光弹</div>
+                        <div class="tag" data-tag="燃烧弹">燃烧弹</div>
+                        <div class="tag" data-tag="手雷">手雷</div>
+                        <div class="tag" data-tag="战术">战术</div>
+                        <div class="tag" data-tag="瞄准">瞄准</div>
+                        <div class="tag" data-tag="攻略">攻略</div>
+                    </div>
+                    
+                    <div class="custom-tag">
+                        <input type="text" class="form-input tag-input" id="customTagInput" placeholder="添加自定义标签">
+                        <button type="button" class="add-tag-btn" id="addTagBtn">添加</button>
+                    </div>
+                    <div class="error-message" id="tagsError">请至少选择一个标签</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelBtn">取消</button>
+                    <button type="submit" class="submit-btn" id="submitBtn">更新帖子</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取URL中的帖子ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('id');
+            if (!postId) {
+                alert('未找到帖子ID');
+                window.location.href = 'myinfo.html';
+                return;
+            }
+            
+            // 元素引用
+            const videoUploadArea = document.getElementById('videoUploadArea');
+            const videoFileInput = document.getElementById('videoFile');
+            const videoPreview = document.getElementById('newVideoPreview');
+            const previewVideo = document.getElementById('newPreviewVideo');
+            const removeVideoBtn = document.getElementById('removeNewVideo');
+            const currentVideoContainer = document.getElementById('currentVideoContainer');
+            const currentVideo = document.getElementById('currentVideo');
+            const removeCurrentVideoBtn = document.getElementById('removeCurrentVideo');
+            
+            const tags = document.querySelectorAll('.tag');
+            const selectedTags = new Set();
+            const addTagBtn = document.getElementById('addTagBtn');
+            const customTagInput = document.getElementById('customTagInput');
+            const tagsContainer = document.querySelector('.tags-container');
+            
+            // 初始化页面
+            checkLoginStatus();
+            loadPostData(postId);
+            
+            // 检查登录状态
+            function checkLoginStatus() {
+                const currentUser = localStorage.getItem('currentUser');
+                const userId = localStorage.getItem('userId');
+                
+                if (currentUser && userId) {
+                    document.getElementById('userArea').style.display = 'block';
+                    document.getElementById('loginBtnArea').style.display = 'none';
+                    document.getElementById('userNamePrefix').textContent = currentUser.charAt(0).toUpperCase();
+                } else {
+                    document.getElementById('userArea').style.display = 'none';
+                    document.getElementById('loginBtnArea').style.display = 'block';
+                    window.location.href = 'login.html';
+                }
+            }
+            
+            // 加载帖子数据
+            async function loadPostData(postId) {
+                try {
+                    const userId = localStorage.getItem('userId');
+                    const response = await fetch(`/api/users/${userId}/posts/${postId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Login-User-Id': userId
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('获取帖子数据失败');
+                    }
+                    
+                    const result = await response.json();
+                    if (result.code !== 200 || !result.data) {
+                        throw new Error('帖子数据格式异常');
+                    }
+                    
+                    const post = result.data;
+                    populatePostForm(post);
+                    
+                } catch (error) {
+                    console.error('加载帖子失败:', error);
+                    alert(`加载帖子失败: ${error.message}`);
+                    window.location.href = 'myinfo.html';
+                }
+            }
+            
+            // 填充表单数据
+            function populatePostForm(post) {
+                // 填充标题和内容
+                document.getElementById('postTitle').value = post.title || '';
+                document.getElementById('postContent').value = post.content || '';
+                
+                // 处理视频
+                if (post.video_url) {
+                    currentVideo.src = post.video_url;
+                    currentVideoContainer.style.display = 'block';
+                }
+                
+                // 处理标签
+                if (post.tags) {
+                    const postTags = post.tags.split(',');
+                    postTags.forEach(tagText => {
+                        tagText = tagText.trim();
+                        if (tagText) {
+                            selectedTags.add(tagText);
+                            
+                            // 标记已有标签为选中状态
+                            const existingTag = Array.from(tags).find(t => t.getAttribute('data-tag') === tagText);
+                            if (existingTag) {
+                                existingTag.classList.add('selected');
+                            } else {
+                                // 添加自定义标签到容器
+                                const newTag = createTagElement(tagText);
+                                tagsContainer.appendChild(newTag);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // 创建标签元素
+            function createTagElement(tagText) {
+                const newTag = document.createElement('div');
+                newTag.className = 'tag selected';
+                newTag.setAttribute('data-tag', tagText);
+                newTag.textContent = tagText;
+                
+                newTag.addEventListener('click', function() {
+                    selectedTags.delete(tagText);
+                    this.remove();
+                });
+                
+                return newTag;
+            }
+            
+            // 视频上传处理
+            videoUploadArea.addEventListener('click', function() {
+                videoFileInput.click();
+            });
+            
+            videoFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    previewVideoFile(file);
+                }
+            });
+            
+            function previewVideoFile(file) {
+                if (!file.type.startsWith('video/')) {
+                    showError('videoError', '请上传视频文件');
+                    return;
+                }
+                
+                if (file.size > 50 * 1024 * 1024) {
+                    showError('videoError', '视频文件不能超过50MB');
+                    return;
+                }
+                
+                hideError('videoError');
+                
+                // 隐藏当前视频，显示新视频预览
+                currentVideoContainer.style.display = 'none';
+                const fileURL = URL.createObjectURL(file);
+                previewVideo.src = fileURL;
+                videoPreview.classList.add('active');
+            }
+            
+            // 移除新视频
+            removeVideoBtn.addEventListener('click', function() {
+                videoPreview.classList.remove('active');
+                previewVideo.src = '';
+                videoFileInput.value = '';
+                
+                // 如果有原始视频，重新显示
+                if (currentVideo.src) {
+                    currentVideoContainer.style.display = 'block';
+                }
+            });
+            
+            // 移除当前视频
+            removeCurrentVideoBtn.addEventListener('click', function() {
+                currentVideoContainer.style.display = 'none';
+                currentVideo.src = '';
+            });
+            
+            // 标签选择功能
+            tags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const tagValue = this.getAttribute('data-tag');
+                    
+                    if (selectedTags.has(tagValue)) {
+                        selectedTags.delete(tagValue);
+                        this.classList.remove('selected');
+                    } else if (selectedTags.size < 5) {
+                        selectedTags.add(tagValue);
+                        this.classList.add('selected');
+                    } else {
+                        alert('最多只能选择5个标签');
+                    }
+                    
+                    hideError('tagsError');
+                });
+            });
+            
+            // 添加自定义标签
+            addTagBtn.addEventListener('click', function() {
+                const tagText = customTagInput.value.trim();
+                
+                if (tagText && tagText.length <= 10) {
+                    if ([...selectedTags].includes(tagText)) {
+                        alert('该标签已被选择');
+                        return;
+                    }
+                    
+                    if (selectedTags.size >= 5) {
+                        alert('最多只能选择5个标签');
+                        return;
+                    }
+                    
+                    const newTag = createTagElement(tagText);
+                    tagsContainer.appendChild(newTag);
+                    selectedTags.add(tagText);
+                    customTagInput.value = '';
+                    hideError('tagsError');
+                } else if (tagText.length > 10) {
+                    alert('标签不能超过10个字符');
+                }
+            });
+            
+            // 取消按钮
+            document.getElementById('cancelBtn').addEventListener('click', function() {
+                if (confirm('确定要取消编辑吗？已修改的内容将会丢失。')) {
+                    window.location.href = 'myinfo.html';
+                }
+            });
+            
+            // 表单提交
+            document.getElementById('editPostForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('postTitle').value.trim();
+                const content = document.getElementById('postContent').value.trim();
+                const videoFile = videoFileInput.files[0];
+                const hasVideo = currentVideo.src || videoFile;
+                
+                let isValid = true;
+                
+                if (!title) {
+                    showError('titleError');
+                    isValid = false;
+                } else {
+                    hideError('titleError');
+                }
+                
+                if (!content) {
+                    showError('contentError');
+                    isValid = false;
+                } else {
+                    hideError('contentError');
+                }
+                
+                if (!hasVideo) {
+                    showError('videoError', '请上传视频或保留现有视频');
+                    isValid = false;
+                } else {
+                    hideError('videoError');
+                }
+                
+                if (selectedTags.size === 0) {
+                    showError('tagsError');
+                    isValid = false;
+                } else {
+                    hideError('tagsError');
+                }
+                
+                if (!isValid) return;
+                
+                try {
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '更新中...';
+                    
+                    const userId = localStorage.getItem('userId');
+                    if (!userId) {
+                        throw new Error('未获取到用户信息，请重新登录');
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('content', content);
+                    formData.append('tags', Array.from(selectedTags).join(','));
+                    // 如果有新视频，添加到表单
+                    if (videoFile) {
+                        formData.append('video', videoFile);
+                    }
+                    // 标记是否删除现有视频
+                    formData.append('removeExistingVideo', currentVideo.src ? 'false' : 'true');
+                    
+                    const response = await fetch(`/api/users/${userId}/posts/${postId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                            'X-Login-User-Id': userId
+                        },
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.message || '更新失败，请稍后重试');
+                    }
+                    
+                    // 显示成功消息并跳转
+                    document.getElementById('successMessage').classList.add('active');
+                    setTimeout(() => {
+                        window.location.href = 'myinfo.html';
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('更新帖子失败:', error);
+                    alert(`更新失败: ${error.message}`);
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = '更新帖子';
+                }
+            });
+            
+            // 错误提示函数
+            function showError(elementId, message) {
+                const errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    if (message) errorElement.textContent = message;
+                    errorElement.classList.add('active');
+                }
+            }
+            
+            function hideError(elementId) {
+                const errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    errorElement.classList.remove('active');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

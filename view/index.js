@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       stopHeartbeat();
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('userId');
       window.location.reload();
     } catch (error) {
       console.error('注销错误:', error);
@@ -183,6 +184,7 @@ function resetInactivityTimer() {
     } finally {
       // 4. 无论接口是否成功，都清除本地用户信息并跳转登录页
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('userId');
       window.location.href = 'login.html';
     }
   }, 300000); // 300秒阈值 

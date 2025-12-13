@@ -84,7 +84,7 @@ app.use(errorHandler);
 
 // 如果你没有 app.listen，确保添加监听（或检查 server.js）
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Server listening on ${port}`));
+app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
 
 // 5. 导出 app 实例（供 server.js 启动服务器）
 module.exports = app;

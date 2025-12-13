@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             postCard.className = 'post-card';
 
             // 格式化日期（调用辅助函数）
-            const formattedDate = formatRelativeDate(post.created_at); // 注意：后端字段是 created_at（和数据库一致）
+            const formattedDate = formatRelativeDate(post.updated_at); // 注意：后端字段是 created_at（和数据库一致）
             // 分割标签（后端存储的是逗号分隔字符串，转成数组）
             //const tags = post.tags ? post.tags.split(',') : [];
             const tags = post.tags || [];

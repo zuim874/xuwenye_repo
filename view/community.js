@@ -6,6 +6,8 @@
   const logoutBtn = document.getElementById('logoutBtn');
   let heartbeatTimer = window.heartbeatTimer || null;
   let inactivityTimer = null;  
+  const userInfo = document.querySelector('.user-info');
+  const myinfoBtn = document.getElementById('myinfoBtn');
 
   // 6. 核心修复：心跳函数（解决 username=undefined 问题）
   function startHeartbeat() {
@@ -37,6 +39,7 @@
         console.error('心跳错误:', error);
         stopHeartbeat();
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('userId');
         window.location.href = 'login.html';
       }
     }, 30000);
@@ -114,6 +117,51 @@
         }
     }, 300000); // 300秒阈值
     }
+
+        // 点击用户名显示/隐藏菜单
+    userInfo?.addEventListener('click', function(e) {
+        e.stopPropagation(); // 阻止事件冒泡
+        const isVisible = logoutBtn.style.display === 'block';
+        logoutBtn.style.display = isVisible ? 'none' : 'block';
+        myinfoBtn.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // 点击页面其他区域隐藏菜单
+    document.addEventListener('click', function() {
+        logoutBtn.style.display = 'none';
+        myinfoBtn.style.display = 'none';
+    });
+
+    // 登出按钮事件
+    logoutBtn?.addEventListener('click', async function(e) {
+        e.stopPropagation();
+        try {
+            // 停止心跳
+            if (window.heartbeatTimer) {
+                clearInterval(window.heartbeatTimer);
+                window.heartbeatTimer = null;
+            }
+            // 调用登出接口
+            await fetch('/api/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser })
+            });
+        } catch (err) {
+            console.error('登出失败:', err);
+        } finally {
+            // 清除本地存储并跳转登录页
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userId');
+            window.location.reload();
+        }
+    });
+
+    // "我的"按钮事件（可根据需求跳转个人中心）
+    myinfoBtn?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        window.location.href = 'myinfo.html';
+    });
 
   // 扩展：覆盖PC+移动端所有合理用户交互事件
   const userActivityEvents = [

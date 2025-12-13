@@ -4,7 +4,7 @@ CREATE TABLE users (
     password_hash VARCHAR(100) NOT NULL, 							-- 加密密码（保留原字段）
     is_online TINYINT(1) NOT NULL DEFAULT 0,						-- 登录状态：0=离线（默认），1=在线
     last_login TIMESTAMP NULL, 										-- 可选：记录最后登录时间（增强功能）
-	avatar VARCHAR(255) DEFAULT NULL, 								-- '头像图片路径（默认用用户名首字母生成）'
+	  avatar VARCHAR(255) DEFAULT NULL, 								-- '头像图片路径（默认用用户名首字母生成）'
     user_power tinyint(1) default 1 check (user_power  in (0,1,2)), -- 用户权限，默认1，管理员0，封禁2
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
