@@ -44,7 +44,7 @@ function renderPostDetail(post) {
     const formattedDate = formatRelativeDate(post.created_at);
     
     // 生成作者头像首字母
-    const authorInitials = post.author_name.substring(0, 2).toUpperCase();
+    const authorInitials = post.author_name.substring(0, 1).toUpperCase();
     
     // 渲染帖子内容
     postDetailElement.innerHTML = `
@@ -52,7 +52,8 @@ function renderPostDetail(post) {
             <h1 class="post-title">${post.title}</h1>
             <div class="post-meta">
                 <div class="author-info">
-                    <div class="author-avatar">${authorInitials}</div>
+                    <!-- 确保data-author-id属性正确设置 -->
+                    <div class="author-avatar" data-author-id="${post.user_id}">${authorInitials}</div>
                     <div>
                         <div class="author-name">${post.author_name}</div>
                         <div class="post-date">发布于 ${formattedDate}</div>
@@ -88,6 +89,14 @@ function renderPostDetail(post) {
     
     // 绑定按钮事件
     bindActionButtons(post.id);
+
+    // 确保使用正确的用户ID加载头像
+    if (post.authorId) {
+        // 使用setTimeout确保DOM完全渲染
+        setTimeout(() => {
+            loadAuthorAvatar(post.authorId);
+        }, 100);
+    }
 }
 
 // 格式化帖子内容（将换行符转换为<br>）
@@ -250,7 +259,7 @@ async function fetchComments(postId) {
 // 渲染评论列表
 function renderComments(comments) {
     const commentsListElement = document.getElementById('commentsList');
-    const currentUser = localStorage.getItem('currentUser'); // 获取当前登录用户
+    const currentUser = localStorage.getItem('currentUser');
     
     if (comments.length === 0) {
         commentsListElement.innerHTML = '<div class="no-comments">还没有评论，快来发表第一条评论吧！</div>';
@@ -259,16 +268,16 @@ function renderComments(comments) {
     
     let commentsHTML = '';
     comments.forEach(comment => {
-        const formattedDate = formatRelativeDate(comment.updated_at);
-        const authorInitials = comment.author_name.substring(0, 2).toUpperCase();
-        // 判断是否是当前用户的评论
+        const formattedDate = formatRelativeDate(comment.created_at);
+        const authorInitials = comment.author_name.substring(0, 1).toUpperCase();
         const isOwnComment = currentUser && comment.author_name === currentUser;
         
         commentsHTML += `
             <div class="comment-item" data-comment-id="${comment.id}">
                 <div class="comment-header">
                     <div class="comment-author">
-                        <div class="comment-avatar">${authorInitials}</div>
+                        <!-- 确保data-user-id属性正确设置 -->
+                        <div class="comment-avatar" data-user-id="${comment.user_id}">${authorInitials}</div>
                         <div class="author-name">${comment.author_name}</div>
                     </div>
                     <div class="comment-time">
@@ -285,6 +294,15 @@ function renderComments(comments) {
     
     // 绑定删除按钮事件
     bindDeleteCommentEvents();
+
+    // 加载评论作者头像
+    comments.forEach(comment => {
+        if (comment.user_id) {
+            setTimeout(() => {
+                loadAuthorAvatar(comment.user_id);
+            }, 100);
+        }
+    });
 }
 
 // 绑定删除评论事件
@@ -405,6 +423,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化用户状态
     initUserStatus();
+
+    renderPostDetail();
 });
 
 // 初始化用户状态显示（使用currentUser）
@@ -424,4 +444,85 @@ function initUserStatus() {
         userArea.style.display = 'none';
         loginBtnArea.style.display = 'block';
     }
+}
+
+// 修复头像加载函数
+async function loadAuthorAvatar(authorId) {
+    if (!authorId || authorId === 'undefined' || authorId === 'null') {
+        console.warn('无效的作者ID:', authorId);
+        return;
+    }
+
+    try {
+        // 使用正确的接口路径
+        const response = await fetch(`/api/users/${authorId}/avatar`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+        
+        if (result.code === 200 && result.data?.avatar) {
+            // 修复选择器：同时匹配帖子作者和评论作者的头像容器
+            const avatarContainers = document.querySelectorAll(
+                `.author-avatar[data-author-id="${authorId}"], 
+                 .comment-avatar[data-user-id="${authorId}"]`
+            );
+
+            avatarContainers.forEach(container => {
+                container.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = result.data.avatar;
+                img.className = 'avatar-image';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '50%';
+
+                img.onerror = function() {
+                    // 头像加载失败时显示首字母
+                    showAuthorInitial(authorId, container);
+                };
+
+                container.appendChild(img);
+            });
+        } else {
+            // 头像获取失败，显示首字母
+            showAuthorInitial(authorId);
+        }
+    } catch (error) {
+        console.error('加载用户头像失败:', error);
+        showAuthorInitial(authorId);
+    }
+}
+
+// 修复显示首字母函数
+function showAuthorInitial(userId, container = null) {
+    let authorName = '用户';
+    
+    // 尝试从DOM中获取用户名
+    if (container) {
+        const nameElement = container.closest('.author-info, .comment-author')?.querySelector('.author-name');
+        if (nameElement) authorName = nameElement.textContent;
+    }
+    
+    const initial = authorName.substring(0, 1).toUpperCase();
+    const containers = container 
+        ? [container] 
+        : document.querySelectorAll(
+            `.author-avatar[data-author-id="${userId}"], 
+             .comment-avatar[data-user-id="${userId}"]`
+        );
+
+    containers.forEach(elem => {
+        elem.innerHTML = initial;
+        elem.style.display = 'flex';
+        elem.style.alignItems = 'center';
+        elem.style.justifyContent = 'center';
+        elem.style.fontWeight = 'bold';
+        elem.style.color = '#e63946';
+        elem.style.fontSize = '16px';
+    });
 }

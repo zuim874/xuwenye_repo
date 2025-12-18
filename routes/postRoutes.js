@@ -130,6 +130,7 @@ router.get('/', async (req, res) => {
 
         const formattedPosts = posts.map(post => ({
             ...post,
+            authorId: post.user_id,
             tags: post.tags ? post.tags.split(',').map(tag => tag.trim()) : []
         }));
 
@@ -410,7 +411,7 @@ router.get('/:id/comments', async (req, res) => {
         }
         
         const [comments] = await pool.execute(
-            `SELECT c.id, c.content, c.created_at, u.username AS author_name
+            `SELECT c.id, c.user_id, c.content, c.created_at, u.username AS author_name
              FROM comments c
              LEFT JOIN users u ON c.user_id = u.id
              WHERE c.post_id = ? AND c.is_deleted = 0

@@ -39,6 +39,40 @@ const upload = multer({
   }
 });
 
+// 在文件顶部添加头像上传目录配置
+const avatarUploadDir = path.join(__dirname, '../uploads/avatar');
+if (!fs.existsSync(avatarUploadDir)) {
+  fs.mkdirSync(avatarUploadDir, { recursive: true });
+}
+
+// 配置头像上传的multer
+const avatarStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/avatar/'); // 头像存储目录
+  },
+  filename: function (req, file, cb) {
+    // 生成唯一文件名，使用用户ID确保唯一性
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = file.originalname.split('.').pop();
+    cb(null, `avatar-${req.headers['x-login-user-id']}-${uniqueSuffix}.${ext}`);
+  }
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB限制
+  },
+  fileFilter: function(req, file, cb) {
+    // 验证图片格式
+    if (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('只支持JPG、PNG、GIF和WebP格式的图片'), false);
+    }
+  }
+});
+
 // ==================== 公共工具函数 ====================
 
 /**
@@ -535,6 +569,142 @@ router.get('/:userId/posts/:postId', async (req, res) => {
 
     } catch (error) {
         handleError(res, error, '查询帖子详情');
+    }
+});
+
+/**
+ * 更新用户头像接口
+ * POST /api/users/update-avatar
+ */
+router.post('/update-avatar', avatarUpload.single('avatarFile'), async (req, res) => {
+  try {
+    // 1. 获取用户ID
+    const userId = req.headers['x-login-user-id'];
+    if (!userId) {
+      return res.status(401).json({
+        code: 401,
+        message: '未登录，缺少用户ID'
+      });
+    }
+
+    let avatarUrl = '';
+    
+    // 2. 处理上传的文件（如果有）
+    if (req.file) {
+      // 上传了本地文件
+      avatarUrl = `/uploads/avatar/${req.file.filename}`;
+    } else {
+      // 处理URL方式
+      const { avatarUrl: url } = req.body;
+      if (!url?.trim()) {
+        return res.status(400).json({
+          code: 400,
+          message: '头像URL不能为空'
+        });
+      }
+
+      // 校验URL格式
+      const urlRegex = /^(https?:\/\/).+\.(jpg|jpeg|png|gif|webp)$/i;
+      if (!urlRegex.test(url.trim())) {
+        return res.status(400).json({
+          code: 400,
+          message: '头像URL格式错误，仅支持jpg/png/gif/webp格式的网络图片'
+        });
+      }
+      avatarUrl = url.trim();
+    }
+
+    // 3. 验证用户是否存在
+    const [users] = await pool.execute(
+      'SELECT id FROM users WHERE id = ? LIMIT 1',
+      [userId]
+    );
+    if (users.length === 0) {
+      return res.status(404).json({
+        code: 404,
+        message: `用户ID ${userId} 不存在`
+      });
+    }
+
+    // 4. 如果是新上传的文件，删除旧头像（可选）
+    if (req.file) {
+      const [user] = await pool.execute(
+        'SELECT avatar FROM users WHERE id = ?',
+        [userId]
+      );
+      const oldAvatar = user[0].avatar;
+      if (oldAvatar && oldAvatar.startsWith('/uploads/avatar/')) {
+        const oldAvatarPath = path.join(__dirname, '..', oldAvatar);
+        if (fs.existsSync(oldAvatarPath)) {
+          try {
+            fs.unlinkSync(oldAvatarPath);
+          } catch (err) {
+            console.error('删除旧头像失败:', err);
+          }
+        }
+      }
+    }
+
+    // 5. 更新数据库
+    await pool.execute(
+      'UPDATE users SET avatar = ? WHERE id = ?',
+      [avatarUrl, userId]
+    );
+
+    // 6. 返回成功响应
+    res.status(200).json({
+      code: 200,
+      message: '头像更新成功',
+      data: {
+        userId,
+        avatar: avatarUrl,
+        updateTime: new Date().toLocaleString()
+      }
+    });
+
+  } catch (error) {
+    handleError(res, error, '更新用户头像');
+  }
+});
+
+/**
+ * 获取用户头像
+ * GET /api/users/:userId/avatar
+ */
+router.get('/:userId/avatar', async (req, res) => {
+    try {
+        const targetUserId = req.params.userId;
+        const loginUserId = req.headers['x-login-user-id'];
+
+        // 验证登录状态
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        // 查询用户头像URL（从user表的avatar字段获取）
+        const [users] = await pool.execute(
+            'SELECT avatar FROM users WHERE id = ? LIMIT 1',
+            [targetUserId]
+        );
+
+        // 验证用户是否存在
+        if (users.length === 0) {
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        // 返回头像URL（数据库中直接存储的URL）
+        res.status(200).json({
+            code: 200,
+            message: '查询头像成功',
+            data: {
+                userId: targetUserId,
+                avatar: users[0].avatar || null, // 直接返回存储的URL，未设置则为null
+                updateTime: new Date().toLocaleString()
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '查询用户头像');
     }
 });
 

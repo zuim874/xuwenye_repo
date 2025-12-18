@@ -118,7 +118,6 @@ async function fetchUserProfile(userId) {
 /**
  * 获取用户发布的帖子及统计数据
  * @param {string} userId - 用户ID
- * @param {string} token - 登录凭证Token
  */
 async function fetchUserPosts(userId) {
     try {

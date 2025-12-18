@@ -50,6 +50,7 @@
         .nav-links {
             display: flex;
             gap: 20px;
+            align-items: center;
         }
         
         .nav-links a {
@@ -180,6 +181,26 @@
         
         .action-btn.liked, .action-btn.favorited {
             color: #e63946;
+        }
+
+        .author-avatar, .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #e63946;
+            overflow: hidden;
+        }
+
+        .author-avatar img, .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
         
         /* 评论区样式 */
@@ -345,6 +366,20 @@
             color: #e63946 !important;
             text-decoration: underline;
         }
+
+        /* 在post-detail.html的<style>标签内添加 */
+        .user-initial {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            color: #e63946;
+            font-weight: bold;
+            font-size: 18px;
+        }
         
         /* 响应式设计 */
         @media (max-width: 768px) {
@@ -434,5 +469,6 @@
     </footer>
 
     <script src="postdetail.js"></script>
+    <script src="user-avatar.js"></script>
 </body>
 </html>

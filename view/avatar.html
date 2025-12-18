@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>头像设置 - CS2UTIL</title>
+    <style>
+        /* 全局重置 & 基础样式（匹配现有项目风格） */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft Yahei', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: #16213e;
+            color: #e6e6e6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏（和myinfo.html/community.html一致） */
+        header {
+            background-color: #0f3460;
+            padding: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: #e63946;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-list {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-list a {
+            color: #e6e6e6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-list a:hover, .nav-list a.active {
+            color: #e63946;
+        }
+
+        .user-area {
+            display: none;
+            position: relative;
+        }
+
+        .user-initial {
+            /* 从myinfo.html同步样式 */
+            background-color: #0f3460; /* 原#e63946 */
+            width: 40px; /* 原32px */
+            height: 40px; /* 原32px */
+            font-size: 18px; /* 原14px */
+        }
+
+        .login-btn {
+            color: #e6e6e6;
+            background: #e63946;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        /* 主内容区 */
+        main {
+            flex: 1;
+            padding: 40px 0;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: #f8fafc;
+        }
+
+        .avatar-card {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .avatar-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 头像预览 */
+        .avatar-preview {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #e63946;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 操作区 */
+        .avatar-ops {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .form-item {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #16213e;
+            border: 1px solid #457b9d;
+            border-radius: 4px;
+            color: #e6e6e6;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #e63946;
+        }
+
+        .upload-area {
+            border: 2px dashed #457b9d;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #e63946;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #e63946;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #c1121f;
+        }
+
+        .btn-secondary {
+            background: #457b9d;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #1d3557;
+        }
+
+        .tips {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #a0a0a0;
+        }
+
+        .msg {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .msg.error {
+            display: block;
+            background: rgba(230, 57, 70, 0.2);
+            border: 1px solid #e63946;
+            color: #e63946;
+        }
+
+        .msg.success {
+            display: block;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+        }
+
+        /* 页脚（和community.html一致） */
+        footer {
+            background: #0f3460;
+            padding: 20px 0;
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 14px;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-wrap">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-list">
+                <a href="index.html">首页</a>
+                <a href="community.html">社区</a>
+                <a href="myinfo.html">我的</a>
+                <a href="avatar.html" class="active">头像设置</a>
+                <div id="userArea" class="user-area">
+                    <div class="user-initial" id="userInitial"></div>
+                </div>
+                <a href="login.html" id="loginBtn" class="login-btn">登录</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容 -->
+    <main>
+        <div class="container">
+            <h1 class="page-title">头像设置</h1>
+            <div class="avatar-card">
+                <div class="avatar-content">
+                    <!-- 头像预览 -->
+                    <div class="avatar-preview">
+                        <img id="avatarImg" src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/0f/0f36d706d671d664ce65045a437815f1d81826e2.jpg" alt="头像预览">
+                    </div>
+
+                    <!-- 操作区 -->
+                    <div class="avatar-ops">
+                        <div class="form-item">
+                            <label class="form-label">头像URL</label>
+                            <input type="url" id="avatarUrl" class="form-input" placeholder="输入图片URL（支持JPG/PNG/GIF）">
+                        </div>
+
+                        <div class="form-item">
+                            <label class="form-label">或上传本地图片</label>
+                            <div class="upload-area" id="uploadArea">
+                                <input type="file" id="fileInput" accept="image/*">
+                                <span>点击上传图片</span>
+                            </div>
+                            <div class="tips">支持JPG、PNG、GIF格式，建议尺寸200x200px</div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" id="loadBtn">加载预览</button>
+                            <button class="btn btn-primary" id="saveBtn">保存头像</button>
+                        </div>
+
+                        <div class="msg" id="msgBox"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            © 2025 CS2UTIL 版权所有 | 本网站与Valve Corporation无关联
+        </div>
+    </footer>
+
+    <script>
+        // DOM元素
+        const avatarImg = document.getElementById('avatarImg');
+        const avatarUrl = document.getElementById('avatarUrl');
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const loadBtn = document.getElementById('loadBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const msgBox = document.getElementById('msgBox');
+        const userArea = document.getElementById('userArea');
+        const loginBtn = document.getElementById('loginBtn');
+        const userInitial = document.getElementById('userInitial');
+
+        // 全局变量
+        let userId = '';
+        let currentUser = '';
+
+        // 初始化：检查登录状态
+        function checkLoginStatus() {
+            currentUser = localStorage.getItem('currentUser');
+            userId = localStorage.getItem('userId');
+            
+            // 仅检查currentUser是否存在
+            if (!currentUser || !userId) {
+                // 未登录，跳转登录页
+                window.location.href = 'login.html';
+                return false; // 阻止后续逻辑
+            }
+            
+            // 已登录，显示用户区域，隐藏登录按钮
+            userArea.style.display = 'block';
+            loginBtn.style.display = 'none';
+            
+            // 显示用户首字母
+            const initial = currentUser.charAt(0).toUpperCase();
+            userInitial.textContent = initial;
+            
+            // 尝试加载用户当前头像
+            loadUserAvatar();
+            
+            return true;
+        }
+
+        // 加载用户当前头像
+        async function loadUserAvatar() {
+            try {
+                const res = await fetch(`/api/users/${userId}/avatar`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Login-User-Id': userId
+                    }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.avatarUrl) {
+                        avatarImg.src = data.avatarUrl;
+                        avatarUrl.value = data.avatarUrl;
+                    }
+                }
+            } catch (err) {
+                console.error('加载用户头像失败:', err);
+            }
+        }
+
+        // 显示提示信息
+        function showMsg(text, type = 'error') {
+            msgBox.className = `msg ${type}`;
+            msgBox.textContent = text;
+            setTimeout(() => {
+                msgBox.className = 'msg';
+            }, 3000);
+        }
+
+        // 加载URL预览
+        loadBtn.addEventListener('click', () => {
+            const url = avatarUrl.value.trim();
+            if (!url) {
+                showMsg('请输入头像URL');
+                return;
+            }
+            // 简单校验URL格式
+            const reg = /^(https?:\/\/).+\.(jpg|png|gif|webp)$/i;
+            if (!reg.test(url)) {
+                showMsg('URL格式错误，仅支持jpg/png/gif/webp');
+                return;
+            }
+            // 预览图片
+            avatarImg.src = url;
+            avatarImg.onerror = () => {
+                showMsg('图片加载失败，请检查URL');
+                avatarImg.src = 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/0f/0f36d706d671d664ce65045a437815f1d81826e2.jpg';
+            };
+            showMsg('预览加载成功', 'success');
+        });
+
+        // 本地上传预览
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            // 校验文件类型
+            const types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!types.includes(file.type)) {
+                showMsg('仅支持JPG/PNG/GIF格式图片');
+                return;
+            }
+            // 生成预览URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                avatarImg.src = e.target.result;
+                showMsg('本地图片预览成功', 'success');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 保存头像到服务器
+        saveBtn.addEventListener('click', async () => {
+            // 登录校验
+            if (!userId || !currentUser) {
+                showMsg('请先登录');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+
+            // 判断是URL还是本地文件
+            const isLocalFile = avatarImg.src.startsWith('blob:') || 
+                            avatarImg.src.startsWith('data:image/');
+            
+            let formData;
+            let fetchOptions;
+
+            if (isLocalFile) {
+                // 处理本地文件上传
+                const file = fileInput.files[0];
+                if (!file) {
+                    showMsg('请选择要上传的图片');
+                    return;
+                }
+                
+                formData = new FormData();
+                formData.append('avatarFile', file);
+                
+                fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'X-Login-User-Id': userId // 只需要这个头，不需要Content-Type
+                    },
+                    body: formData
+                };
+            } else {
+                // 处理URL方式
+                const avatarUrlVal = avatarUrl.value.trim();
+                if (!avatarUrlVal) {
+                    showMsg('请输入头像URL');
+                    return;
+                }
+                
+                // 简单校验URL格式
+                const reg = /^(https?:\/\/).+\.(jpg|png|gif|webp)$/i;
+                if (!reg.test(avatarUrlVal)) {
+                    showMsg('URL格式错误，仅支持jpg/png/gif/webp');
+                    return;
+                }
+                
+                fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Login-User-Id': userId
+                    },
+                    body: JSON.stringify({
+                        avatarUrl: avatarUrlVal
+                    })
+                };
+            }
+
+            try {
+                const res = await fetch('/api/users/update-avatar', fetchOptions);
+                const data = await res.json();
+                
+                if (data.code === 200) {
+                    showMsg('头像保存成功', 'success');
+                    // 如果是本地文件，更新输入框的URL
+                    if (isLocalFile) {
+                        avatarUrl.value = data.data.avatar;
+                    }
+                } else {
+                    showMsg(data.message || '保存失败');
+                }
+            } catch (err) {
+                console.error('保存失败:', err);
+                showMsg('网络错误，保存失败');
+            }
+        });
+
+        // 初始化页面
+        window.onload = checkLoginStatus;
+    </script>
+</body>
+</html>

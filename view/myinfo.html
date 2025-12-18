@@ -417,25 +417,56 @@
         footer {
             background-color: #16213e;
             padding: 30px 0;
-            text-align: center;
-            margin-top: auto;
+            margin-top: 50px;
             border-top: 1px solid #0f3460;
         }
 
         .footer-content {
-            color: #a0a0a0;
-            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1200px; /* 与页面容器宽度一致 */
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .footer-section {
-            max-width: 600px;
-            margin: 0 auto;
+            flex: 1;
+            min-width: 200px;
         }
 
         .footer-section h3 {
-            color: #e6e6e6;
-            margin-bottom: 15px;
             font-size: 18px;
+            margin-bottom: 15px;
+            color: #e6e6e6;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 8px;
+        }
+
+        .footer-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #e63946; /* hover效果与community.html一致 */
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #0f3460;
+            color: #a0a0a0;
+            font-size: 14px;
         }
 
         /* 响应式设计 */
@@ -575,9 +606,16 @@
                     <h3>CS2UTIL</h3>
                     <p>提供最全面的CS2实用指南，帮助玩家提升游戏水平。</p>
                 </div>
+                <div class="footer-section">
+                <h3>快速链接</h3>
+                <ul class="footer-links">
+                    <li><a href="avatar.html">头像预览工具</a></li>
+                </ul>
+            </div>
             </div>
         </div>
     </footer>
     <script src="myinfo.js"></script>
+    <script src="user-avatar.js"></script>
 </body>
 </html>

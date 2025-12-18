@@ -29,9 +29,6 @@
             background-color: #16213e;
             padding: 15px 0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
         
         .header-content {
@@ -50,6 +47,7 @@
         .nav-links {
             display: flex;
             gap: 20px;
+            align-items: center;
         }
         
         .nav-links a {
@@ -373,11 +371,16 @@
         }
 
         .user-initial {
-            color: #e6e6e6;
-            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0f3460;
+            color: #e63946;
             font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 4px;
+            font-size: 18px;
         }
 
         .logout-btn, .myinfo-btn {
@@ -579,8 +582,19 @@
                 });
             }
 
+            const userId = localStorage.getItem('userId');
+            document.getElementById('userNamePrefix').setAttribute('data-user-id', userId || '');
+            // 初始化用户名首字母
+            const username = localStorage.getItem('currentUser');
+            if (username) {
+                document.getElementById('userNamePrefix').textContent = username.substring(0, 3).toUpperCase();
+            }
+
             // 初始化自动登出功能
             initAutoLogout(); 
+
+            // 初始化用户头像
+            initUserAvatar();
             
             // 调整窗口大小时重新隐藏导航（在移动端）
             window.addEventListener('resize', function() {
@@ -740,18 +754,21 @@
                     
                     // 渲染在线用户列表
                     displayUsers.forEach(user => {
-                        // 获取用户名首字母作为头像显示
+                        // 创建用户项元素
+                        const userItem = document.createElement('div');
+                        userItem.className = 'user-item';
+                        // 使用用户ID作为标识，方便后续加载头像
+                        userItem.setAttribute('data-user-id', user.id);
+                        
+                        // 获取用户名首字母作为默认显示
                         const initials = user.username.substring(0, 3).toUpperCase();
                         
                         // 格式化最后活跃时间
                         const pureDateTime = user.last_active.slice(0, 19).replace('T', ' ');
-                        // 提取时间部分（HH:MM:SS）
                         const formattedTime = pureDateTime.split(' ')[1];
                         
-                        const userItem = document.createElement('div');
-                        userItem.className = 'user-item';
                         userItem.innerHTML = `
-                            <div class="user-avatar">${initials}</div>
+                            <div class="user-avatar" data-user-id="${user.id}">${initials}</div>
                             <div class="user-info">
                                 <div class="user-name">${user.username}</div>
                                 <div class="user-last-active" style="font-size: 11px; color: #a0a0a0;">
@@ -762,26 +779,29 @@
                         `;
                         
                         onlineUsersList.appendChild(userItem);
+                        
+                        // 为每个用户加载头像
+                        loadAndDisplayUserAvatar(user.id);
                     });
                     
-                    // 如果有更多用户，显示查看全部选项
-                    if (result.data.onlineCount > 10) {
-                        const viewAllItem = document.createElement('div');
-                        viewAllItem.className = 'view-all-users';
-                        viewAllItem.style.textAlign = 'center';
-                        viewAllItem.style.padding = '8px';
-                        viewAllItem.style.fontSize = '13px';
-                        viewAllItem.style.color = '#e63946';
-                        viewAllItem.style.cursor = 'pointer';
-                        viewAllItem.textContent = `查看全部 ${result.data.onlineCount} 位在线用户`;
-                        
-                        viewAllItem.addEventListener('click', () => {
-                            alert('在实际应用中，这里会显示所有在线用户');
-                        });
-                        
-                        onlineUsersList.appendChild(viewAllItem);
-                    }
+                // 如果有更多用户，显示查看全部选项
+                if (result.data.onlineCount > 10) {
+                    const viewAllItem = document.createElement('div');
+                    viewAllItem.className = 'view-all-users';
+                    viewAllItem.style.textAlign = 'center';
+                    viewAllItem.style.padding = '8px';
+                    viewAllItem.style.fontSize = '13px';
+                    viewAllItem.style.color = '#e63946';
+                    viewAllItem.style.cursor = 'pointer';
+                    viewAllItem.textContent = `查看全部 ${result.data.onlineCount} 位在线用户`;
+                    
+                    viewAllItem.addEventListener('click', () => {
+                        alert('在实际应用中，这里会显示所有在线用户');
+                    });
+                    
+                    onlineUsersList.appendChild(viewAllItem);
                 }
+            }
             } catch (error) {
                 console.error('获取在线用户失败:', error);
                 document.getElementById('onlineUsersList').innerHTML = 
@@ -806,5 +826,6 @@
     <!-- 所有页面都添加这行引入，位置建议在其他脚本之前 -->
     <script src="community.js"></script>
     <script src="post_list.js"></script>
+    <script src="user-avatar.js"></script>
 </body>
 </html>
