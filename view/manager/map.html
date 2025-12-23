@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地图管理 - CS2UTIL</title>
+    <style>
+        /* 沿用主页面样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root{
+            --bg:#0b0c0f;
+            --panel:#101218;
+            --panel-2:#0e1015;
+            --text:#f5f7fa;
+            --muted:rgba(245,247,250,.62);
+            --line:rgba(245,247,250,.12);
+            --shadow:0 18px 60px rgba(0,0,0,.55);
+            --radius:16px;
+            --ease:cubic-bezier(.2,.8,.2,1);
+            --accent: #e63946;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text);
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .page-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .btn {
+            background-color: rgba(230, 57, 70, 0.15);
+            color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: rgba(230, 57, 70, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #d6303e;
+        }
+
+        .table-container {
+            background-color: var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .data-table th {
+            background-color: rgba(255, 255, 255, 0.03);
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .map-preview {
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 4px;
+        }
+
+        .action-btn.edit:hover {
+            color: #4cc9f0;
+        }
+
+        .action-btn.delete:hover {
+            color: var(--accent);
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal {
+            background-color: var(--panel);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                display: none;
+            }
+
+            .action-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">CS2UTIL 地图管理</div>
+            <div class="nav-links">
+                <a href="manager.html">管理员中心</a>
+                <a href="map.html" class="active">地图管理</a>
+                <a href="position.html">点位管理</a>
+                <a href="../index.html">返回首页</a>
+            </div>
+        </header>
+
+        <h1 class="page-title">地图管理</h1>
+
+        <div class="action-bar">
+            <div class="search-filter">
+                <input type="text" class="form-control" placeholder="搜索地图..." id="searchMap">
+            </div>
+            <button class="btn btn-primary" id="addMapBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                添加地图
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>地图标识</th>
+                        <th>地图名称</th>
+                        <th>预览图</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="mapTableBody">
+                    <!-- 地图数据将通过JavaScript动态加载 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加/编辑地图模态框 -->
+    <div class="modal-overlay" id="mapModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">添加新地图</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="mapForm">
+                    <input type="hidden" id="mapId">
+                    <div class="form-group">
+                        <label class="form-label" for="mapKey">地图标识（英文/数字）</label>
+                        <input type="text" class="form-control" id="mapKey" required>
+                        <small style="color: var(--muted); font-size: 12px; margin-top: 5px; display: block;">
+                            例如：dust2, mirage（用于系统识别，不可重复）
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="mapName">地图名称</label>
+                        <input type="text" class="form-control" id="mapName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="mapImageUrl">地图图片URL</label>
+                        <input type="url" class="form-control" id="mapImageUrl" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="mapUrl">2D地图地址（URL）</label>
+                        <input type="url" class="form-control" id="mapUrl" required>
+                        <small style="color: var(--muted); font-size: 12px; margin-top: 5px; display: block;">
+                            地图2D全景图的URL地址（用于展示完整地图）
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelBtn">取消</button>
+                <button class="btn btn-primary" id="saveMapBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时检查管理员权限
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminPermission();
+            loadMapData();
+            
+            // 绑定事件
+            document.getElementById('addMapBtn').addEventListener('click', openAddModal);
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('saveMapBtn').addEventListener('click', saveMap);
+            document.getElementById('searchMap').addEventListener('input', filterMaps);
+        });
+
+        // 检查管理员权限
+        function checkAdminPermission() {
+            const userPower = localStorage.getItem('userPower');
+            if (!userPower || userPower !== '0') {
+                window.location.href = 'manager.html';
+            }
+        }
+
+        // 加载地图数据
+        async function loadMapData() {
+            try {
+                const response = await fetch('/api/mapinfo', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    renderMapTable(result.data);
+                } else {
+                    alert(`加载失败: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('加载地图数据失败:', error);
+                alert('加载地图数据失败，请重试');
+            }
+        }
+
+        // 渲染地图表格
+        function renderMapTable(maps) {
+            const tableBody = document.getElementById('mapTableBody');
+            tableBody.innerHTML = '';
+            
+            if (!maps || maps.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5" style="text-align: center; padding: 20px;">暂无地图数据</td>';
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            maps.forEach((map, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${map.map_key}</td>
+                    <td>${map.map_name}</td>
+                    <td><img src="${map.map_image_url}" class="map-preview" alt="${map.map_name}"></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit" data-id="${map.id}" data-key="${map.map_key}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn delete" data-id="${map.id}" data-name="${map.map_name}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // 绑定编辑和删除事件
+            document.querySelectorAll('.action-btn.edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(btn.dataset.id, btn.dataset.key));
+            });
+            
+            document.querySelectorAll('.action-btn.delete').forEach(btn => {
+                btn.addEventListener('click', () => deleteMap(btn.dataset.id, btn.dataset.name));
+            });
+        }
+
+        // 打开添加模态框
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '添加新地图';
+            document.getElementById('mapForm').reset();
+            document.getElementById('mapId').value = '';
+            document.getElementById('mapModal').style.display = 'flex';
+        }
+
+        // 打开编辑模态框
+        async function openEditModal(id, mapKey) {
+            try {
+                const response = await fetch(`/api/mapinfo/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    const map = result.data;
+                    document.getElementById('modalTitle').textContent = `编辑地图: ${map.map_name}`;
+                    document.getElementById('mapId').value = id;
+                    document.getElementById('mapKey').value = map.map_key;
+                    document.getElementById('mapName').value = map.map_name;
+                    document.getElementById('mapImageUrl').value = map.map_image_url;
+                    document.getElementById('mapUrl').value = map.map_url;
+                    
+                    document.getElementById('mapModal').style.display = 'flex';
+                } else {
+                    alert(`加载失败: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('加载地图详情失败:', error);
+                alert('加载地图详情失败，请重试');
+            }
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('mapModal').style.display = 'none';
+        }
+
+        // 保存地图数据
+        async function saveMap() {
+            const id = document.getElementById('mapId').value;
+            const mapKey = document.getElementById('mapKey').value;
+            const mapName = document.getElementById('mapName').value;
+            const mapImageUrl = document.getElementById('mapImageUrl').value;
+            const mapUrl = document.getElementById('mapUrl').value;
+
+            // 简单验证
+            if (!mapKey || !mapName || !mapImageUrl || !mapUrl) {
+                alert('请填写必填字段');
+                return;
+            }
+            
+            const mapData = {
+                map_key: mapKey,
+                map_name: mapName,
+                map_image_url: mapImageUrl,
+                map_url: mapUrl
+            };
+            
+            try {
+                let url = '/api/mapinfo';
+                let method = 'POST';
+                
+                // 如果有ID，则是编辑操作
+                if (id) {
+                    url = `/api/mapinfo/${id}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    },
+                    body: JSON.stringify(mapData)
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    closeModal();
+                    loadMapData();
+                    alert(id ? '地图更新成功' : '地图添加成功');
+                } else {
+                    alert(`操作失败: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('保存地图失败:', error);
+                alert('保存地图失败，请重试');
+            }
+        }
+
+        // 删除地图
+        async function deleteMap(id, mapName) {
+            if (!confirm(`确定要删除地图 "${mapName}" 吗？此操作不可恢复！`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/mapinfo/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    loadMapData();
+                    alert('地图删除成功');
+                } else {
+                    alert(`删除失败: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('删除地图失败:', error);
+                alert('删除地图失败，请重试');
+            }
+        }
+
+        // 搜索过滤地图
+        function filterMaps() {
+            const searchTerm = document.getElementById('searchMap').value.toLowerCase();
+            const rows = document.querySelectorAll('#mapTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

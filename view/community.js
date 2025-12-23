@@ -125,12 +125,14 @@
         const isVisible = logoutBtn.style.display === 'block';
         logoutBtn.style.display = isVisible ? 'none' : 'block';
         myinfoBtn.style.display = isVisible ? 'none' : 'block';
+        adminBtn.style.display = isVisible ? 'none' : 'block';
     });
 
     // 点击页面其他区域隐藏菜单
     document.addEventListener('click', function() {
         logoutBtn.style.display = 'none';
         myinfoBtn.style.display = 'none';
+        adminBtn.style.display = 'none';
     });
 
     // 登出按钮事件
@@ -162,6 +164,11 @@
     myinfoBtn?.addEventListener('click', function(e) {
         e.stopPropagation();
         window.location.href = 'myinfo.html';
+    });
+
+    adminBtn?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        window.location.href = 'manager/manager.html';
     });
 
   // 扩展：覆盖PC+移动端所有合理用户交互事件

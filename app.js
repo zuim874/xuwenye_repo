@@ -12,6 +12,8 @@ const { errorHandler } = require('./middleware/errorHandler');
 const logoutRouter = require('./routes/logout');
 const postRoutes = require('./routes/postRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const mapinfoRoutes = require('./routes/mapinfo');
+const positionRouter = require('./routes/position');
 
 // 创建 Express 实例
 const app = express();
@@ -66,6 +68,8 @@ app.use('/api/users', userRouter);
 app.use('/api/logout', logoutRouter);
 app.use('/api/posts', postRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/mapinfo', mapinfoRoutes);
+app.use('/api/position', positionRouter);
 
 // 临时测试路由
 app.post('/api/login-test', (req, res) => {

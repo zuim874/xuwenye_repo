@@ -91,11 +91,11 @@ function renderPostDetail(post) {
     bindActionButtons(post.id);
 
     // 确保使用正确的用户ID加载头像
-    if (post.authorId) {
-        // 使用setTimeout确保DOM完全渲染
-        setTimeout(() => {
-            loadAuthorAvatar(post.authorId);
-        }, 100);
+    if (post.user_id) {  // 这里原来是post.authorId，与data属性不一致
+        // 确保DOM已渲染后再加载头像
+        requestAnimationFrame(() => {
+            loadAuthorAvatar(post.user_id,post.author_name);
+        });
     }
 }
 
@@ -299,7 +299,7 @@ function renderComments(comments) {
     comments.forEach(comment => {
         if (comment.user_id) {
             setTimeout(() => {
-                loadAuthorAvatar(comment.user_id);
+                loadAuthorAvatar(comment.user_id,comment.author_name);
             }, 100);
         }
     });
@@ -446,33 +446,39 @@ function initUserStatus() {
     }
 }
 
-// 修复头像加载函数
-async function loadAuthorAvatar(authorId) {
+// 修改loadAuthorAvatar函数的选择器逻辑
+async function loadAuthorAvatar(authorId, username) {
     if (!authorId || authorId === 'undefined' || authorId === 'null') {
         console.warn('无效的作者ID:', authorId);
+        showAuthorInitial(authorId, null, username); // 直接显示首字母
         return;
     }
 
     try {
-        // 使用正确的接口路径
+        // 先尝试显示首字母作为过渡
+        const avatarContainers = document.querySelectorAll(
+            `.author-avatar[data-author-id="${authorId}"], 
+             .comment-avatar[data-user-id="${authorId}"]`
+        );
+        avatarContainers.forEach(container => {
+            showAuthorInitial(authorId, container, username);
+        });
+
+        // 请求头像
         const response = await fetch(`/api/users/${authorId}/avatar`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-login-user-id': localStorage.getItem('userId')
             }
         });
 
         const result = await response.json();
         
         if (result.code === 200 && result.data?.avatar) {
-            // 修复选择器：同时匹配帖子作者和评论作者的头像容器
-            const avatarContainers = document.querySelectorAll(
-                `.author-avatar[data-author-id="${authorId}"], 
-                 .comment-avatar[data-user-id="${authorId}"]`
-            );
-
+            // 有有效头像URL，显示图片
             avatarContainers.forEach(container => {
-                container.innerHTML = '';
+                container.innerHTML = ''; // 清空首字母
                 const img = document.createElement('img');
                 img.src = result.data.avatar;
                 img.className = 'avatar-image';
@@ -481,48 +487,61 @@ async function loadAuthorAvatar(authorId) {
                 img.style.objectFit = 'cover';
                 img.style.borderRadius = '50%';
 
+                // 只有图片确实加载失败时才显示首字母
                 img.onerror = function() {
-                    // 头像加载失败时显示首字母
-                    showAuthorInitial(authorId, container);
+                    console.error('头像图片加载失败:', result.data.avatar);
+                    showAuthorInitial(authorId, container, username || result.data?.username);
                 };
 
                 container.appendChild(img);
             });
-        } else {
-            // 头像获取失败，显示首字母
-            showAuthorInitial(authorId);
-        }
+        } 
+        // 如果没有头像数据，保持首字母显示
     } catch (error) {
         console.error('加载用户头像失败:', error);
-        showAuthorInitial(authorId);
+        // 保持之前显示的首字母
     }
 }
 
-// 修复显示首字母函数
-function showAuthorInitial(userId, container = null) {
-    let authorName = '用户';
-    
-    // 尝试从DOM中获取用户名
-    if (container) {
-        const nameElement = container.closest('.author-info, .comment-author')?.querySelector('.author-name');
-        if (nameElement) authorName = nameElement.textContent;
+// 修改showAuthorInitial函数，只在容器存在时操作
+function showAuthorInitial(userId, container, username) {
+    if (!userId || userId === 'undefined' || userId === 'null') {
+        console.warn('无效的用户ID:', userId);
+        return;
     }
-    
-    const initial = authorName.substring(0, 1).toUpperCase();
-    const containers = container 
-        ? [container] 
-        : document.querySelectorAll(
+
+    if (!container) {
+        container = document.querySelector(
             `.author-avatar[data-author-id="${userId}"], 
              .comment-avatar[data-user-id="${userId}"]`
         );
+        if (!container) return;
+    }
 
-    containers.forEach(elem => {
-        elem.innerHTML = initial;
-        elem.style.display = 'flex';
-        elem.style.alignItems = 'center';
-        elem.style.justifyContent = 'center';
-        elem.style.fontWeight = 'bold';
-        elem.style.color = '#e63946';
-        elem.style.fontSize = '16px';
-    });
+    let displayText = '';
+    if (username && username.trim()) {
+        displayText = username.trim().charAt(0).toUpperCase();
+    } else {
+        displayText = userId.toString().slice(-2).toUpperCase();
+    }
+
+    // 只在容器为空或没有图片时设置首字母
+    if (!container.querySelector('img')) {
+        container.innerHTML = '';
+        const initialEl = document.createElement('div');
+        initialEl.style.cssText = `
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #0f3460;
+            color: #e63946;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        initialEl.textContent = displayText;
+        container.appendChild(initialEl);
+    }
 }

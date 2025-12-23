@@ -5,241 +5,287 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS2 Utility Guide - 用户注册</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #1a1a2e;
-            color: #e6e6e6;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        /* 导航栏样式 */
-        header {
-            background-color: #16213e;
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e63946;
-            text-decoration: none;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .nav-links a {
-            color: #e6e6e6;
-            text-decoration: none;
-            transition: color 0.3s;
-            font-size: 16px;
-        }
-        
-        .nav-links a:hover {
-            color: #e63946;
-        }
-        
-        /* 主内容区域 */
-        .main-content {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 0;
-        }
-        
+    /* 基础样式 - 与index.html保持一致 */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    :root {
+        --bg: #0b0c0f;
+        --panel: #101218;
+        --panel-2: #0e1015;
+        --text: #f5f7fa;
+        --muted: rgba(245,247,250,.62);
+        --line: rgba(245,247,250,.12);
+        --shadow: 0 18px 60px rgba(0,0,0,.55);
+        --radius: 16px;
+        --ease: cubic-bezier(.2,.8,.2,1);
+        --accent: #e63946;
+    }
+
+    body {
+        background: 
+            radial-gradient(1200px 600px at 20% 0%, rgba(255,255,255,.06), transparent 60%),
+            radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,.04), transparent 55%),
+            var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* 导航栏样式 - 与index.html完全一致 */
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(16,18,24,.72);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--line);
+        padding: 15px 0;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        color: var(--text);
+        text-decoration: none;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 10px;
+        transition: background-color .18s var(--ease), color .18s var(--ease);
+    }
+
+    .nav-links a:hover {
+        color: var(--text);
+        background: rgba(255,255,255,.06);
+    }
+
+    /* 主内容区域 */
+    .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    .signup-container {
+        width: 100%;
+        max-width: 500px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 40px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+    }
+
+    .signup-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .signup-title {
+        font-size: 28px;
+        margin-bottom: 10px;
+        color: var(--text);
+    }
+
+    .signup-subtitle {
+        color: var(--muted);
+        font-size: 16px;
+    }
+
+    /* 表单样式 - 使用index.html的设计语言 */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(255,255,255,.03);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-size: 16px;
+        transition: all .18s var(--ease);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
+    }
+
+    .form-input::placeholder {
+        color: var(--muted);
+    }
+
+    .password-container {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 14px;
+        transition: color .18s var(--ease);
+    }
+
+    .password-toggle:hover {
+        color: var(--text);
+    }
+
+    .signup-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--accent) 0%, #c1121f 100%);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+        margin-top: 10px;
+    }
+
+    .signup-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(230, 57, 70, 0.3);
+    }
+
+    .signup-btn:active {
+        transform: translateY(0);
+    }
+
+    .signup-btn:disabled {
+        background: rgba(255,255,255,.1);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 25px;
+        color: var(--muted);
+    }
+
+    .login-link a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color .18s var(--ease);
+    }
+
+    .login-link a:hover {
+        color: #c1121f;
+        text-decoration: underline;
+    }
+
+    .error-message {
+        color: var(--accent);
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .success-message {
+        background: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+        padding: 12px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        margin-bottom: 20px;
+        display: none;
+        text-align: center;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    /* 页脚样式 - 与index.html一致 */
+    footer {
+        background: var(--panel);
+        padding: 20px 0;
+        text-align: center;
+        margin-top: auto;
+        border-top: 1px solid var(--line);
+    }
+
+    .footer-content {
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
         .signup-container {
-            width: 100%;
-            max-width: 500px;
-            background-color: #16213e;
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px 20px;
+            margin: 0 20px;
         }
         
-        .signup-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .mobile-menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .signup-container {
+            padding: 25px 15px;
         }
         
         .signup-title {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #e6e6e6;
+            font-size: 24px;
         }
-        
-        .signup-subtitle {
-            color: #a0a0a0;
-            font-size: 16px;
-        }
-        
-        /* 表单样式 */     
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #e6e6e6;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            background-color: #1a1a2e;
-            border: 1px solid #0f3460;
-            border-radius: 5px;
-            color: #e6e6e6;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: #e63946;
-            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
-        }
-        
-        .password-container {
-            position: relative;
-        }
-        
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 12px;
-            background: none;
-            border: none;
-            color: #a0a0a0;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .signup-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
-        }
-        
-        .signup-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
-        }
-        
-        .signup-btn:active {
-            transform: translateY(0);
-        }
-        
-        .signup-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .login-link {
-            text-align: center;
-            margin-top: 25px;
-            color: #a0a0a0;
-        }
-        
-        .login-link a {
-            color: #e63946;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        
-        .login-link a:hover {
-            color: #c1121f;
-            text-decoration: underline;
-        }
-        
-        .error-message {
-            color: #e63946;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        .success-message {
-            background-color: rgba(76, 175, 80, 0.1);
-            color: #4CAF50;
-            padding: 12px;
-            border-radius: 5px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            display: none;
-            text-align: center;
-        }
-
-        /* 页脚样式 */
-        footer {
-            background-color: #16213e;
-            padding: 20px 0;
-            text-align: center;
-            margin-top: auto;
-            border-top: 1px solid #0f3460;
-        }
-        
-        .footer-content {
-            color: #a0a0a0;
-            font-size: 14px;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .signup-container {
-                padding: 30px 20px;
-                margin: 0 20px;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-                background: none;
-                border: none;
-                color: #e6e6e6;
-                font-size: 24px;
-                cursor: pointer;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .terms {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
+    }
     </style>
 </head>
 <body>
@@ -306,7 +352,7 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+                <p>© 2025 CS2 Utility Guide.</p>
             </div>
         </div>
     </footer>

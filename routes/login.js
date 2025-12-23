@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
     try {
         // 查询用户信息
         const [rows] = await pool.execute(
-            'SELECT id, username, password_hash FROM users WHERE username = ? LIMIT 1',
+            'SELECT id, username, password_hash, user_power FROM users WHERE username = ? LIMIT 1',
             [username]
         );
         
@@ -50,7 +50,8 @@ router.post('/', async (req, res) => {
             message: '登录成功',
             data: { 
                 username: user.username,
-                user_id: user.id
+                user_id: user.id,
+                user_power: user.user_power
             }
         });
 

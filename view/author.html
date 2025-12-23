@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作者主页 - CS2UTIL</title>
+    <style>
+        /* 使用与myinfo.html相同的样式，这里简化展示关键部分 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg: #0b0c0f;
+            --panel: #101218;
+            --panel-2: #0e1015;
+            --text: #f5f7fa;
+            --muted: rgba(245,247,250,.62);
+            --line: rgba(245,247,250,.12);
+            --shadow: 0 18px 60px rgba(0,0,0,.55);
+            --radius: 16px;
+            --ease: cubic-bezier(.2,.8,.2,1);
+            --accent: #e63946;
+        }
+
+        body {
+            background: 
+                radial-gradient(1200px 600px at 20% 0%, rgba(255,255,255,.06), transparent 60%),
+                radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,.04), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 导航栏样式 - 与community.html一致 */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(16,18,24,.72);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line);
+            padding: 15px 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .14em;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background-color .18s var(--ease), color .18s var(--ease);
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+            background: rgba(255,255,255,.06);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 40px 0;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        /* 作者资料区域 */
+        .author-profile {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .author-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            color: var(--accent);
+            font-weight: bold;
+            overflow: hidden;
+        }
+
+        .author-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .author-joined {
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .author-stats {
+            display: flex;
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 作者帖子区域 */
+        .author-posts-section {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            padding: 22px 30px;
+            background: rgba(255,255,255,.03);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .posts-list {
+            padding: 20px;
+        }
+
+        .post-card {
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform .22s var(--ease), box-shadow .22s var(--ease);
+        }
+
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .post-title {
+            color: var(--text);
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .post-content {
+            color: var(--muted);
+            margin-bottom: 15px;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .post-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .post-date {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .loading-indicator, .error-message, .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .loading-indicator::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .author-profile {
+                flex-direction: column;
+                text-align: center;
+                gap: 25px;
+            }
+
+            .author-stats {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="avatar.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">CS2UTIL</a>
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="community.html">社区</a>
+                <div id="userArea" style="display: none;">
+                    <div class="user-info">
+                        <span class="user-initial" id="userNamePrefix"></span>
+                    </div>
+                </div>
+                <div id="loginBtnArea">
+                    <a href="login.html">登录</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区域 -->
+    <div class="container main-content">
+        <div class="page-header">
+            <h1 class="page-title" id="pageTitle">作者主页</h1>
+        </div>
+        
+        <!-- 作者资料区域 -->
+        <div class="author-profile" id="authorProfile">
+            <div class="loading-indicator">加载作者信息中...</div>
+        </div>
+        
+        <!-- 作者帖子区域 -->
+        <div class="author-posts-section">
+            <div class="section-header">
+                <h2 class="section-title">作者帖子</h2>
+            </div>
+            <div class="posts-list" id="authorPostsList">
+                <div class="loading-indicator">加载帖子中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="user-avatar.js"></script>
+    <script>
+        // 从URL参数获取作者ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const authorId = urlParams.get('id');
+
+        // 获取作者信息
+        async function loadAuthorProfile(authorId) {
+            try {
+                const response = await fetch(`/api/users/${authorId}/profile`);
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    renderAuthorProfile(result.data);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                document.getElementById('authorProfile').innerHTML = 
+                    `<div class="error-message">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 渲染作者资料
+        function renderAuthorProfile(data) {
+            const { user, stats, recent_posts } = data;
+            
+            document.getElementById('pageTitle').textContent = `${user.username}的主页`;
+            
+            const profileHTML = `
+                <div class="author-avatar" data-user-id="${user.id}" data-user-name="${user.username}"></div>
+                <div class="author-info">
+                    <h2 class="author-name">${escapeHtml(user.username)}</h2>
+                    <div class="author-joined">加入时间: ${user.join_date}</div>
+                    <div class="author-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.post_count}</div>
+                            <div class="stat-label">发布帖子</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.total_likes}</div>
+                            <div class="stat-label">获得点赞</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.total_comments}</div>
+                            <div class="stat-label">收到评论</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('authorProfile').innerHTML = profileHTML;
+            
+            // 渲染头像
+            const avatarEl = document.querySelector('.author-avatar');
+            renderUserAvatar(avatarEl, user.id, user.username);
+            
+            // 渲染最近帖子
+            renderRecentPosts(recent_posts);
+        }
+
+        // 渲染最近帖子
+        function renderRecentPosts(posts) {
+            const postsList = document.getElementById('authorPostsList');
+            
+            if (!posts || posts.length === 0) {
+                postsList.innerHTML = '<div class="empty-message">该用户还没有发布任何帖子</div>';
+                return;
+            }
+
+            const postsHTML = posts.map(post => `
+                <div class="post-card" onclick="window.location.href='post-detail.html?id=${post.id}'">
+                    <div class="post-header">
+                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                        <div class="post-date">${formatDate(post.created_at)}</div>
+                    </div>
+                    <div class="post-content">${escapeHtml(post.content || '')}</div>
+                    <div class="post-stats">
+                        <div class="post-stat">👍 ${post.like_count || 0}</div>
+                        <div class="post-stat">💬 ${post.comment_count || 0}</div>
+                        <div class="post-stat">👁 ${post.view_count || 0}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            postsList.innerHTML = postsHTML;
+        }
+
+        // 辅助函数：HTML转义
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // 辅助函数：格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return '未知时间';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查authorId是否有效
+            if (!authorId) {
+                document.getElementById('authorProfile').innerHTML = 
+                    '<div class="error-message">无效的作者ID</div>';
+                document.getElementById('authorPostsList').innerHTML = 
+                    '<div class="error-message">无效的作者ID</div>';
+                // 3秒后跳转回社区页面
+                setTimeout(() => {
+                    window.location.href = 'community.html';
+                }, 3000);
+                return; // ✅ 现在这个return在函数内部，是合法的
+            }
+
+            // 检查登录状态
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                document.getElementById('userArea').style.display = 'block';
+                document.getElementById('loginBtnArea').style.display = 'none';
+                document.getElementById('userNamePrefix').textContent = 
+                    currentUser.substring(0, 3).toUpperCase();
+            } else {
+                document.getElementById('userArea').style.display = 'none';
+                document.getElementById('loginBtnArea').style.display = 'block';
+            }
+
+            // 加载作者信息
+            loadAuthorProfile(authorId);
+        });
+    </script>
+</body>
+</html>

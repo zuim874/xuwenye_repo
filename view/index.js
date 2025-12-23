@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const userArea = document.getElementById('userArea');
   const userNamePrefix = document.getElementById('userNamePrefix');
   const logoutBtn = document.getElementById('logoutBtn');
+  const adminBtn = document.getElementById('adminBtn');
   let heartbeatTimer = window.heartbeatTimer || null;
   let inactivityTimer = null;  
 
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('click', function() {
       logoutBtn.style.display = 'none';
       myinfoBtn.style.display = 'none';
+      adminBtn.style.display = 'none';
   });
 
   // 4. 点击用户名前缀显示注销按钮（无改动）
@@ -59,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const isShowing = logoutBtn.style.display === 'block';
       logoutBtn.style.display = isShowing ? 'none' : 'block';
       myinfoBtn.style.display = isShowing ? 'none' : 'block';
+      adminBtn.style.display = isShowing ? 'none' : 'block';
   });
 
   // 5. 登录按钮跳转（无改动）
@@ -75,6 +78,13 @@ document.addEventListener('DOMContentLoaded', function () {
       myinfoBtn.addEventListener('click', function(e) {
           e.stopPropagation(); // 防止事件冒泡导致按钮立即隐藏
           window.location.href = 'myinfo.html'; // 跳转到我的信息页面
+      });
+  }
+  const adminBtnElement = document.getElementById('adminBtn');
+  if (adminBtnElement) {
+      adminBtnElement.addEventListener('click', function(e) {
+          e.stopPropagation(); // 防止事件冒泡导致按钮立即隐藏
+          window.location.href = 'manager/manager.html'; // 跳转到管理员页面
       });
   }
 
@@ -222,6 +232,3 @@ function resetInactivityTimer() {
   // 初始化时启动计时器
   resetInactivityTimer();
 });
-
-mapElement.style.backgroundImage =
-    `url('/assets/map_view/maps/${mapId}.jpg')`;

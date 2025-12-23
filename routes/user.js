@@ -174,7 +174,7 @@ router.get('/online_users', async (req, res) => {
 
         // 查询在线用户
         const [onlineUsers] = await pool.execute(
-            `SELECT username, last_active 
+            `SELECT username, last_active, id 
              FROM users 
              WHERE is_online = 1 
              ORDER BY last_active DESC`
@@ -185,7 +185,8 @@ router.get('/online_users', async (req, res) => {
             message: '查询成功',
             data: {
                 onlineUsers: onlineUsers,
-                onlineCount: onlineUsers.length
+                onlineCount: onlineUsers.length,
+                onlineusersid: onlineUsers.id
             }
         });
     } catch (err) {
@@ -705,6 +706,136 @@ router.get('/:userId/avatar', async (req, res) => {
 
     } catch (error) {
         handleError(res, error, '查询用户头像');
+    }
+});
+
+/**
+ * 获取作者主页信息（公开信息，无需登录）
+ * GET /api/users/:id/profile
+ */
+router.get('/:id/profile', async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // 查询用户基本信息
+        const [userRows] = await pool.execute(
+            'SELECT id, username, created_at, avatar FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (userRows.length === 0) {
+            return res.status(404).json({ 
+                code: 404, 
+                message: '用户不存在' 
+            });
+        }
+
+        const user = userRows[0];
+
+        // 查询用户帖子统计
+        const [postStats] = await pool.execute(
+            `SELECT COUNT(*) as post_count, 
+                    SUM(like_count) as total_likes,
+                    SUM(comment_count) as total_comments
+             FROM posts WHERE user_id = ? AND is_deleted = 0`,
+            [userId]
+        );
+
+        // 查询用户最近发布的帖子（公开可见）
+        const [recentPosts] = await pool.execute(
+            `SELECT id, title, created_at, like_count, comment_count, view_count
+             FROM posts 
+             WHERE user_id = ? AND is_deleted = 0 
+             ORDER BY created_at DESC 
+             LIMIT 5`,
+            [userId]
+        );
+
+        res.status(200).json({
+            code: 200,
+            data: {
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    avatar: user.avatar,
+                    created_at: user.created_at,
+                    join_date: new Date(user.created_at).toLocaleDateString()
+                },
+                stats: {
+                    post_count: postStats[0].post_count || 0,
+                    total_likes: postStats[0].total_likes || 0,
+                    total_comments: postStats[0].total_comments || 0
+                },
+                recent_posts: recentPosts
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '查询作者主页');
+    }
+});
+
+/**
+ * 获取作者公开的帖子列表（无需登录）
+ * GET /api/users/:id/public-posts
+ */
+router.get('/:id/public-posts', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 10));
+        const offset = (page - 1) * limit;
+
+        // 验证用户存在
+        const [userCheck] = await pool.execute(
+            'SELECT id FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (userCheck.length === 0) {
+            return res.status(404).json({ 
+                code: 404, 
+                message: '用户不存在' 
+            });
+        }
+
+        // 查询帖子列表
+        const [posts] = await pool.execute(
+            `SELECT id, title, content, tags, created_at, 
+                    like_count, comment_count, view_count
+             FROM posts 
+             WHERE user_id = ? AND is_deleted = 0 
+             ORDER BY created_at DESC 
+             LIMIT ? OFFSET ?`,
+            [userId, limit, offset]
+        );
+
+        // 查询总数
+        const [totalResult] = await pool.execute(
+            'SELECT COUNT(*) as total FROM posts WHERE user_id = ? AND is_deleted = 0',
+            [userId]
+        );
+
+        const total = totalResult[0].total;
+
+        res.status(200).json({
+            code: 200,
+            data: {
+                posts: posts.map(post => ({
+                    ...post,
+                    tags: post.tags ? post.tags.split(',').map(tag => tag.trim()) : []
+                })),
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '查询作者帖子列表');
     }
 });
 

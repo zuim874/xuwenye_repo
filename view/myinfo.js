@@ -17,6 +17,12 @@ const DOM = {
 
 // 页面初始化入口（DOM加载完成后执行）
 document.addEventListener('DOMContentLoaded', () => {
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('currentUser');
+
+    const profileAvatar = document.querySelector('.profile-avatar');
+    renderUserAvatar(profileAvatar, userId, userName);
+
     checkLoginStatus(); // 优先检查登录状态
     bindEvents(); // 绑定所有事件
 });
@@ -185,13 +191,12 @@ function renderUserPosts(posts) {
         // 格式化帖子数据
         const formattedDate = formatRelativeDate(post.created_at);
         const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
-        const authorInitial = DOM.profileName.textContent.charAt(0).toUpperCase();
 
         // 帖子卡片HTML结构
         postCard.innerHTML = `
             <div class="post-header">
                 <div class="post-author">
-                    <div class="author-avatar">${authorInitial}</div>
+                    <div class="author-avatar"></div>
                     <div class="author-info">
                         <h4>${DOM.profileName.textContent}</h4>
                         <div class="post-date">${formattedDate}</div>
@@ -218,6 +223,14 @@ function renderUserPosts(posts) {
                 <button class="delete-btn" data-id="${post.id}">🗑️ 删除</button>
             </div>
         `;
+
+        const avatarEl = postCard.querySelector('.author-avatar');
+
+        renderUserAvatar(
+            avatarEl,
+            post.user_id,                 // ✅ 当前帖子作者ID
+            DOM.profileName.textContent   // ✅ 用户名兜底
+        );
 
         // 点击帖子卡片跳转到详情页（排除操作按钮）
         postCard.addEventListener('click', (e) => {

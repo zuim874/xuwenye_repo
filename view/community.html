@@ -11,356 +11,458 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        body {
-            background-color: #1a1a2e;
-            color: #e6e6e6;
-            line-height: 1.6;
+
+        :root {
+            --bg: #0b0c0f;
+            --panel: #101218;
+            --panel-2: #0e1015;
+            --text: #f5f7fa;
+            --muted: rgba(245,247,250,.62);
+            --line: rgba(245,247,250,.12);
+            --shadow: 0 18px 60px rgba(0,0,0,.55);
+            --radius: 16px;
+            --ease: cubic-bezier(.2,.8,.2,1);
+            --smoke: #cfd6df;
+            --flash: #ffd166;
+            --molo: #ff9f1c;
+            --nade: #ff4d6d;
         }
-        
+
+        body {
+            background: 
+                radial-gradient(1200px 600px at 20% 0%, rgba(255,255,255,.06), transparent 60%),
+                radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,.04), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
-        
-        /* 导航栏样式 */
+
+        /* 导航栏样式 - 与index.html保持一致 */
         header {
-            background-color: #16213e;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(16,18,24,.72);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line);
+            box-shadow: none;
             padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        
+
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e63946;
-            text-decoration: none;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .14em;
+            color: var(--text);
         }
-        
+
         .nav-links {
             display: flex;
             gap: 20px;
             align-items: center;
         }
-        
+
         .nav-links a {
-            color: #e6e6e6;
+            color: var(--muted);
             text-decoration: none;
-            transition: color 0.3s;
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background-color .18s var(--ease), color .18s var(--ease);
         }
-        
+
         .nav-links a:hover {
-            color: #e63946;
+            color: var(--text);
+            background: rgba(255,255,255,.06);
         }
-        
+
         /* 主内容区域 */
         .main-content {
             padding: 40px 0;
         }
-        
+
         .page-header {
             text-align: center;
             margin-bottom: 40px;
         }
-        
+
         .page-title {
-            font-size: 36px;
+            font-size: 32px;
             margin-bottom: 10px;
-            color: #e6e6e6;
+            text-align: center;
         }
-        
+
         .page-subtitle {
-            color: #a0a0a0;
-            font-size: 18px;
-            max-width: 600px;
-            margin: 0 auto;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--muted);
         }
-        
-        /* 社区内容布局 - 修改为上下排布 */
+
+        /* 社区内容布局 */
         .community-layout {
             display: grid;
-            grid-template-columns: 1fr; /* 改为单列布局 */
+            grid-template-columns: 1fr;
             gap: 30px;
         }
-        
-        /* 帖子列表样式 */
+
+        /* 帖子列表样式 - 采用index.html的卡片风格 */
         .posts-section {
-            background-color: #16213e;
-            border-radius: 10px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
-        
+
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background-color: #0f3460;
-            border-bottom: 1px solid #1a1a2e;
+            background: rgba(255,255,255,.03);
+            border-bottom: 1px solid var(--line);
         }
-        
+
         .section-title {
             font-size: 22px;
             font-weight: bold;
         }
-        
+
         .new-post-btn {
-            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.8) 0%, rgba(193, 18, 31, 0.8) 100%);
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
-            transition: transform 0.2s;
+            transition: transform 0.2s var(--ease), background-color 0.2s var(--ease);
         }
-        
+
         .new-post-btn:hover {
             transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(230, 57, 70, 1) 0%, rgba(193, 18, 31, 1) 100%);
         }
-        
+
         .posts-list {
             padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
         }
-        
+
+        .post-card {
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
+            border-left: 3px solid rgba(230, 57, 70, 0.6);
+        }
+
         .post-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255,255,255,.22);
+            box-shadow: var(--shadow);
         }
-        
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 修改 community.html 中的作者头像样式 */
         .author-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #0f3460;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            color: #e63946;
+            color: var(--text);
+            overflow: hidden;
+            /* 新增：添加点击效果 */
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
+        /* 添加点击效果样式（从 post-detail.html 复制） */
+        .clickable-avatar {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clickable-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+        }
+
+        .clickable-avatar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: rgba(230, 57, 70, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .clickable-avatar:hover::after {
+            opacity: 1;
+        }
+
         .author-info h4 {
             font-size: 16px;
             margin-bottom: 3px;
         }
-        
+
         .post-date {
-            color: #a0a0a0;
+            color: var(--muted);
             font-size: 14px;
         }
-        
+
         .post-tags {
             display: flex;
             gap: 8px;
             margin-top: 5px;
         }
-        
+
         .post-tag {
-            background-color: #0f3460;
+            background: rgba(255,255,255,.03);
             padding: 3px 8px;
             border-radius: 12px;
             font-size: 12px;
-            color: #a0a0a0;
+            color: var(--muted);
+            border: 1px solid var(--line);
         }
-        
+
         .post-content h3 {
             font-size: 20px;
             margin-bottom: 10px;
-            color: #e6e6e6;
+            color: var(--text);
         }
-        
+
         .post-content p {
-            color: #a0a0a0;
+            color: var(--muted);
             margin-bottom: 15px;
             line-height: 1.5;
         }
-        
+
         .post-stats {
             display: flex;
             gap: 20px;
-            color: #a0a0a0;
+            color: var(--muted);
             font-size: 14px;
+            padding-top: 15px;
+            border-top: 1px solid var(--line);
         }
-        
+
         .post-stat {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        
-        /* 侧边栏样式 - 上下排布时让侧边栏占满宽度 */
+
+        /* 侧边栏样式 */
         .sidebar {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-        
+
         .sidebar-widget {
-            background-color: #16213e;
-            border-radius: 10px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
-        
+
         .widget-header {
             padding: 15px 20px;
-            background-color: #0f3460;
-            border-bottom: 1px solid #1a1a2e;
+            background: rgba(255,255,255,.03);
+            border-bottom: 1px solid var(--line);
             font-weight: bold;
         }
-        
+
         .widget-content {
             padding: 20px;
         }
-        
+
         .community-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
-        
+
         .stat-item {
             text-align: center;
             padding: 10px;
-            background-color: #1a1a2e;
-            border-radius: 5px;
+            background: rgba(255,255,255,.03);
+            border-radius: 8px;
+            border: 1px solid var(--line);
         }
-        
+
         .stat-value {
             font-size: 24px;
             font-weight: bold;
-            color: #e63946;
+            color: rgba(230, 57, 70, 0.8);
         }
-        
+
         .stat-label {
             font-size: 12px;
-            color: #a0a0a0;
+            color: var(--muted);
         }
-        
+
         .online-users {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .user-item {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 8px;
-            border-radius: 5px;
-            transition: background-color 0.2s;
+            border-radius: 8px;
+            transition: background-color 0.2s var(--ease);
         }
-        
+
         .user-item:hover {
-            background-color: #1a1a2e;
+            background: rgba(255,255,255,.03);
         }
-        
+
         .user-avatar {
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background-color: #0f3460;
+            background: rgba(255,255,255,.06);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: #e63946;
+            color: var(--text);
+            border: 1px solid var(--line);
         }
-        
+
         .user-info {
             flex: 1;
         }
-        
+
         .user-name {
             font-size: 14px;
         }
-        
+
         .user-status {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.8);
         }
-        
+
         .popular-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-        
+
         .tag {
-            background-color: #0f3460;
+            background: rgba(255,255,255,.03);
             padding: 5px 10px;
             border-radius: 15px;
             font-size: 12px;
-            color: #a0a0a0;
-            transition: background-color 0.2s;
+            color: var(--muted);
+            transition: background-color 0.2s var(--ease);
             cursor: pointer;
+            border: 1px solid var(--line);
         }
-        
+
         .tag:hover {
-            background-color: #e63946;
+            background: rgba(230, 57, 70, 0.8);
             color: white;
         }
-        
+
         /* 页脚样式 */
         footer {
-            background-color: #16213e;
+            background: rgba(16,18,24,.72);
             padding: 30px 0;
             margin-top: 50px;
-            border-top: 1px solid #0f3460;
+            border-top: 1px solid var(--line);
+            backdrop-filter: blur(14px);
         }
-        
+
         .footer-content {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 30px;
         }
-        
+
         .footer-section {
             flex: 1;
             min-width: 200px;
         }
-        
+
         .footer-section h3 {
             font-size: 18px;
             margin-bottom: 15px;
-            color: #e6e6e6;
+            color: var(--text);
         }
-        
+
         .footer-links {
             list-style: none;
         }
-        
+
         .footer-links li {
             margin-bottom: 8px;
         }
-        
+
         .footer-links a {
-            color: #a0a0a0;
+            color: var(--muted);
             text-decoration: none;
-            transition: color 0.2s;
+            transition: color 0.2s var(--ease);
         }
-        
+
         .footer-links a:hover {
-            color: #e63946;
+            color: var(--text);
         }
-        
+
         .footer-bottom {
             text-align: center;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #0f3460;
-            color: #a0a0a0;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
             font-size: 14px;
         }
 
@@ -377,45 +479,200 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #0f3460;
-            color: #e63946;
-            font-weight: bold;
-            font-size: 18px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 16px;
+            transition: all .18s var(--ease);
         }
 
-        .logout-btn, .myinfo-btn {
+        .user-info:hover .user-initial {
+            background: rgba(255,255,255,.1);
+            border-color: rgba(255,255,255,.22);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn, .admin-btn, .myinfo-btn {
             position: absolute;
+            top: 100%;
             right: 0;
-            background-color: #16213e;
-            border: 1px solid #1a1a2e;
-            padding: 5px 10px;
-            border-radius: 4px;
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            padding: 10px 15px;
+            border-radius: 12px;
             cursor: pointer;
             display: none;
-            min-width: 80px;
+            margin-top: 8px;
+            min-width: 100px;
             text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            transition: all .18s var(--ease);
+            box-shadow: var(--shadow);
             z-index: 100;
         }
 
+        .logout-btn:hover, .admin-btn:hover, .myinfo-btn:hover {
+            background-color: rgba(230, 57, 70, 0.9);
+            border-color: rgba(230, 57, 70, 0.9);
+            transform: translateY(-1px);
+        }
+
+        /* 修正按钮位置 - 这是关键修改 */
         .myinfo-btn {
-            top: 100%; /* "我的"按钮在用户名正下方 */
+            top: calc(100%);
+        }
+
+        .admin-btn {
+            top: calc(100% + 45px); /* 修正位置 */
         }
 
         .logout-btn {
-            top: calc(100% + 30px); /* 登出按钮在"我的"按钮下方 */
+            top: calc(100% + 90px); /* 修正位置 */
         }
 
-        .logout-btn:hover, .myinfo-btn:hover {
-            background-color: #e63946;
-        }
-        
-        /* 响应式设计 - 保持原有移动端适配 */
-        @media (max-width: 768px) {                 
-            .footer-content {
-                flex-direction: column;
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .logout-btn, .admin-btn, .myinfo-btn {
+                min-width: 120px;
+                right: -40px;
+            }
+            
+            /* 移动端也保持正确的间距 */
+            .myinfo-btn {
+                top: calc(100% + 45px);
+            }
+            
+            .admin-btn {
+                top: calc(100% + 90px);
+            }
+            
+            .logout-btn {
+                top: calc(100% + 135px);
             }
         }
+
+        /* 加载动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-card, .sidebar-widget, .tag, .stat-item {
+            animation: fadeIn 0.3s var(--ease);
+        }
+
+        /* 分页样式 */
+        .pagination-container {
+            padding: 20px;
+            border-top: 1px solid var(--line);
+            background: rgba(255,255,255,.03);
+            margin-top: 0; /* 确保没有额外边距 */
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .pagination-btn {
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+            font-size: 14px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: rgba(230, 57, 70, 0.8);
+            border-color: rgba(230, 57, 70, 0.8);
+            transform: translateY(-1px);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-number {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+            font-size: 14px;
+        }
+
+        .page-number:hover {
+            background: rgba(255,255,255,.06);
+        }
+
+        .page-number.active {
+            background: rgba(230, 57, 70, 0.8);
+            border-color: rgba(230, 57, 70, 0.8);
+            color: white;
+        }
+
+        .pagination-info {
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* 加载状态样式 */
+        .loading-indicator, .no-posts, .error-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .error-message {
+            color: #ff4d6d;
+        }
+
+        /* 新增分页样式 */
+        .pagination-first, .pagination-last {
+            font-weight: 600;
+        }
+
+        .page-jump {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--line);
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .page-jump input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid var(--line);
+        }
     </style>
+    <link rel="stylesheet" href="avatar.css"> <!-- 引入头像样式文件 -->
     <link rel="stylesheet" href="post_list.css"> <!-- 引入帖子样式文件 -->
 </head>
 <body>
@@ -431,6 +688,7 @@
                     <div class="user-info">
                         <span class="user-initial" id="userNamePrefix"></span>
                         <div class="logout-btn" id="logoutBtn">登出</div>
+                        <div class="admin-btn" id="adminBtn">管理员</div>
                         <div class="myinfo-btn" id="myinfoBtn">我的</div>
                     </div>
                 </div>
@@ -460,6 +718,31 @@
             <!-- 这里将由JavaScript动态填充 -->
             <div class="loading-indicator">加载中...</div>
         </div>
+<div class="pagination-container" id="paginationContainer" style="display: none;">
+    <div class="pagination">
+        <!-- 新增：第一页按钮 -->
+        <button class="pagination-btn pagination-first" id="firstPage" disabled>« 第一页</button>
+        <button class="pagination-btn" id="prevPage" disabled>‹ 上一页</button>
+        
+        <div class="page-numbers" id="pageNumbers"></div>
+        
+        <button class="pagination-btn" id="nextPage">下一页 ›</button>
+        <!-- 新增：最后一页按钮 -->
+        <button class="pagination-btn pagination-last" id="lastPage">最后一页 »</button>
+    </div>
+    
+    <!-- 新增：页码跳转输入框 -->
+    <div class="page-jump">
+        <span>跳转到</span>
+        <input type="number" id="pageInput" min="1" max="1" value="1">
+        <span>页</span>
+        <button class="pagination-btn" id="jumpBtn">跳转</button>
+    </div>
+</div>
+        <div class="pagination-info">
+            <span id="pageInfo">第 1 页，共 1 页</span>
+        </div>
+    </div>
             
             <!-- 侧边栏 -->
             <div class="sidebar">
@@ -533,23 +816,20 @@
                     <h3>快速链接</h3>
                     <ul class="footer-links">
                         <li><a href="index.html">首页</a></li>
-                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
-                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
                         <li><a href="community.html">社区</a></li>
+                        <li><a href="avatar.html">头像设置</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>支持</h3>
+                    <h3>其他链接</h3>
                     <ul class="footer-links">
-                        <li><a href="">帮助中心</a></li>
-                        <li><a href="">联系我们</a></li>
-                        <li><a href="">隐私政策</a></li>
-                        <li><a href="">使用条款</a></li>
+                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
+                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+                <p>© 2025 CS2 Utility Guide.</p>
             </div>
         </div>
     </footer>
@@ -592,9 +872,6 @@
 
             // 初始化自动登出功能
             initAutoLogout(); 
-
-            // 初始化用户头像
-            initUserAvatar();
             
             // 调整窗口大小时重新隐藏导航（在移动端）
             window.addEventListener('resize', function() {
@@ -617,35 +894,31 @@
             });
         });
 
+        //定义全局缓存，避免无参/请求失败时清空列表
+        let cachedOnlineUsers = [];
+
         // 定时更新在线人数的函数
-        function updateOnlineUsers() {
-            // 调用后端在线用户接口
-            fetch('/api/users/online_users')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('网络响应异常');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.code === 200) {
-                        // 获取在线人数并格式化（添加千位分隔符）
-                        const count = data.data.onlineCount;
-                        const formattedCount = count.toLocaleString();
-                        // 更新页面显示
-                        document.getElementById('onlineCount').textContent = formattedCount;
-                    }
-                })
-                .catch(error => {
-                    console.error('更新在线人数失败:', error);
-                });
+        async function updateOnlineUsers() {
+            try {
+                const response = await fetch('/api/users/online_users');
+                if (!response.ok) throw new Error('接口请求失败');
+                
+                const res = await response.json();
+                if (res.code === 200) {
+                    // 更新缓存（关键：保留有效数据）
+                    cachedOnlineUsers = res.data.onlineUsers;
+                    document.getElementById('onlineUserCount').textContent = res.data.onlineCount;
+                    // 2. 更新社区统计面板中的在线用户数
+                    document.getElementById('onlineCount').textContent = res.data.onlineCount;
+                    // 传参渲染列表
+                    renderOnlineUsers(cachedOnlineUsers);
+                }
+            } catch (err) {
+                console.error('更新在线用户失败:', err);
+                // 失败时：用缓存渲染，不清空列表
+                renderOnlineUsers(cachedOnlineUsers);
+            }
         }
-
-        // 页面加载完成后立即执行一次，获取初始数据
-        updateOnlineUsers();
-
-        // 设置定时器，每30秒更新一次
-        setInterval(updateOnlineUsers, 30000);
 
         // 定时更新总注册用户数的函数
         function updateTotalUsers() {
@@ -666,12 +939,6 @@
                 .catch(error => console.error('更新总用户数失败:', error));
         }
 
-        // 页面加载时立即执行一次，获取初始数据
-        updateTotalUsers();
-
-        // 设置定时器，每5分钟更新一次
-        setInterval(updateTotalUsers, 300000);
-
         // 定义获取并更新帖子总数的函数
         function updateTotalPosts() {
             // 调用后端 postRoutes.js 的 /api/posts 接口
@@ -691,12 +958,6 @@
                 console.error('更新帖子总数失败：', error);
             });
         }
-
-        // 页面加载时立即更新一次
-        updateTotalPosts();
-
-        // 定时更新（每5分钟更新一次）
-        setInterval(updateTotalPosts, 300000);
 
         async function fetchAndUpdateDailyViews() {
             try {
@@ -725,101 +986,55 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 页面加载完成，开始统计访问量');
             fetchAndUpdateDailyViews();
-        });
 
-        // 获取并显示在线用户列表
-        async function fetchAndDisplayOnlineUsers() {
-            try {
-                const response = await fetch('/api/users/online_users');
-                const result = await response.json();
-                
-                if (result.code === 200) {
-                    const onlineUsersList = document.getElementById('onlineUsersList');
-                    const onlineUserCount = document.getElementById('onlineUserCount');
-                    
-                    // 更新在线用户数量
-                    onlineUserCount.textContent = result.data.onlineCount;
-                    
-                    // 清空现有内容
-                    onlineUsersList.innerHTML = '';
-                    
-                    // 如果没有在线用户
-                    if (result.data.onlineCount === 0) {
-                        onlineUsersList.innerHTML = '<div class="no-users">当前没有在线用户</div>';
-                        return;
-                    }
-                    
-                    // 最多显示10个在线用户
-                    const displayUsers = result.data.onlineUsers.slice(0, 10);
-                    
-                    // 渲染在线用户列表
-                    displayUsers.forEach(user => {
-                        // 创建用户项元素
-                        const userItem = document.createElement('div');
-                        userItem.className = 'user-item';
-                        // 使用用户ID作为标识，方便后续加载头像
-                        userItem.setAttribute('data-user-id', user.id);
-                        
-                        // 获取用户名首字母作为默认显示
-                        const initials = user.username.substring(0, 3).toUpperCase();
-                        
-                        // 格式化最后活跃时间
-                        const pureDateTime = user.last_active.slice(0, 19).replace('T', ' ');
-                        const formattedTime = pureDateTime.split(' ')[1];
-                        
-                        userItem.innerHTML = `
-                            <div class="user-avatar" data-user-id="${user.id}">${initials}</div>
-                            <div class="user-info">
-                                <div class="user-name">${user.username}</div>
-                                <div class="user-last-active" style="font-size: 11px; color: #a0a0a0;">
-                                    活跃于 ${formattedTime}
-                                </div>
-                            </div>
-                            <div class="user-status"></div>
-                        `;
-                        
-                        onlineUsersList.appendChild(userItem);
-                        
-                        // 为每个用户加载头像
-                        loadAndDisplayUserAvatar(user.id);
-                    });
-                    
-                // 如果有更多用户，显示查看全部选项
-                if (result.data.onlineCount > 10) {
-                    const viewAllItem = document.createElement('div');
-                    viewAllItem.className = 'view-all-users';
-                    viewAllItem.style.textAlign = 'center';
-                    viewAllItem.style.padding = '8px';
-                    viewAllItem.style.fontSize = '13px';
-                    viewAllItem.style.color = '#e63946';
-                    viewAllItem.style.cursor = 'pointer';
-                    viewAllItem.textContent = `查看全部 ${result.data.onlineCount} 位在线用户`;
-                    
-                    viewAllItem.addEventListener('click', () => {
-                        alert('在实际应用中，这里会显示所有在线用户');
-                    });
-                    
-                    onlineUsersList.appendChild(viewAllItem);
-                }
-            }
-            } catch (error) {
-                console.error('获取在线用户失败:', error);
-                document.getElementById('onlineUsersList').innerHTML = 
-                    '<div class="error-message">加载在线用户失败</div>';
-            }
-        }
+            // 页面加载完成后立即执行一次，获取初始数据
+            updateOnlineUsers();
+            // 设置定时器，每30秒更新一次
+            setInterval(updateOnlineUsers, 30000);
 
-        // 页面加载时获取一次在线用户
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchAndDisplayOnlineUsers();
-            // 每30秒更新一次在线用户列表
-            setInterval(fetchAndDisplayOnlineUsers, 30000);
+            // 页面加载时立即更新一次
+            updateTotalPosts();
+            // 定时更新（每5分钟更新一次）
+            setInterval(updateTotalPosts, 300000);
+
+            // 页面加载时立即执行一次，获取初始数据
+            updateTotalUsers();
+
+            // 设置定时器，每5分钟更新一次
+            setInterval(updateTotalUsers, 300000);
         });
 
         // 修复原代码中可能未定义的initAutoLogout函数
         function initAutoLogout() {
             // 自动登出逻辑实现（根据实际需求补充）
             console.log('初始化自动登出功能');
+        }
+
+        function renderOnlineUsers(users = cachedOnlineUsers) {  // 无参时用缓存
+            const container = document.querySelector('.online-users');
+            container.innerHTML = '';
+
+            // 容错：无数据时显示提示，而非清空后空白
+            if (users.length === 0) {
+                container.innerHTML = '<div class="no-users">暂无在线用户</div>';
+                return;
+            }
+
+            // 正常渲染用户列表（保留你原有的渲染逻辑）
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <div class="user-avatar" data-user-id="${user.id}" data-user-name="${user.username}"></div>
+                    <div class="user-info">
+                        <div class="user-name">${user.username}</div>
+                    </div>
+                    <span class="user-status"></span>
+                `;
+                const avatarEl = item.querySelector('.user-avatar');
+                renderUserAvatar(avatarEl, user.id, user.username);
+                container.appendChild(item);
+            });
         }
     </script>
 

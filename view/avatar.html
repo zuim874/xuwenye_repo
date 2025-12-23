@@ -4,21 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>头像设置 - CS2UTIL</title>
+    <link rel = "stylesheet" href = "avatar.css">
     <style>
-        /* 全局重置 & 基础样式（匹配现有项目风格） */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Microsoft Yahei', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg: #0b0c0f;
+            --panel: #101218;
+            --panel-2: #0e1015;
+            --text: #f5f7fa;
+            --muted: rgba(245,247,250,.62);
+            --line: rgba(245,247,250,.12);
+            --shadow: 0 18px 60px rgba(0,0,0,.55);
+            --radius: 16px;
+            --ease: cubic-bezier(.2,.8,.2,1);
+            --accent: #e63946;
         }
 
         body {
-            background-color: #16213e;
-            color: #e6e6e6;
+            background: 
+                radial-gradient(1200px 600px at 20% 0%, rgba(255,255,255,.06), transparent 60%),
+                radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,.04), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
@@ -27,11 +45,15 @@
             padding: 0 20px;
         }
 
-        /* 导航栏（和myinfo.html/community.html一致） */
+        /* 导航栏样式 - 与index.html保持一致 */
         header {
-            background-color: #0f3460;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(16,18,24,.72);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line);
             padding: 15px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .header-wrap {
@@ -41,10 +63,11 @@
         }
 
         .logo {
-            color: #e63946;
+            color: var(--accent);
             font-size: 22px;
             font-weight: bold;
             text-decoration: none;
+            letter-spacing: .14em;
         }
 
         .nav-list {
@@ -54,37 +77,103 @@
         }
 
         .nav-list a {
-            color: #e6e6e6;
+            color: var(--muted);
             text-decoration: none;
-            transition: color 0.2s;
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background-color .18s var(--ease), color .18s var(--ease);
         }
 
         .nav-list a:hover, .nav-list a.active {
-            color: #e63946;
+            color: var(--text);
+            background: rgba(255,255,255,.06);
         }
 
+        /* 用户信息样式 - 与index.html保持一致 */
         .user-area {
             display: none;
-            position: relative;
         }
 
-        .user-initial {
-            /* 从myinfo.html同步样式 */
-            background-color: #0f3460; /* 原#e63946 */
-            width: 40px; /* 原32px */
-            height: 40px; /* 原32px */
-            font-size: 18px; /* 原14px */
+        .user-info {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
+            overflow: hidden;
+            transition: all .18s var(--ease);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info:hover .user-avatar {
+            background: rgba(255,255,255,.1);
+            border-color: rgba(255,255,255,.22);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn, .admin-btn, .myinfo-btn {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            padding: 10px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: none;
+            margin-top: 8px;
+            min-width: 100px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            transition: all .18s var(--ease);
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .myinfo-btn {
+            top: calc(100% + 45px);
+        }
+
+        .logout-btn {
+            top: calc(100% + 90px);
+        }
+
+        .logout-btn:hover, .admin-btn:hover, .myinfo-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-1px);
         }
 
         .login-btn {
-            color: #e6e6e6;
-            background: #e63946;
-            padding: 6px 12px;
-            border-radius: 4px;
+            color: var(--text);
+            background: var(--accent);
+            padding: 8px 16px;
+            border-radius: 12px;
             text-decoration: none;
+            transition: all .18s var(--ease);
         }
 
-        /* 主内容区 */
+        .login-btn:hover {
+            background: #c1121f;
+            transform: translateY(-1px);
+        }
+
+        /* 主内容区样式 */
         main {
             flex: 1;
             padding: 40px 0;
@@ -92,18 +181,25 @@
 
         .page-title {
             text-align: center;
-            font-size: 28px;
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .page-subtitle {
+            text-align: center;
             margin-bottom: 30px;
-            color: #f8fafc;
+            color: var(--muted);
         }
 
         .avatar-card {
-            background: #0f3460;
-            border-radius: 8px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
             padding: 30px;
             max-width: 800px;
             margin: 0 auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow);
         }
 
         .avatar-content {
@@ -120,7 +216,8 @@
             height: 200px;
             border-radius: 50%;
             overflow: hidden;
-            border: 3px solid #e63946;
+            border: 3px solid var(--accent);
+            box-shadow: var(--shadow);
         }
 
         .avatar-preview img {
@@ -142,36 +239,40 @@
         .form-label {
             display: block;
             margin-bottom: 8px;
-            color: #a0a0a0;
+            color: var(--muted);
             font-size: 14px;
         }
 
         .form-input {
             width: 100%;
-            padding: 10px 12px;
-            background: #16213e;
-            border: 1px solid #457b9d;
-            border-radius: 4px;
-            color: #e6e6e6;
+            padding: 12px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            color: var(--text);
             outline: none;
+            transition: all .18s var(--ease);
         }
 
         .form-input:focus {
-            border-color: #e63946;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
         }
 
         .upload-area {
-            border: 2px dashed #457b9d;
-            border-radius: 4px;
-            padding: 20px;
+            border: 2px dashed var(--line);
+            border-radius: 12px;
+            padding: 30px;
             text-align: center;
             cursor: pointer;
             margin-bottom: 20px;
-            transition: border-color 0.2s;
+            transition: all .18s var(--ease);
+            background: rgba(255,255,255,.02);
         }
 
         .upload-area:hover {
-            border-color: #e63946;
+            border-color: var(--accent);
+            background: rgba(255,255,255,.05);
         }
 
         .upload-area input {
@@ -180,70 +281,108 @@
 
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all .18s var(--ease);
+            font-weight: 500;
         }
 
         .btn-primary {
-            background: #e63946;
-            color: #fff;
+            background: var(--accent);
+            color: var(--text);
         }
 
         .btn-primary:hover {
             background: #c1121f;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
         }
 
         .btn-secondary {
-            background: #457b9d;
-            color: #fff;
+            background: rgba(255,255,255,.06);
+            color: var(--text);
+            border: 1px solid var(--line);
         }
 
         .btn-secondary:hover {
-            background: #1d3557;
+            background: rgba(255,255,255,.1);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
         }
 
         .tips {
             margin-top: 10px;
             font-size: 12px;
-            color: #a0a0a0;
+            color: var(--muted);
         }
 
         .msg {
             margin-top: 15px;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 12px;
             display: none;
+            font-size: 14px;
         }
 
         .msg.error {
             display: block;
-            background: rgba(230, 57, 70, 0.2);
-            border: 1px solid #e63946;
-            color: #e63946;
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid rgba(230, 57, 70, 0.3);
+            color: var(--accent);
         }
 
         .msg.success {
             display: block;
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
             color: #4CAF50;
         }
 
-        /* 页脚（和community.html一致） */
+        /* 页脚样式 */
         footer {
-            background: #0f3460;
+            background: var(--panel);
             padding: 20px 0;
             text-align: center;
-            color: #a0a0a0;
+            color: var(--muted);
             font-size: 14px;
             margin-top: auto;
+            border-top: 1px solid var(--line);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .avatar-content {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .avatar-ops {
+                min-width: 100%;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .nav-list {
+                gap: 15px;
+            }
+        }
+
+        /* 加载动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .avatar-card, .btn, .form-input, .upload-area {
+            animation: fadeIn 0.3s var(--ease);
         }
     </style>
 </head>
@@ -257,8 +396,17 @@
                 <a href="community.html">社区</a>
                 <a href="myinfo.html">我的</a>
                 <a href="avatar.html" class="active">头像设置</a>
+                
+                <!-- 用户区域 - 与index.html保持一致 -->
                 <div id="userArea" class="user-area">
-                    <div class="user-initial" id="userInitial"></div>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">
+                            <!-- 头像将动态加载 -->
+                        </div>
+                        <div class="logout-btn" id="logoutBtn">登出</div>
+                        <div class="admin-btn" id="adminBtn">管理员</div>
+                        <div class="myinfo-btn" id="myinfoBtn">我的</div>
+                    </div>
                 </div>
                 <a href="login.html" id="loginBtn" class="login-btn">登录</a>
             </div>
@@ -269,11 +417,13 @@
     <main>
         <div class="container">
             <h1 class="page-title">头像设置</h1>
+            <p class="page-subtitle">上传或设置您的个人头像</p>
+            
             <div class="avatar-card">
                 <div class="avatar-content">
                     <!-- 头像预览 -->
                     <div class="avatar-preview">
-                        <img id="avatarImg" src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/0f/0f36d706d671d664ce65045a437815f1d81826e2.jpg" alt="头像预览">
+                        
                     </div>
 
                     <!-- 操作区 -->
@@ -307,7 +457,7 @@
     <!-- 页脚 -->
     <footer>
         <div class="container">
-            © 2025 CS2UTIL 版权所有 | 本网站与Valve Corporation无关联
+            © 2025 CS2UTIL
         </div>
     </footer>
 
@@ -322,36 +472,46 @@
         const msgBox = document.getElementById('msgBox');
         const userArea = document.getElementById('userArea');
         const loginBtn = document.getElementById('loginBtn');
-        const userInitial = document.getElementById('userInitial');
+        const userAvatar = document.getElementById('userAvatar');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminBtn = document.getElementById('adminBtn');
+        const myinfoBtn = document.getElementById('myinfoBtn');
+        const userInfo = document.querySelector('.user-info');
 
         // 全局变量
         let userId = '';
         let currentUser = '';
+        let isMenuOpen = false;
 
         // 初始化：检查登录状态
         function checkLoginStatus() {
             currentUser = localStorage.getItem('currentUser');
             userId = localStorage.getItem('userId');
             
-            // 仅检查currentUser是否存在
             if (!currentUser || !userId) {
-                // 未登录，跳转登录页
                 window.location.href = 'login.html';
-                return false; // 阻止后续逻辑
+                return false;
             }
             
             // 已登录，显示用户区域，隐藏登录按钮
             userArea.style.display = 'block';
             loginBtn.style.display = 'none';
             
-            // 显示用户首字母
-            const initial = currentUser.charAt(0).toUpperCase();
-            userInitial.textContent = initial;
-            
-            // 尝试加载用户当前头像
+            // 加载用户头像
             loadUserAvatar();
             
+            // 检查管理员权限
+            checkAdminStatus();
+            
             return true;
+        }
+
+        // 检查管理员权限
+        function checkAdminStatus() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isAdmin) {
+                adminBtn.style.display = 'block';
+            }
         }
 
         // 加载用户当前头像
@@ -367,13 +527,31 @@
                 if (res.ok) {
                     const data = await res.json();
                     if (data.avatarUrl) {
+                        // 设置预览头像
                         avatarImg.src = data.avatarUrl;
                         avatarUrl.value = data.avatarUrl;
+                        
+                        // 设置导航栏头像
+                        const avatarHtml = ``;
+                        const fallbackHtml = `<div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: var(--accent); color: white; font-weight: bold; font-size: 18px;">${currentUser.charAt(0).toUpperCase()}</div>`;
+                        userAvatar.innerHTML = avatarHtml + fallbackHtml;
+                    } else {
+                        // 没有头像时显示首字母
+                        showUserInitial();
                     }
+                } else {
+                    showUserInitial();
                 }
             } catch (err) {
                 console.error('加载用户头像失败:', err);
+                showUserInitial();
             }
+        }
+
+        // 显示用户首字母
+        function showUserInitial() {
+            const initial = currentUser.charAt(0).toUpperCase();
+            userAvatar.innerHTML = `<div style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; background: var(--accent); color: white; font-weight: bold; font-size: 18px;">${initial}</div>`;
         }
 
         // 显示提示信息
@@ -385,6 +563,22 @@
             }, 3000);
         }
 
+        // 显示/隐藏用户菜单
+        function toggleUserMenu() {
+            isMenuOpen = !isMenuOpen;
+            const buttons = [logoutBtn, adminBtn, myinfoBtn];
+            
+            buttons.forEach(btn => {
+                if (btn.style.display === 'block') {
+                    btn.style.display = 'none';
+                } else if (window.getComputedStyle(btn).display !== 'none') {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'block';
+                }
+            });
+        }
+
         // 加载URL预览
         loadBtn.addEventListener('click', () => {
             const url = avatarUrl.value.trim();
@@ -392,13 +586,13 @@
                 showMsg('请输入头像URL');
                 return;
             }
-            // 简单校验URL格式
+            
             const reg = /^(https?:\/\/).+\.(jpg|png|gif|webp)$/i;
             if (!reg.test(url)) {
                 showMsg('URL格式错误，仅支持jpg/png/gif/webp');
                 return;
             }
-            // 预览图片
+            
             avatarImg.src = url;
             avatarImg.onerror = () => {
                 showMsg('图片加载失败，请检查URL');
@@ -412,13 +606,13 @@
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            // 校验文件类型
+            
             const types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             if (!types.includes(file.type)) {
                 showMsg('仅支持JPG/PNG/GIF格式图片');
                 return;
             }
-            // 生成预览URL
+            
             const reader = new FileReader();
             reader.onload = (e) => {
                 avatarImg.src = e.target.result;
@@ -429,7 +623,6 @@
 
         // 保存头像到服务器
         saveBtn.addEventListener('click', async () => {
-            // 登录校验
             if (!userId || !currentUser) {
                 showMsg('请先登录');
                 setTimeout(() => {
@@ -438,7 +631,6 @@
                 return;
             }
 
-            // 判断是URL还是本地文件
             const isLocalFile = avatarImg.src.startsWith('blob:') || 
                             avatarImg.src.startsWith('data:image/');
             
@@ -446,7 +638,6 @@
             let fetchOptions;
 
             if (isLocalFile) {
-                // 处理本地文件上传
                 const file = fileInput.files[0];
                 if (!file) {
                     showMsg('请选择要上传的图片');
@@ -459,19 +650,17 @@
                 fetchOptions = {
                     method: 'POST',
                     headers: {
-                        'X-Login-User-Id': userId // 只需要这个头，不需要Content-Type
+                        'X-Login-User-Id': userId
                     },
                     body: formData
                 };
             } else {
-                // 处理URL方式
                 const avatarUrlVal = avatarUrl.value.trim();
                 if (!avatarUrlVal) {
                     showMsg('请输入头像URL');
                     return;
                 }
                 
-                // 简单校验URL格式
                 const reg = /^(https?:\/\/).+\.(jpg|png|gif|webp)$/i;
                 if (!reg.test(avatarUrlVal)) {
                     showMsg('URL格式错误，仅支持jpg/png/gif/webp');
@@ -496,7 +685,8 @@
                 
                 if (data.code === 200) {
                     showMsg('头像保存成功', 'success');
-                    // 如果是本地文件，更新输入框的URL
+                    // 更新导航栏头像
+                    loadUserAvatar();
                     if (isLocalFile) {
                         avatarUrl.value = data.data.avatar;
                     }
@@ -506,6 +696,35 @@
             } catch (err) {
                 console.error('保存失败:', err);
                 showMsg('网络错误，保存失败');
+            }
+        });
+
+        // 用户菜单事件
+        userInfo.addEventListener('click', toggleUserMenu);
+
+        // 菜单项点击事件
+        logoutBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('isAdmin');
+            window.location.href = 'login.html';
+        });
+
+        adminBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = '../manager/manager.html';
+        });
+
+        myinfoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = 'myinfo.html';
+        });
+
+        // 点击页面其他区域关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!userInfo.contains(e.target) && isMenuOpen) {
+                toggleUserMenu();
             }
         });
 

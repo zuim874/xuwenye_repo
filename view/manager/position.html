@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点位管理 - CS2UTIL</title>
+    <style>
+        /* 样式保持不变，与原有代码一致 */
+        :root{
+            --bg:#0b0c0f;
+            --panel:#101218;
+            --text:#f5f7fa;
+            --muted:rgba(245,247,250,.62);
+            --line:rgba(245,247,250,.12);
+            --shadow:0 18px 60px rgba(0,0,0,.55);
+            --radius:16px;
+            --accent: #e63946;
+            --smoke: #cfd6df;
+            --flash: #ffd166;
+            --molo:  #ff9f1c;
+            --nade:  #ff4d6d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text);
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .page-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--line);
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        /* 修改下拉列表样式 */
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.08); /* 增加背景不透明度 */
+            color: var(--text); /* 确保文字颜色使用主文本色 */
+            font-size: 16px;
+            /* 添加下拉箭头样式 */
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f5f7fa'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px; /* 为箭头留出空间 */
+        }
+
+        /* 聚焦状态 */
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(255, 255, 255, 0.12); /* 聚焦时背景更亮 */
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
+        }
+
+        /* 特别为select元素增强样式 */
+        select.form-control {
+            color: var(--text) !important; /* 强制使用主文本色 */
+            background-color: rgba(255, 255, 255, 0.1) !important; /* 更深背景提高对比度 */
+        }
+
+        /* 下拉选项样式 */
+        select.form-control option {
+            background-color: var(--panel); /* 选项背景使用面板色 */
+            color: var(--text); /* 选项文字颜色 */
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* 禁用状态的选项 */
+        select.form-control option:disabled {
+            color: var(--muted);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 选中状态的选项 */
+        select.form-control option:checked {
+            background-color: rgba(230, 57, 70, 0.3); /* 使用主题色 */
+            color: var(--text);
+        }
+
+        /* 悬停状态的选项 */
+        select.form-control option:hover {
+            background-color: rgba(230, 57, 70, 0.2);
+        }
+
+        /* 为筛选区域的下拉列表特别优化 */
+        .filter-item .form-control {
+            background-color: rgba(255, 255, 255, 0.12); /* 筛选区域背景更亮 */
+            min-width: 150px; /* 确保有足够宽度 */
+        }
+
+        /* 模态框中的下拉列表 */
+        .modal .form-control {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 响应式调整：小屏幕上下拉列表优化 */
+        @media (max-width: 768px) {
+            .form-control {
+                font-size: 14px; /* 小屏幕字体稍小 */
+                padding: 8px 10px;
+                padding-right: 35px;
+                background-size: 14px;
+                background-position: right 10px center;
+            }
+            
+            .filter-item .form-control {
+                min-width: 120px; /* 小屏幕适当减小最小宽度 */
+            }
+        }
+
+        /* 为特定的下拉列表添加额外样式 */
+        #mapFilterSelect,
+        #typeFilter,
+        #positionMapSelect,
+        #positionType {
+            font-weight: 500; /* 增加字体权重提高可读性 */
+            letter-spacing: 0.3px; /* 轻微字间距改善阅读 */
+        }
+
+        /* 占位符文本样式 */
+        .form-control::placeholder {
+            color: var(--muted);
+            opacity: 0.8;
+        }
+
+        /* 禁用状态的下拉列表 */
+        .form-control:disabled {
+            opacity: 0.6;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+        }
+
+        .btn {
+            background-color: rgba(230, 57, 70, 0.15);
+            color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: rgba(230, 57, 70, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #d6303e;
+        }
+
+        .btn-success {
+            background-color: #00b894;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #00a085;
+        }
+
+        .table-container {
+            background-color: var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .data-table th {
+            background-color: rgba(255, 255, 255, 0.03);
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .nade-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nade-type-badge.smoke {
+            background-color: rgba(207, 214, 223, 0.2);
+            color: var(--smoke);
+        }
+
+        .nade-type-badge.flash {
+            background-color: rgba(255, 209, 102, 0.2);
+            color: var(--flash);
+        }
+
+        .nade-type-badge.molotov {
+            background-color: rgba(255, 159, 28, 0.2);
+            color: var(--molo);
+        }
+
+        .nade-type-badge.he {
+            background-color: rgba(255, 77, 109, 0.2);
+            color: var(--nade);
+        }
+
+        .nade-type-badge.decoy {
+            background-color: rgba(129, 161, 255, 0.2);
+            color: #81a1ff;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 4px;
+        }
+
+        .action-btn.edit:hover {
+            color: #4cc9f0;
+        }
+
+        .action-btn.delete:hover {
+            color: var(--accent);
+        }
+
+        .action-btn.throws:hover {
+            color: #00b894;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal {
+            background-color: var(--panel);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 5px;
+            display: block;
+        }
+
+        .throws-container {
+            margin-top: 20px;
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .throws-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .throw-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+            border: 1px solid var(--line);
+        }
+
+        .remove-throw {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .remove-throw:hover {
+            color: var(--accent);
+        }
+
+        .video-upload {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .video-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .file-input-wrapper {
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .alert {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .alert-success {
+            background-color: rgba(0, 184, 148, 0.1);
+            color: #00b894;
+            border: 1px solid rgba(0, 184, 148, 0.3);
+        }
+
+        .alert-error {
+            background-color: rgba(230, 57, 70, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(230, 57, 70, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                display: none;
+            }
+        }
+        
+        /* 新增：地图预览样式 */
+        .map-preview-container {
+            margin-bottom: 20px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .map-preview-header {
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .map-preview-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .map-preview-hint {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .map-preview-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .map-preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .map-grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .grid-line {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .grid-line.vertical {
+            width: 1px;
+            height: 100%;
+        }
+
+        .grid-line.horizontal {
+            width: 100%;
+            height: 1px;
+        }
+
+        .grid-label {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .grid-label.x-axis {
+            bottom: 0;
+            transform: translateX(-50%);
+        }
+
+        .grid-label.y-axis {
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .coordinate-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(230, 57, 70, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); }
+        }
+
+        .coordinate-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .coordinate-inputs {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .coordinate-inputs .form-control {
+            flex: 1;
+        }
+
+        /* 新增：投掷点地图预览容器样式 */
+        .throw-map-preview-container {
+            margin-bottom: 20px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .throw-map-preview-header {
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .throw-map-preview-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .throw-map-preview-hint {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .throw-map-preview-wrapper {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .throw-map-preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .throw-map-grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .throw-coordinate-marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #00b894;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.3);
+            animation: throw-pulse 1.5s infinite;
+        }
+
+        @keyframes throw-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(0, 184, 148, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); }
+        }
+
+        .throw-coordinate-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .throw-coordinate-inputs {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .throw-coordinate-inputs .form-control {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">CS2UTIL 点位管理</div>
+            <div class="nav-links">
+                <a href="manager.html">管理员中心</a>
+                <a href="map.html">地图管理</a>
+                <a href="position.html" class="active">点位管理</a>
+                <a href="../index.html">返回首页</a>
+            </div>
+        </header>
+
+        <h1 class="page-title">点位管理</h1>
+
+        <div id="alertContainer"></div>
+
+        <div class="action-bar">
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label class="filter-label">地图</label>
+                    <select class="form-control" id="mapFilterSelect">
+                        <option value="">所有地图</option>
+                        <!-- 地图选项动态加载 -->
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="filter-label">投掷物类型</label>
+                    <select class="form-control" id="typeFilter">
+                        <option value="">所有类型</option>
+                        <option value="smoke">烟雾弹</option>
+                        <option value="flash">闪光弹</option>
+                        <option value="molotov">燃烧弹</option>
+                        <option value="he">高爆手雷</option>
+                        <option value="decoy">诱饵弹</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="filter-label">搜索</label>
+                    <input type="text" class="form-control" placeholder="搜索点位名称..." id="searchPosition">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="addPositionBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                添加点位
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>地图</th>
+                        <th>点位名称</th>
+                        <th>类型</th>
+                        <th>落点坐标</th>
+                        <th>投掷点数量</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="positionTableBody">
+                    <!-- 点位数据动态加载 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加/编辑点位模态框 -->
+    <div class="modal-overlay" id="positionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">添加点位</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="positionForm">
+                    <input type="hidden" id="positionId">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="positionMapSelect">地图</label>
+                        <select class="form-control" id="positionMapSelect" required>
+                            <option value="">请选择地图</option>
+                            <!-- 地图选项动态加载 -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="positionType">投掷物类型</label>
+                        <select class="form-control" id="positionType" required>
+                            <option value="">请选择类型</option>
+                            <option value="smoke">烟雾弹</option>
+                            <option value="flash">闪光弹</option>
+                            <option value="molotov">燃烧弹</option>
+                            <option value="he">高爆手雷</option>
+                            <option value="decoy">诱饵弹</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="positionTitle">点位名称</label>
+                        <input type="text" class="form-control" id="positionTitle" required placeholder="例如：高台烟、A点闪光">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">落地点坐标（百分比）</label>
+                        <!-- 新增地图预览区域 -->
+                        <div class="map-preview-container">
+                            <div class="map-preview-header">
+                                <span class="map-preview-title">地图坐标预览</span>
+                                <span class="map-preview-hint">点击地图选择坐标</span>
+                            </div>
+                            <div class="map-preview-wrapper" id="mapPreview">
+                                <!-- 添加img元素 -->
+                                
+                                <div class="coordinate-display" id="coordinateDisplay">X: 0, Y: 0</div>
+                                
+                                <div class="map-grid-overlay" id="mapGrid"></div>
+                                <div class="coordinate-marker" id="coordinateMarker" style="display: none;"></div>
+                            </div>
+                            <div class="coordinate-inputs">
+                                <div>
+                                    <label class="form-label">X坐标</label>
+                                    <input type="number" class="form-control" id="landX" required min="0" max="100" step="0.01" placeholder="0-100">
+                                </div>
+                                <div>
+                                    <label class="form-label">Y坐标</label>
+                                    <input type="number" class="form-control" id="landY" required min="0" max="100" step="0.01" placeholder="0-100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="spotDesc">点位描述</label>
+                        <textarea class="form-control" id="spotDesc" placeholder="点位描述（可选）" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelBtn">取消</button>
+                <button class="btn btn-primary" id="savePositionBtn">保存点位</button>
+            </div>
+        </div>
+    </div>
+
+   <!-- 投掷点管理模态框 -->
+    <div class="modal-overlay" id="throwsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="throwsModalTitle">管理投掷点</h2>
+                <button class="modal-close" id="closeThrowsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="throws-header">
+                    <h3>投掷点列表</h3>
+                    <button type="button" class="btn btn-primary" id="addThrowBtn">添加投掷点</button>
+                </div>
+                <div id="throwsListContainer">
+                    <!-- 投掷点动态加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelThrowsBtn">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentSpotId = null;
+        let currentMapData = [];
+        let currentThrows = [];
+        let currentMapInfo = null; // 存储当前地图信息
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminPermission();
+            loadMapData();
+            loadPositionData();
+            bindEvents();
+        });
+
+        // 绑定事件
+        function bindEvents() {
+            document.getElementById('addPositionBtn').addEventListener('click', openAddModal);
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('savePositionBtn').addEventListener('click', savePosition);
+            
+            document.getElementById('closeThrowsModal').addEventListener('click', closeThrowsModal);
+            document.getElementById('cancelThrowsBtn').addEventListener('click', closeThrowsModal);
+            document.getElementById('addThrowBtn').addEventListener('click', addThrowForm);
+            
+            document.getElementById('mapFilterSelect').addEventListener('change', filterPositions);
+            document.getElementById('typeFilter').addEventListener('change', filterPositions);
+            document.getElementById('searchPosition').addEventListener('input', filterPositions);
+        
+            // 修复：添加 updateMapPreview 函数定义
+            document.getElementById('positionMapSelect').addEventListener('change', function() {
+                setTimeout(initMapPreview, 100);
+            });
+            document.getElementById('landX').addEventListener('input', updateMarkerFromInputs);
+            document.getElementById('landY').addEventListener('input', updateMarkerFromInputs);
+        }
+
+        // 修复：添加 updateMapPreview 函数
+        function updateMapPreview() {
+            initMapPreview();
+        }
+
+        // 显示提示消息
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        // 检查管理员权限
+        function checkAdminPermission() {
+            const userPower = localStorage.getItem('userPower');
+            if (!userPower || userPower !== '0') {
+                showAlert('您没有管理员权限', 'error');
+                setTimeout(() => {
+                    window.location.href = 'manager.html';
+                }, 2000);
+            }
+        }
+
+        // 加载地图数据
+        async function loadMapData() {
+            try {
+                const response = await fetch('/api/mapinfo', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('加载地图失败');
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    currentMapData = result.data;
+                    const mapFilter = document.getElementById('mapFilterSelect');
+                    const positionMapSelect = document.getElementById('positionMapSelect');
+                    
+                    mapFilter.innerHTML = '<option value="">所有地图</option>';
+                    positionMapSelect.innerHTML = '<option value="">请选择地图</option>';
+
+                    result.data.forEach(map => {
+                        const option1 = new Option(map.map_name, map.id);
+                        mapFilter.appendChild(option1);
+                        
+                        const option2 = new Option(map.map_name, map.id);
+                        positionMapSelect.appendChild(option2);
+                    });
+                }
+            } catch (error) {
+                console.error('加载地图数据失败:', error);
+                showAlert('加载地图数据失败', 'error');
+            }
+        }
+
+        // 加载点位数据
+        async function loadPositionData() {
+            try {
+                const mapFilter = document.getElementById('mapFilterSelect').value;
+                const typeFilter = document.getElementById('typeFilter').value;
+                
+                let url = '/api/position/spots';
+                const params = [];
+                
+                if (mapFilter) {
+                    url += (url.includes('?') ? '&' : '?') + `map_id=${mapFilter}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('加载点位失败');
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    renderPositionTable(result.data, typeFilter);
+                }
+            } catch (error) {
+                console.error('加载点位数据失败:', error);
+                showAlert('加载点位数据失败', 'error');
+            }
+        }
+
+        // 渲染点位表格
+        function renderPositionTable(positions, typeFilter = '') {
+            const tableBody = document.getElementById('positionTableBody');
+            tableBody.innerHTML = '';
+            
+            if (!positions || Object.keys(positions).length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="7" style="text-align: center; padding: 20px;">暂无点位数据</td>';
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            let positionList = [];
+            for (const mapKey in positions) {
+                positions[mapKey].forEach(position => {
+                    positionList.push({...position, map_key: mapKey});
+                });
+            }
+            
+            // 应用类型筛选
+            if (typeFilter) {
+                positionList = positionList.filter(position => position.type === typeFilter);
+            }
+            
+            // 应用搜索筛选
+            const searchTerm = document.getElementById('searchPosition').value.toLowerCase();
+            if (searchTerm) {
+                positionList = positionList.filter(position => 
+                    position.title.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (positionList.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="7" style="text-align: center; padding: 20px;">没有找到匹配的点位</td>';
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            positionList.forEach((position, index) => {
+                const map = currentMapData.find(m => m.map_key === position.map_key);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${position.id}</td>
+                    <td>${map ? map.map_name : position.map_key}</td>
+                    <td>${position.title}</td>
+                    <td><span class="nade-type-badge ${position.type}">${getTypeName(position.type)}</span></td>
+                    <td>(${position.land_x}, ${position.land_y})</td>
+                    <td>${position.throws?.length || 0}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn throws" title="管理投掷点" data-id="${position.id}" data-map="${position.map_key}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 16V8.00002C20.9996 7.6493 20.9071 7.30483 20.7315 7.00119C20.556 6.69754 20.3037 6.44539 20 6.27002L13 2.27002C12.696 2.09449 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09449 11 2.27002L4 6.27002C3.69626 6.44539 3.44398 6.69754 3.26846 7.00119C3.09294 7.30483 3.00036 7.6493 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9071 16.6952 20.9996 16.3508 21 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3.27 6.96L12 12.01L20.73 6.96" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 22.08V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn edit" title="编辑点位" data-id="${position.id}" data-map="${position.map_key}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn delete" title="删除点位" data-id="${position.id}" data-title="${position.title}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // 绑定事件
+            bindTableEvents();
+        }
+
+        // 绑定表格事件
+        function bindTableEvents() {
+            document.querySelectorAll('.action-btn.throws').forEach(btn => {
+                btn.addEventListener('click', () => manageThrows(btn.dataset.id, btn.dataset.map));
+            });
+            
+            document.querySelectorAll('.action-btn.edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(btn.dataset.id, btn.dataset.map));
+            });
+            
+            document.querySelectorAll('.action-btn.delete').forEach(btn => {
+                btn.addEventListener('click', () => deletePosition(btn.dataset.id, btn.dataset.title));
+            });
+        }
+
+        // 获取投掷物类型名称
+        function getTypeName(type) {
+            const typeMap = {
+                'smoke': '烟雾弹',
+                'flash': '闪光弹',
+                'molotov': '燃烧弹',
+                'he': '高爆手雷',
+                'decoy': '诱饵弹'
+            };
+            return typeMap[type] || type;
+        }
+
+        // 打开添加模态框
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '添加点位';
+            document.getElementById('positionForm').reset();
+            document.getElementById('positionId').value = '';
+            document.getElementById('positionModal').style.display = 'flex';
+            
+            // 确保地图选择有默认值
+            const mapSelect = document.getElementById('positionMapSelect');
+            if (currentMapData.length > 0 && !mapSelect.value) {
+                mapSelect.value = currentMapData[0].id;
+            }
+            
+            // 延迟初始化以确保模态框完全渲染
+            setTimeout(() => {
+                initMapPreview();
+            }, 300);
+        }
+
+        // 打开编辑模态框
+        async function openEditModal(id, mapKey) {
+            try {
+                const response = await fetch(`/api/position/spots/${mapKey}/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('加载点位详情失败');
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    const position = result.data;
+                    
+                    document.getElementById('modalTitle').textContent = `编辑点位: ${position.spot_title}`;
+                    document.getElementById('positionId').value = id;
+                    document.getElementById('positionMapSelect').value = position.map_id;
+                    document.getElementById('positionType').value = position.nade_type;
+                    document.getElementById('positionTitle').value = position.spot_title;
+                    document.getElementById('landX').value = position.land_x;
+                    document.getElementById('landY').value = position.land_y;
+                    document.getElementById('spotDesc').value = position.spot_desc || '';
+                    
+                    document.getElementById('positionModal').style.display = 'flex';
+                
+                    setTimeout(initMapPreview, 100);
+                }
+            } catch (error) {
+                console.error('加载点位详情失败:', error);
+                showAlert('加载点位详情失败', 'error');
+            }
+        }
+
+        // 关闭点位模态框
+        function closeModal() {
+            document.getElementById('positionModal').style.display = 'none';
+        }
+
+        // 保存点位
+        async function savePosition() {
+            const id = document.getElementById('positionId').value;
+            const mapId = document.getElementById('positionMapSelect').value;
+            const nadeType = document.getElementById('positionType').value;
+            const spotTitle = document.getElementById('positionTitle').value;
+            const landX = parseFloat(document.getElementById('landX').value);
+            const landY = parseFloat(document.getElementById('landY').value);
+            const spotDesc = document.getElementById('spotDesc').value;
+            
+            // 验证数据
+            if (!mapId || !nadeType || !spotTitle || isNaN(landX) || isNaN(landY)) {
+                showAlert('请填写完整的点位信息', 'error');
+                return;
+            }
+            
+            if (landX < 0 || landX > 100 || landY < 0 || landY > 100) {
+                showAlert('坐标值必须在0-100之间', 'error');
+                return;
+            }
+            
+            const positionData = {
+                map_id: parseInt(mapId),
+                nade_type: nadeType,
+                spot_title: spotTitle,
+                land_x: landX,
+                land_y: landY,
+                spot_desc: spotDesc
+            };
+            
+            try {
+                let url, method;
+                if (id) {
+                    url = `/api/position/spots/${id}`;
+                    method = 'PUT';
+                } else {
+                    url = '/api/position/spots';
+                    method = 'POST';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    },
+                    body: JSON.stringify(positionData)
+                });
+                
+                const result = await response.json();
+                if (result.code === 200 || result.code === 201) {
+                    closeModal();
+                    loadPositionData();
+                    showAlert(id ? '点位更新成功' : '点位添加成功');
+                } else {
+                    showAlert(`操作失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('保存点位失败:', error);
+                showAlert('保存点位失败，请重试', 'error');
+            }
+        }
+
+        // 删除点位
+        async function deletePosition(id, title) {
+            if (!confirm(`确定要删除点位 "${title}" 吗？此操作将同时删除所有关联的投掷点！`)) return;
+            
+            try {
+                const response = await fetch(`/api/position/spots/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    loadPositionData();
+                    showAlert('点位删除成功');
+                } else {
+                    showAlert(`删除失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('删除点位失败:', error);
+                showAlert('删除点位失败，请重试', 'error');
+            }
+        }
+
+        // 管理投掷点
+        async function manageThrows(spotId, mapKey) {
+            currentSpotId = spotId;
+            window.currentMapKey = mapKey;
+            
+            try {
+                // 获取当前地图信息
+                const map = currentMapData.find(m => m.map_key === mapKey);
+                if (map) {
+                    currentMapInfo = map;
+                }
+                
+                const response = await fetch(`/api/position/spots/${mapKey}/${spotId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (response.status === 404) {
+                    document.getElementById('throwsModalTitle').textContent = `管理投掷点 - 新点位`;
+                    currentThrows = [];
+                    renderThrowsList();
+                    document.getElementById('throwsModal').style.display = 'flex';
+                    return;
+                }
+                
+                if (!response.ok) throw new Error('加载投掷点失败');
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    currentThrows = result.data.throws || [];
+                    renderThrowsList();
+                    document.getElementById('throwsModalTitle').textContent = `管理投掷点 - ${result.data.spot_title}`;
+                    document.getElementById('throwsModal').style.display = 'flex';
+                } else if (result.code === 404) {
+                    currentThrows = [];
+                    renderThrowsList();
+                    document.getElementById('throwsModalTitle').textContent = `管理投掷点 - 新点位`;
+                    document.getElementById('throwsModal').style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('加载投掷点失败:', error);
+                currentThrows = [];
+                renderThrowsList();
+                document.getElementById('throwsModalTitle').textContent = `管理投掷点`;
+                document.getElementById('throwsModal').style.display = 'flex';
+            }
+        }
+
+        // 渲染投掷点列表
+        function renderThrowsList() {
+            const container = document.getElementById('throwsListContainer');
+            container.innerHTML = '';
+            
+            if (currentThrows.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--muted);">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 16px;">
+                            <path d="M21 16V8.00002C20.9996 7.6493 20.9071 7.30483 20.7315 7.00119C20.556 6.69754 20.3037 6.44539 20 6.27002L13 2.27002C12.696 2.09449 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09449 11 2.27002L4 6.27002C3.69626 6.44539 3.44398 6.69754 3.26846 7.00119C3.09294 7.30483 3.00036 7.6493 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9071 16.6952 20.9996 16.3508 21 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3.27 6.96L12 12.01L20.73 6.96" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 22.08V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p style="margin-bottom: 16px;">该点位暂无投掷点</p>
+                        <p style="font-size: 14px; opacity: 0.7;">点击下方"添加投掷点"按钮开始添加</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            currentThrows.forEach((throwItem, index) => {
+                const throwEl = document.createElement('div');
+                throwEl.className = 'throw-item';
+                
+                // 构建正确的视频URL
+                const videoUrl = throwItem.video_url || throwItem.videoUrl;
+                const fullVideoUrl = videoUrl.startsWith('/') ? videoUrl : `/uploads/videos/${videoUrl}`;
+                
+                throwEl.innerHTML = `
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label class="form-label">X坐标</label>
+                            <input type="number" class="form-control" value="${throwItem.throw_x}" disabled>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label">Y坐标</label>
+                            <input type="number" class="form-control" value="${throwItem.throw_y}" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">视频</label>
+                        <div class="video-upload">
+                            <video class="video-preview" controls style="max-width: 200px; max-height: 150px;">
+                                <source src="${fullVideoUrl}" type="video/mp4">
+                                您的浏览器不支持视频播放
+                            </video>
+                            <div class="file-input-wrapper">
+                                <input type="text" class="form-control" value="${videoUrl}" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-control" disabled>${throwItem.throw_desc || ''}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn" onclick="editThrow(${throwItem.throw_id})">编辑</button>
+                        <button class="btn" onclick="deleteThrow(${throwItem.throw_id})">删除</button>
+                    </div>
+                `;
+                container.appendChild(throwEl);
+            });
+        }
+
+        // 添加投掷点表单
+        function addThrowForm() {
+            const container = document.getElementById('throwsListContainer');
+            const formEl = document.createElement('div');
+            formEl.className = 'throw-item';
+            formEl.innerHTML = `
+                <h4>添加新投掷点</h4>
+                <form id="addThrowForm">
+                    <div class="form-group">
+                        <label class="form-label">投掷点坐标（百分比）</label>
+                        <div class="throw-map-preview-container">
+                            <div class="throw-map-preview-header">
+                                <span class="throw-map-preview-title">地图坐标预览</span>
+                                <span class="throw-map-preview-hint">点击地图选择投掷点坐标</span>
+                            </div>
+                            <div class="throw-map-preview-wrapper" id="throwMapPreview">
+                                <div class="throw-coordinate-display" id="throwCoordinateDisplay">X: 0, Y: 0</div>
+                                <div class="throw-map-grid-overlay" id="throwMapGrid"></div>
+                                <div class="throw-coordinate-marker" id="throwCoordinateMarker" style="display: none;"></div>
+                            </div>
+                            <div class="throw-coordinate-inputs">
+                                <div>
+                                    <label class="form-label">X坐标</label>
+                                    <input type="number" class="form-control" id="newThrowX" required min="0" max="100" step="0.01" placeholder="0-100">
+                                </div>
+                                <div>
+                                    <label class="form-label">Y坐标</label>
+                                    <input type="number" class="form-control" id="newThrowY" required min="0" max="100" step="0.01" placeholder="0-100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">视频文件</label>
+                        <input type="file" class="form-control" id="newThrowVideo" accept="video/*" required>
+                        <div class="form-hint">支持MP4、WebM、MOV格式，最大50MB</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-control" id="newThrowDesc" placeholder="投掷点描述（可选）"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn" onclick="cancelAddThrow()">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="saveNewThrow()">保存</button>
+                    </div>
+                </form>
+            `;
+            container.appendChild(formEl);
+            
+            // 初始化投掷点地图预览
+            initThrowMapPreview();
+        }
+
+        // 保存新投掷点
+        window.saveNewThrow = async function() {
+            const throwX = parseFloat(document.getElementById('newThrowX').value);
+            const throwY = parseFloat(document.getElementById('newThrowY').value);
+            const throwDesc = document.getElementById('newThrowDesc').value;
+            const videoFile = document.getElementById('newThrowVideo').files[0];
+            
+            if (isNaN(throwX) || isNaN(throwY) || !videoFile) {
+                showAlert('请填写完整的投掷点信息', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('throw_x', throwX);
+            formData.append('throw_y', throwY);
+            formData.append('throw_desc', throwDesc);
+            formData.append('video', videoFile);
+            
+            try {
+                const response = await fetch(`/api/position/spots/${currentSpotId}/throws`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.code === 201) {
+                    showAlert('投掷点添加成功');
+                    
+                    // 重新加载投掷点列表和点位列表
+                    await reloadThrowsData();
+                    await reloadPositionData();
+                    
+                    // 关闭添加表单，显示更新后的投掷点列表
+                    renderThrowsList();
+                } else {
+                    showAlert(`添加失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('添加投掷点失败:', error);
+                showAlert('添加投掷点失败', 'error');
+            }
+        };
+
+        // 取消添加投掷点
+        window.cancelAddThrow = function() {
+            renderThrowsList();
+        };
+
+        // 编辑投掷点
+        window.editThrow = async function(throwId) {
+            // 这里可以实现投掷点编辑功能
+            alert('投掷点编辑功能待实现');
+        };
+
+        // 删除投掷点
+        window.deleteThrow = async function(throwId) {
+            if (!confirm('确定要删除这个投掷点吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/position/throws/${throwId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    showAlert('投掷点删除成功');
+                    
+                    // 删除后重新加载数据
+                    await reloadThrowsData();
+                    await reloadPositionData();
+                    
+                    // 重新渲染投掷点列表
+                    renderThrowsList();
+                } else {
+                    showAlert(`删除失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('删除投掷点失败:', error);
+                showAlert('删除投掷点失败', 'error');
+            }
+        };
+
+        // 重新加载投掷点数据
+        async function reloadThrowsData() {
+            try {
+                // 获取当前的地图key
+                const currentMapKey = getCurrentMapKey();
+                
+                const response = await fetch(`/api/position/spots/${currentMapKey}/${currentSpotId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        currentThrows = result.data.throws || [];
+                        console.log('✅ 投掷点数据重新加载成功', currentThrows);
+                    }
+                }
+            } catch (error) {
+                console.error('重新加载投掷点数据失败:', error);
+            }
+        }
+
+        // 重新加载点位列表数据
+        async function reloadPositionData() {
+            try {
+                await loadPositionData();
+                console.log('✅ 点位列表数据重新加载成功');
+            } catch (error) {
+                console.error('重新加载点位列表数据失败:', error);
+            }
+        }
+
+        // 获取当前地图key的辅助函数
+        function getCurrentMapKey() {
+            if (window.currentMapKey) {
+                return window.currentMapKey;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const mapKey = urlParams.get('mapKey');
+            if (mapKey) return mapKey;
+            
+            const mapFilter = document.getElementById('mapFilterSelect');
+            if (mapFilter && mapFilter.value) {
+                const map = currentMapData.find(m => m.id == mapFilter.value);
+                return map ? map.map_key : null;
+            }
+            
+            return null;
+        }
+
+        // 关闭投掷点模态框
+        function closeThrowsModal() {
+            document.getElementById('throwsModal').style.display = 'none';
+            currentSpotId = null;
+            currentThrows = [];
+            
+            // 关闭模态框时重新加载点位列表
+            reloadPositionData().then(() => {
+                console.log('✅ 关闭投掷点模态框，点位列表已刷新');
+            }).catch(error => {
+                console.error('刷新点位列表失败:', error);
+            });
+        }
+
+        // 筛选点位
+        function filterPositions() {
+            loadPositionData();
+        }
+
+        // 初始化地图预览
+        function initMapPreview() {
+            const mapId = document.getElementById('positionMapSelect').value;
+            console.log('初始化地图预览，地图ID:', mapId); // 调试日志
+            
+            if (!mapId) {
+                console.log('未选择地图，跳过初始化');
+                return;
+            }
+            
+            const map = currentMapData.find(m => m.id == mapId);
+            console.log('找到地图数据:', map); // 调试日志
+            
+            if (!map) {
+                console.log('未找到对应地图数据');
+                showAlert('未找到地图数据', 'error');
+                return;
+            }
+            
+            if (!map.map_image_url) {
+                console.log('地图没有预览图片URL');
+                showAlert('该地图没有预览图片', 'error');
+                return;
+            }
+            
+            const mapPreview = document.getElementById('mapPreview');
+            const mapGrid = document.getElementById('mapGrid');
+            const coordinateMarker = document.getElementById('coordinateMarker');
+            const coordinateDisplay = document.getElementById('coordinateDisplay');
+            
+            // 清空现有内容
+            mapPreview.innerHTML = `
+                <div class="coordinate-display" id="coordinateDisplay">X: 0, Y: 0</div>
+                <div class="map-grid-overlay" id="mapGrid"></div>
+                <div class="coordinate-marker" id="coordinateMarker" style="display: none;"></div>
+            `;
+            
+            // 重新获取元素引用
+            const mapGridNew = document.getElementById('mapGrid');
+            const coordinateMarkerNew = document.getElementById('coordinateMarker');
+            const coordinateDisplayNew = document.getElementById('coordinateDisplay');
+            
+            // 创建图片元素
+            const mapPreviewImage = document.createElement('img');
+            mapPreviewImage.className = 'map-preview-image';
+            
+            // 处理图片URL - 确保路径正确
+            let imageUrl = map.map_image_url;
+            if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                imageUrl = '/' + imageUrl;
+            }
+            console.log('图片URL:', imageUrl); // 调试日志
+            
+            mapPreviewImage.src = imageUrl;
+            mapPreviewImage.alt = `${map.map_name} 预览图`;
+            mapPreview.insertBefore(mapPreviewImage, mapGridNew);
+            
+            // 图片加载处理
+            mapPreviewImage.onload = function() {
+                console.log('地图图片加载成功'); // 调试日志
+                initMapGrid(mapPreviewImage, mapGridNew, coordinateMarkerNew, coordinateDisplayNew);
+            };
+            
+            mapPreviewImage.onerror = function() {
+                console.error('地图图片加载失败:', imageUrl); // 调试日志
+                showAlert('地图图片加载失败，请检查图片路径', 'error');
+                
+                // 即使图片加载失败，也初始化网格和点击事件
+                initMapGrid(mapPreviewImage, mapGridNew, coordinateMarkerNew, coordinateDisplayNew, true);
+            };
+        }
+
+        // 从输入框更新标记位置
+        function updateMarkerFromInputs() {
+            const landX = document.getElementById('landX').value;
+            const landY = document.getElementById('landY').value;
+            const coordinateMarker = document.getElementById('coordinateMarker');
+            const coordinateDisplay = document.getElementById('coordinateDisplay');
+            
+            if (landX && landY) {
+                coordinateMarker.style.left = `${landX}%`;
+                coordinateMarker.style.top = `${landY}%`;
+                coordinateMarker.style.display = 'block';
+                coordinateDisplay.textContent = `X: ${landX}, Y: ${landY}`;
+            } else {
+                coordinateMarker.style.display = 'none';
+                coordinateDisplay.textContent = 'X: 0, Y: 0';
+            }
+        }
+
+        // 初始化投掷点地图预览
+        function initThrowMapPreview() {
+            if (!currentMapInfo || !currentMapInfo.map_image_url) {
+                showAlert('该地图没有预览图片', 'error');
+                return;
+            }
+            
+            const mapPreview = document.getElementById('throwMapPreview');
+            const mapGrid = document.getElementById('throwMapGrid');
+            const coordinateMarker = document.getElementById('throwCoordinateMarker');
+            const coordinateDisplay = document.getElementById('throwCoordinateDisplay');
+            
+            // 检查是否已存在图片，如果存在则移除
+            const existingImg = mapPreview.querySelector('img');
+            if (existingImg) {
+                existingImg.remove();
+            }
+            
+            // 创建图片元素
+            const mapPreviewImage = document.createElement('img');
+            mapPreviewImage.className = 'throw-map-preview-image';
+            mapPreviewImage.src = currentMapInfo.map_image_url;
+            mapPreviewImage.alt = `${currentMapInfo.map_name} 预览图`;
+            mapPreview.appendChild(mapPreviewImage);
+            
+            // 图片加载完成后初始化网格
+            mapPreviewImage.onload = function() {
+                // 清空网格
+                mapGrid.innerHTML = '';
+                
+                // 创建网格线（每10个单位一条线）
+                for (let i = 0; i <= 10; i++) {
+                    const xPos = i * 10;
+                    const yPos = i * 10;
+                    
+                    // 垂直线
+                    const vLine = document.createElement('div');
+                    vLine.className = 'grid-line vertical';
+                    vLine.style.left = `${xPos}%`;
+                    mapGrid.appendChild(vLine);
+                    
+                    // 水平线
+                    const hLine = document.createElement('div');
+                    hLine.className = 'grid-line horizontal';
+                    hLine.style.top = `${yPos}%`;
+                    mapGrid.appendChild(hLine);
+                    
+                    // 坐标标签（只在边框上显示）
+                    if (xPos > 0 && xPos < 100) {
+                        const xLabel = document.createElement('div');
+                        xLabel.className = 'grid-label x-axis';
+                        xLabel.textContent = xPos;
+                        xLabel.style.left = `${xPos}%`;
+                        xLabel.style.bottom = '0';
+                        mapGrid.appendChild(xLabel);
+                    }
+                    
+                    if (yPos > 0 && yPos < 100) {
+                        const yLabel = document.createElement('div');
+                        yLabel.className = 'grid-label y-axis';
+                        yLabel.textContent = yPos;
+                        yLabel.style.top = `${yPos}%`;
+                        yLabel.style.left = '0';
+                        mapGrid.appendChild(yLabel);
+                    }
+                }
+                
+                // 如果已有坐标值，显示标记
+                const throwX = document.getElementById('newThrowX').value;
+                const throwY = document.getElementById('newThrowY').value;
+                if (throwX && throwY) {
+                    coordinateMarker.style.left = `${throwX}%`;
+                    coordinateMarker.style.top = `${throwY}%`;
+                    coordinateMarker.style.display = 'block';
+                    coordinateDisplay.textContent = `X: ${throwX}, Y: ${throwY}`;
+                }
+                
+                // 添加点击事件
+                mapPreview.onclick = function(e) {
+                    const rect = mapPreviewImage.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // 计算百分比坐标
+                    const xPercent = (x / rect.width) * 100;
+                    const yPercent = (y / rect.height) * 100;
+                    
+                    // 更新输入框
+                    document.getElementById('newThrowX').value = xPercent.toFixed(2);
+                    document.getElementById('newThrowY').value = yPercent.toFixed(2);
+                    
+                    // 更新标记位置
+                    coordinateMarker.style.left = `${xPercent}%`;
+                    coordinateMarker.style.top = `${yPercent}%`;
+                    coordinateMarker.style.display = 'block';
+                    
+                    // 更新坐标显示
+                    coordinateDisplay.textContent = `X: ${xPercent.toFixed(2)}, Y: ${yPercent.toFixed(2)}`;
+                };
+            };
+            
+            // 图片加载失败处理
+            mapPreviewImage.onerror = function() {
+                showAlert('地图图片加载失败', 'error');
+            };
+            
+            // 为坐标输入框添加输入事件
+            document.getElementById('newThrowX').addEventListener('input', updateThrowMarkerFromInputs);
+            document.getElementById('newThrowY').addEventListener('input', updateThrowMarkerFromInputs);
+        }
+
+        // 从输入框更新投掷点标记位置
+        function updateThrowMarkerFromInputs() {
+            const throwX = document.getElementById('newThrowX').value;
+            const throwY = document.getElementById('newThrowY').value;
+            const coordinateMarker = document.getElementById('throwCoordinateMarker');
+            const coordinateDisplay = document.getElementById('throwCoordinateDisplay');
+            
+            if (throwX && throwY) {
+                coordinateMarker.style.left = `${throwX}%`;
+                coordinateMarker.style.top = `${throwY}%`;
+                coordinateMarker.style.display = 'block';
+                coordinateDisplay.textContent = `X: ${throwX}, Y: ${throwY}`;
+            } else {
+                coordinateMarker.style.display = 'none';
+                coordinateDisplay.textContent = 'X: 0, Y: 0';
+            }
+        }
+
+        // 提取网格初始化逻辑到单独函数
+        function initMapGrid(mapImage, gridContainer, marker, display, imageFailed = false) {
+            // 清空网格
+            gridContainer.innerHTML = '';
+            
+            if (!imageFailed) {
+                // 创建网格线（每10个单位一条线）
+                for (let i = 0; i <= 10; i++) {
+                    const xPos = i * 10;
+                    const yPos = i * 10;
+                    
+                    // 垂直线
+                    const vLine = document.createElement('div');
+                    vLine.className = 'grid-line vertical';
+                    vLine.style.left = `${xPos}%`;
+                    gridContainer.appendChild(vLine);
+                    
+                    // 水平线
+                    const hLine = document.createElement('div');
+                    hLine.className = 'grid-line horizontal';
+                    hLine.style.top = `${yPos}%`;
+                    gridContainer.appendChild(hLine);
+                    
+                    // 坐标标签
+                    if (xPos > 0 && xPos < 100) {
+                        const xLabel = document.createElement('div');
+                        xLabel.className = 'grid-label x-axis';
+                        xLabel.textContent = xPos;
+                        xLabel.style.left = `${xPos}%`;
+                        xLabel.style.bottom = '0';
+                        gridContainer.appendChild(xLabel);
+                    }
+                    
+                    if (yPos > 0 && yPos < 100) {
+                        const yLabel = document.createElement('div');
+                        yLabel.className = 'grid-label y-axis';
+                        yLabel.textContent = yPos;
+                        yLabel.style.top = `${yPos}%`;
+                        yLabel.style.left = '0';
+                        gridContainer.appendChild(yLabel);
+                    }
+                }
+            }
+            
+            // 如果已有坐标值，显示标记
+            const landX = document.getElementById('landX').value;
+            const landY = document.getElementById('landY').value;
+            if (landX && landY) {
+                marker.style.left = `${landX}%`;
+                marker.style.top = `${landY}%`;
+                marker.style.display = 'block';
+                display.textContent = `X: ${landX}, Y: ${landY}`;
+            }
+            
+            // 添加点击事件
+            const mapPreview = document.getElementById('mapPreview');
+            mapPreview.onclick = function(e) {
+                const rect = mapImage.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 计算百分比坐标
+                const xPercent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                const yPercent = Math.max(0, Math.min(100, (y / rect.height) * 100));
+                
+                // 更新输入框
+                document.getElementById('landX').value = xPercent.toFixed(2);
+                document.getElementById('landY').value = yPercent.toFixed(2);
+                
+                // 更新标记位置
+                marker.style.left = `${xPercent}%`;
+                marker.style.top = `${yPercent}%`;
+                marker.style.display = 'block';
+                
+                // 更新坐标显示
+                display.textContent = `X: ${xPercent.toFixed(2)}, Y: ${yPercent.toFixed(2)}`;
+            };
+        }
+    </script>
+</body>
+</html>

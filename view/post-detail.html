@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帖子详情 - CS2 Utility Guide</title>
     <style>
+        :root {
+            --bg: #0b0c0f;
+            --panel: #101218;
+            --panel-2: #0e1015;
+            --text: #f5f7fa;
+            --muted: rgba(245,247,250,.62);
+            --line: rgba(245,247,250,.12);
+            --shadow: 0 18px 60px rgba(0,0,0,.55);
+            --radius: 16px;
+            --ease: cubic-bezier(.2,.8,.2,1);
+            --smoke: #cfd6df;
+            --flash: #ffd166;
+            --molo: #ff9f1c;
+            --nade: #ff4d6d;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,9 +29,13 @@
         }
         
         body {
-            background-color: #1a1a2e;
-            color: #e6e6e6;
+            background:
+                radial-gradient(1200px 600px at 20% 0%, rgba(255,255,255,.06), transparent 60%),
+                radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,.04), transparent 55%),
+                var(--bg);
+            color: var(--text);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
         
         .container {
@@ -26,12 +46,14 @@
         
         /* 导航栏样式 */
         header {
-            background-color: #16213e;
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 50;
+            background: rgba(16,18,24,.72);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line);
+            box-shadow: none;
+            padding: 15px 0;
         }
         
         .header-content {
@@ -41,9 +63,10 @@
         }
         
         .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e63946;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .14em;
+            color: var(--text);
             text-decoration: none;
         }
         
@@ -54,13 +77,16 @@
         }
         
         .nav-links a {
-            color: #e6e6e6;
+            color: var(--muted);
             text-decoration: none;
-            transition: color 0.3s;
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background-color .18s var(--ease), color .18s var(--ease);
         }
         
         .nav-links a:hover {
-            color: #e63946;
+            color: var(--text);
+            background: rgba(255,255,255,.06);
         }
         
         /* 主内容区域 */
@@ -70,21 +96,25 @@
         
         /* 帖子详情样式 */
         .post-detail {
-            background-color: #16213e;
-            border-radius: 10px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
             overflow: hidden;
             margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.3s var(--ease);
         }
         
         .post-header {
             padding: 20px;
-            border-bottom: 1px solid #1a1a2e;
+            background: rgba(255,255,255,.03);
+            border-bottom: 1px solid var(--line);
         }
         
         .post-title {
             font-size: 28px;
             margin-bottom: 15px;
-            color: #e6e6e6;
+            color: var(--text);
         }
         
         .post-meta {
@@ -103,12 +133,14 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #0f3460;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            color: #e63946;
+            color: var(--text);
+            overflow: hidden;
         }
         
         .author-name {
@@ -116,7 +148,7 @@
         }
         
         .post-date {
-            color: #a0a0a0;
+            color: var(--muted);
             font-size: 14px;
         }
         
@@ -128,13 +160,14 @@
             width: 100%;
             max-height: 600px;
             object-fit: contain;
-            border-radius: 5px;
+            border-radius: var(--radius);
             margin-bottom: 20px;
-            background-color: #0f3460;
+            background: var(--panel-2);
+            border: 1px solid var(--line);
         }
         
         .post-text {
-            color: #e6e6e6;
+            color: var(--text);
             line-height: 1.8;
             margin-bottom: 20px;
         }
@@ -147,20 +180,26 @@
         }
         
         .post-tag {
-            background-color: #0f3460;
+            background: rgba(255,255,255,.03);
             padding: 5px 10px;
-            border-radius: 15px;
+            border-radius: 12px;
             font-size: 12px;
-            color: #a0a0a0;
+            color: var(--muted);
+            border: 1px solid transparent;
+            transition: all .18s var(--ease);
+        }
+        
+        .post-tag:hover {
+            background: rgba(255,255,255,.06);
+            border-color: var(--line);
         }
         
         .post-actions {
             display: flex;
             gap: 20px;
             padding: 15px 20px;
-            background-color: #0f3460;
-            border-top: 1px solid #1a1a2e;
-            border-bottom: 1px solid #1a1a2e;
+            background: rgba(255,255,255,.03);
+            border-top: 1px solid var(--line);
         }
         
         .action-btn {
@@ -169,31 +208,22 @@
             gap: 5px;
             background: none;
             border: none;
-            color: #a0a0a0;
+            color: var(--muted);
             cursor: pointer;
             font-size: 14px;
-            transition: color 0.3s;
+            transition: color .18s var(--ease), transform .18s var(--ease);
+            padding: 8px 12px;
+            border-radius: 8px;
         }
         
         .action-btn:hover {
-            color: #e63946;
+            color: var(--text);
+            background: rgba(255,255,255,.06);
+            transform: translateY(-1px);
         }
         
         .action-btn.liked, .action-btn.favorited {
             color: #e63946;
-        }
-
-        .author-avatar, .comment-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #0f3460;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #e63946;
-            overflow: hidden;
         }
 
         .author-avatar img, .comment-avatar img {
@@ -205,49 +235,60 @@
         
         /* 评论区样式 */
         .comments-section {
-            background-color: #16213e;
-            border-radius: 10px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
             overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.3s var(--ease);
         }
         
         .section-header {
             padding: 20px;
-            background-color: #0f3460;
-            border-bottom: 1px solid #1a1a2e;
+            background: rgba(255,255,255,.03);
+            border-bottom: 1px solid var(--line);
             font-weight: bold;
             font-size: 18px;
         }
         
         .comment-form {
             padding: 20px;
-            border-bottom: 1px solid #1a1a2e;
+            border-bottom: 1px solid var(--line);
         }
         
         .comment-input {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid #0f3460;
-            border-radius: 5px;
-            background-color: #1a1a2e;
-            color: #e6e6e6;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel-2);
+            color: var(--text);
             resize: none;
             min-height: 100px;
             margin-bottom: 10px;
+            transition: border-color .18s var(--ease);
+        }
+        
+        .comment-input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,.22);
         }
         
         .submit-comment {
-            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            background: rgba(230, 57, 70, 0.9);
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
-            transition: transform 0.2s;
+            transition: all .18s var(--ease);
         }
         
         .submit-comment:hover {
+            background: #e63946;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
         }
         
         .comments-list {
@@ -256,7 +297,8 @@
         
         .comment-item {
             padding: 15px 0;
-            border-bottom: 1px solid #1a1a2e;
+            border-bottom: 1px solid var(--line);
+            animation: fadeIn 0.3s var(--ease);
         }
         
         .comment-item:last-child {
@@ -279,42 +321,43 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background-color: #0f3460;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: #e63946;
+            color: var(--text);
         }
         
         .comment-text {
-            color: #e6e6e6;
+            color: var(--text);
             margin-bottom: 5px;
         }
         
         .comment-time {
-            color: #a0a0a0;
+            color: var(--muted);
             font-size: 12px;
         }
         
         .no-comments {
             text-align: center;
             padding: 30px;
-            color: #a0a0a0;
+            color: var(--muted);
         }
         
         .loading {
             text-align: center;
             padding: 20px;
-            color: #a0a0a0;
+            color: var(--muted);
         }
         
         /* 页脚样式 */
         footer {
-            background-color: #16213e;
+            background: var(--panel);
             padding: 30px 0;
             margin-top: 50px;
-            border-top: 1px solid #0f3460;
+            border-top: 1px solid var(--line);
         }
         
         .footer-content {
@@ -332,7 +375,7 @@
         .footer-section h3 {
             font-size: 18px;
             margin-bottom: 15px;
-            color: #e6e6e6;
+            color: var(--text);
         }
         
         .footer-links {
@@ -344,9 +387,9 @@
         }
         
         .footer-links a {
-            color: #a0a0a0;
+            color: var(--muted);
             text-decoration: none;
-            transition: color 0.2s;
+            transition: color .18s var(--ease);
         }
         
         .footer-links a:hover {
@@ -357,17 +400,30 @@
             text-align: center;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #0f3460;
-            color: #a0a0a0;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
             font-size: 14px;
         }
 
-        .delete-comment-btn:hover {
-            color: #e63946 !important;
-            text-decoration: underline;
+        .delete-comment-btn {
+            color: var(--muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: color .18s var(--ease);
         }
 
-        /* 在post-detail.html的<style>标签内添加 */
+        .delete-comment-btn:hover {
+            color: #e63946;
+        }
+
+        /* 用户信息样式 */
+        .user-info {
+            position: relative;
+            cursor: pointer;
+        }
+
         .user-initial {
             display: inline-flex;
             align-items: center;
@@ -375,12 +431,65 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #0f3460;
-            color: #e63946;
-            font-weight: bold;
-            font-size: 18px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 16px;
+            transition: all .18s var(--ease);
         }
-        
+
+        .user-info:hover .user-initial {
+            background: rgba(255,255,255,.1);
+            border-color: rgba(255,255,255,.22);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn, .admin-btn, .myinfo-btn {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            padding: 10px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: none;
+            margin-top: 8px;
+            min-width: 100px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            transition: all .18s var(--ease);
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .logout-btn:hover, .admin-btn:hover, .myinfo-btn:hover {
+            background-color: rgba(230, 57, 70, 0.9);
+            border-color: rgba(230, 57, 70, 0.9);
+            transform: translateY(-1px);
+        }
+
+        .myinfo-btn {
+            top: calc(100% + 45px);
+        }
+
+        .myinfo-btn:hover {
+            background-color: #e63946;
+        }
+
+        .logout-btn {
+            top: calc(100% + 90px);
+        }
+
+        /* 添加加载动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
             .post-title {
@@ -390,8 +499,74 @@
             .footer-content {
                 flex-direction: column;
             }
+            
+            .post-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .logout-btn, .admin-btn, .myinfo-btn {
+                min-width: 120px;
+                right: -40px;
+            }
+        }
+
+        /* 头像点击效果增强 */
+        .clickable-avatar {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clickable-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+        }
+
+        .clickable-avatar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: rgba(230, 57, 70, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .clickable-avatar:hover::after {
+            opacity: 1;
+        }
+
+        /* 加载动画 */
+        .avatar-loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .clickable-avatar:hover {
+                transform: scale(1.05);
+            }
+            
+            .author-avatar, .comment-avatar {
+                width: 35px !important;
+                height: 35px !important;
+            }
         }
     </style>
+    <link rel="stylesheet" href="avatar.css"> <!-- 引入头像样式文件 -->
 </head>
 <body>
     <!-- 导航栏 -->
@@ -447,23 +622,20 @@
                     <h3>快速链接</h3>
                     <ul class="footer-links">
                         <li><a href="index.html">首页</a></li>
-                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
-                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
                         <li><a href="community.html">社区</a></li>
+                        <li><a href="avatar.html">头像设置</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>支持</h3>
+                    <h3>其他链接</h3>
                     <ul class="footer-links">
-                        <li><a href="">帮助中心</a></li>
-                        <li><a href="">联系我们</a></li>
-                        <li><a href="">隐私政策</a></li>
-                        <li><a href="">使用条款</a></li>
+                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
+                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2023 CS2 Utility Guide. 本网站与Valve Corporation无关联。</p>
+                <p>© 2025 CS2 Utility Guide.</p>
             </div>
         </div>
     </footer>

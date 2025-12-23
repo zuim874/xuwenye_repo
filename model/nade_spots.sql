@@ -1,5 +1,3 @@
---投掷物点位表
-
 CREATE TABLE `nade_spots` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '点位ID',
   `map_id` INT UNSIGNED NOT NULL COMMENT '关联地图ID',
