@@ -22,7 +22,7 @@
       // 检查：如果currentUser不存在（已注销/过期），停止心跳并跳登录页
       if (!currentUser) {
         stopHeartbeat();
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
         return;
       }
 
@@ -40,7 +40,7 @@
         stopHeartbeat();
         localStorage.removeItem('currentUser');
         localStorage.removeItem('userId');
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
       }
     }, 30000);
 
@@ -89,7 +89,7 @@
         const username = localStorage.getItem('currentUser');
         if (!username) {
             console.log('未找到登录用户，直接跳转登录页');
-            window.location.href = 'login.html';
+            window.location.href = './account/login.html';
             return;
         }
 
@@ -114,7 +114,7 @@
         // 4. 无论接口是否成功，都清除本地用户信息并跳转登录页
         localStorage.removeItem('currentUser');
         localStorage.removeItem('userId');
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
         }
     }, 300000); // 300秒阈值
     }

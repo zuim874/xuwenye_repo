@@ -3,6 +3,10 @@ const DOM = {
     userNamePrefix: document.getElementById('userNamePrefix'),
     userArea: document.getElementById('userArea'),
     loginBtnArea: document.getElementById('loginBtnArea'),
+    changeEmailBtn: document.getElementById('changeEmailBtn'), // 新增
+    deleteAccountBtn: document.getElementById('deleteAccountBtn'), // 新增
+    changeAvatarBtn: document.getElementById('changeAvatarBtn'), // 新增
+    changePasswordBtn: document.getElementById('changePasswordBtn'),
     logoutBtn: document.getElementById('logoutBtn'),
     userMenu: document.getElementById('userMenu'),
     myPostsList: document.getElementById('myPostsList'),
@@ -31,16 +35,32 @@ document.addEventListener('DOMContentLoaded', () => {
  * 绑定所有页面事件
  */
 function bindEvents() {
+    // 换绑邮箱事件
+    DOM.changeEmailBtn.addEventListener('click', changeEmail);
+    
+    // 注销账户事件
+    DOM.deleteAccountBtn.addEventListener('click', deleteAccount);
+    
     // 登出事件
     DOM.logoutBtn.addEventListener('click', logout);
+
+    // 设置头像事件
+    DOM.changeAvatarBtn.addEventListener('click', changeAvatar);
+
+    // 修改密码时间
+    DOM.changePasswordBtn.addEventListener('click', changePassword);
     
-    // 用户信息区域悬停事件（显示/隐藏菜单）
-    DOM.userInfo.addEventListener('mouseenter', () => {
-        DOM.userMenu.classList.add('show');
+    // 修改：点击头像显示/隐藏菜单
+    DOM.userInfo.addEventListener('click', (e) => {
+        e.stopPropagation(); // 防止事件冒泡
+        DOM.userMenu.classList.toggle('show');
     });
     
-    DOM.userInfo.addEventListener('mouseleave', () => {
-        DOM.userMenu.classList.remove('show');
+    // 修改：点击页面其他区域关闭菜单
+    document.addEventListener('click', (e) => {
+        if (!DOM.userInfo.contains(e.target)) {
+            DOM.userMenu.classList.remove('show');
+        }
     });
 }
 
@@ -59,7 +79,7 @@ function checkLoginStatus() {
     if (!currentUser) {
         DOM.userArea.style.display = 'none';
         DOM.loginBtnArea.style.display = 'block';
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
         return;
     }
 
@@ -294,15 +314,536 @@ async function deletePost(postId) {
 }
 
 /**
+ * 换绑邮箱功能（新版五步流程，增加确认步骤）
+ */
+async function changeEmail() {
+    try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            throw new Error('用户未登录');
+        }
+
+        // 第一步：确认是否要换绑邮箱
+        const confirmChange = await showChangeEmailConfirmation();
+        if (!confirmChange) return;
+
+        // 第二步：获取当前邮箱验证码
+        const sendCodeResponse = await fetch(`/api/users/${userId}/send-change-email-code`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Login-User-Id': userId
+            }
+        });
+
+        const sendCodeResult = await sendCodeResponse.json();
+        
+        if (!sendCodeResponse.ok) {
+            throw new Error(sendCodeResult.message || '发送验证码失败');
+        }
+
+        // 第三步：验证当前邮箱并发送新邮箱验证码
+        const currentEmailCode = await showChangeEmailStep1(sendCodeResult.data.emailMask);
+        if (!currentEmailCode) return;
+
+        // 第四步：输入新邮箱
+        const newEmail = await showChangeEmailStep2();
+        if (!newEmail) return;
+
+        const verifyResponse = await fetch(`/api/users/${userId}/verify-and-send-new`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Login-User-Id': userId
+            },
+            body: JSON.stringify({
+                currentEmailCode: currentEmailCode,
+                newEmail: newEmail
+            })
+        });
+
+        const verifyResult = await verifyResponse.json();
+        
+        if (!verifyResponse.ok) {
+            throw new Error(verifyResult.message || '验证失败');
+        }
+
+        // 第五步：输入新邮箱验证码
+        const newEmailCode = await showChangeEmailStep3(verifyResult.data.newEmailMask);
+        if (!newEmailCode) return;
+
+        // 最终确认换绑
+        const confirmResponse = await fetch(`/api/users/${userId}/confirm-change-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Login-User-Id': userId
+            },
+            body: JSON.stringify({
+                newEmailCode: newEmailCode
+            })
+        });
+
+        const confirmResult = await confirmResponse.json();
+        
+        if (!confirmResponse.ok) {
+            throw new Error(confirmResult.message || '换绑失败');
+        }
+
+        alert('邮箱换绑成功！');
+        
+        // 可选：刷新页面或更新用户信息
+        window.location.reload();
+
+    } catch (error) {
+        console.error('换绑邮箱失败：', error);
+        
+        // 取消换绑流程
+        try {
+            await fetch(`/api/users/${userId}/cancel-change-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Login-User-Id': userId
+                }
+            });
+        } catch (cancelError) {
+            console.error('取消换绑流程失败：', cancelError);
+        }
+        
+        alert(`换绑失败：${error.message}`);
+    }
+}
+
+/**
+ * 显示换绑邮箱确认对话框（第一步）
+ */
+function showChangeEmailConfirmation() {
+    return new Promise((resolve) => {
+        const modal = createModal(`
+            <h3>换绑邮箱确认</h3>
+            <div style="text-align: left; margin: 20px 0; line-height: 1.6;">
+                <p>🔒🔒 您即将开始换绑邮箱流程：</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>需要验证当前邮箱</li>
+                    <li>需要验证新邮箱</li>
+                    <li>整个过程需要几分钟时间</li>
+                </ul>
+                <p style="color: #e63946; font-weight: bold;">请确保您能访问当前邮箱和新邮箱</p>
+            </div>
+            <div style="margin-top: 20px;">
+                <button onclick="handleConfirmChangeEmail()" style="background: #e63946; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-right: 10px;">确认换绑</button>
+                <button onclick="handleCancelChangeEmail()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px;">取消</button>
+            </div>
+        `);
+
+        window.handleConfirmChangeEmail = () => {
+            modal.remove();
+            resolve(true);
+        };
+
+        window.handleCancelChangeEmail = () => {
+            modal.remove();
+            resolve(false);
+        };
+    });
+}
+
+/**
+ * 显示换绑邮箱第一步：输入当前邮箱验证码（原第一步，现第二步）
+ */
+function showChangeEmailStep1(emailMask) {
+    return new Promise((resolve) => {
+        const modal = createModal(`
+            <h3>第一步：验证当前邮箱</h3>
+            <p>验证码已发送到您的邮箱 ${emailMask}</p>
+            <input type="text" id="currentEmailCode" placeholder="请输入6位验证码" maxlength="6" style="width: 200px; padding: 10px; margin: 10px 0;">
+            <div style="margin-top: 20px;">
+                <button onclick="handleStep1Confirm()" style="background: #e63946; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-right: 10px;">确认</button>
+                <button onclick="handleStep1Cancel()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px;">取消</button>
+            </div>
+        `);
+
+        window.handleStep1Confirm = () => {
+            const code = document.getElementById('currentEmailCode').value;
+            if (code && code.length === 6) {
+                modal.remove();
+                resolve(code);
+            } else {
+                alert('请输入6位验证码');
+            }
+        };
+
+        window.handleStep1Cancel = () => {
+            modal.remove();
+            resolve(null);
+        };
+    });
+}
+
+/**
+ * 显示换绑邮箱第二步：输入新邮箱（原第二步，现第三步）
+ */
+function showChangeEmailStep2() {
+    return new Promise((resolve) => {
+        const modal = createModal(`
+            <h3>第二步：输入新邮箱</h3>
+            <p>请输入您要绑定的新邮箱地址</p>
+            <input type="email" id="newEmail" placeholder="请输入新邮箱地址" style="width: 300px; padding: 10px; margin: 10px 0;">
+            <div style="margin-top: 20px;">
+                <button onclick="handleStep2Confirm()" style="background: #e63946; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-right: 10px;">下一步</button>
+                <button onclick="handleStep2Cancel()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px;">取消</button>
+            </div>
+        `);
+
+        window.handleStep2Confirm = () => {
+            const email = document.getElementById('newEmail').value;
+            if (email && email.includes('@')) {
+                modal.remove();
+                resolve(email);
+            } else {
+                alert('请输入有效的邮箱地址');
+            }
+        };
+
+        window.handleStep2Cancel = () => {
+            modal.remove();
+            resolve(null);
+        };
+    });
+}
+
+/**
+ * 显示换绑邮箱第三步：输入新邮箱验证码（原第三步，现第四步）
+ */
+function showChangeEmailStep3(newEmailMask) {
+    return new Promise((resolve) => {
+        const modal = createModal(`
+            <h3>第三步：验证新邮箱</h3>
+            <p>验证码已发送到新邮箱 ${newEmailMask}</p>
+            <input type="text" id="newEmailCode" placeholder="请输入6位验证码" maxlength="6" style="width: 200px; padding: 10px; margin: 10px 0;">
+            <div style="margin-top: 20px;">
+                <button onclick="handleStep3Confirm()" style="background: #e63946; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-right: 10px;">完成换绑</button>
+                <button onclick="handleStep3Cancel()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px;">取消</button>
+            </div>
+        `);
+
+        window.handleStep3Confirm = () => {
+            const code = document.getElementById('newEmailCode').value;
+            if (code && code.length === 6) {
+                modal.remove();
+                resolve(code);
+            } else {
+                alert('请输入6位验证码');
+            }
+        };
+
+        window.handleStep3Cancel = () => {
+            modal.remove();
+            resolve(null);
+        };
+    });
+}
+
+/**
+ * 创建模态对话框
+ */
+function createModal(content) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 90%;
+        color: #333;
+        text-align: center;
+    `;
+    
+    modalContent.innerHTML = content;
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    return modal;
+}
+
+/**
+ * 修改密码功能
+ */
+async function changePassword() {
+    try {
+        const userId = localStorage.getItem('userId');
+        const userName = localStorage.getItem('currentUser');
+        
+        if (!userId) {
+            throw new Error('用户未登录');
+        }
+
+        // 显示修改密码模态框
+        const result = await showChangePasswordModal();
+        if (!result) return;
+
+        const { currentPassword, newPassword, confirmPassword } = result;
+
+        // 前端验证
+        if (newPassword !== confirmPassword) {
+            throw new Error('新密码和确认密码不一致');
+        }
+
+        if (newPassword.length < 6) {
+            throw new Error('新密码必须至少6位');
+        }
+
+        // 发送修改密码请求
+        const response = await fetch(`/api/users/${userId}/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Login-User-Id': userId
+            },
+            body: JSON.stringify({
+                currentPassword: currentPassword,
+                newPassword: newPassword
+            })
+        });
+
+        const resultData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(resultData.message || '修改密码失败');
+        }
+
+        alert('密码修改成功！');
+        
+        // 可选：密码修改成功后强制重新登录
+        const shouldRelogin = confirm('密码修改成功，是否立即重新登录？');
+        if (shouldRelogin) {
+            logout();
+        }
+
+    } catch (error) {
+        console.error('修改密码失败：', error);
+        alert(`修改密码失败：${error.message}`);
+    }
+}
+
+/**
+ * 显示修改密码模态框
+ */
+function showChangePasswordModal() {
+    return new Promise((resolve) => {
+        const modal = createModal(`
+            <h3>修改密码</h3>
+            <div style="margin: 20px 0;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">当前密码</label>
+                    <input type="password" id="currentPassword" placeholder="请输入当前密码" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">新密码</label>
+                    <input type="password" id="newPassword" placeholder="请输入新密码（至少6位）" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">确认新密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入新密码" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                    <p>🔒 密码要求：</p>
+                    <ul style="margin: 5px 0; padding-left: 15px;">
+                        <li>至少6位字符</li>
+                        <li>建议使用字母、数字和符号组合</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <button id="confirmChangePassword" style="background: #e63946; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-right: 10px;">确认修改</button>
+                <button id="cancelChangePassword" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px;">取消</button>
+            </div>
+        `);
+
+        // 确认修改按钮事件
+        modal.querySelector('#confirmChangePassword').addEventListener('click', () => {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // 验证输入
+            if (!currentPassword) {
+                alert('请输入当前密码');
+                return;
+            }
+            if (!newPassword) {
+                alert('请输入新密码');
+                return;
+            }
+            if (newPassword.length < 6) {
+                alert('新密码必须至少6位');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                alert('新密码和确认密码不一致');
+                return;
+            }
+
+            modal.remove();
+            resolve({ currentPassword, newPassword, confirmPassword });
+        });
+
+        // 取消按钮事件
+        modal.querySelector('#cancelChangePassword').addEventListener('click', () => {
+            modal.remove();
+            resolve(null);
+        });
+
+        // 回车键支持
+        modal.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                modal.querySelector('#confirmChangePassword').click();
+            }
+        });
+    });
+}
+
+/**
+ * 修改密码跳转（兼容旧代码）
+ */
+function changepassword() {
+    changePassword();
+}
+
+/**
+ * 注销账户功能（增强版：增加邮箱验证码确认）
+ */
+async function deleteAccount() {
+    try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            throw new Error('用户未登录');
+        }
+
+        // 第一步：确认删除
+        const confirmDelete = confirm(
+            '警告：此操作将永久删除您的账户和所有数据！\n\n' +
+            '包括：\n' +
+            '• 您发布的所有帖子\n' +
+            '• 您的所有评论\n' +
+            '• 您的点赞和收藏记录\n' +
+            '• 您的头像和上传的文件\n\n' +
+            '此操作不可撤销！'
+        );
+        
+        if (!confirmDelete) return;
+        
+        const userInput = prompt('请输入"DELETE"确认注销账户：');
+        if (userInput !== 'DELETE') {
+            alert('输入不匹配，注销操作已取消。');
+            return;
+        }
+
+        // 第二步：发送验证码（如果有邮箱）
+        let verificationInfo = null;
+        try {
+            const response = await fetch(`/api/users/${userId}/send-delete-verification`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Login-User-Id': userId
+                }
+            });
+
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || '发送验证码失败');
+            }
+
+            verificationInfo = result.data;
+            
+        } catch (error) {
+            console.error('发送验证码失败：', error);
+            // 如果发送失败，询问是否继续
+            const continueWithoutCode = confirm(
+                '验证码发送失败：' + error.message + 
+                '\n\n是否继续注销？这将降低安全性。'
+            );
+            if (!continueWithoutCode) return;
+        }
+
+        // 第三步：验证验证码（如果有邮箱）
+        let verificationCode = null;
+        if (verificationInfo && verificationInfo.hasEmail) {
+            verificationCode = prompt(
+                `验证码已发送到您的邮箱 ${verificationInfo.emailMask}\n\n` +
+                '请输入收到的6位验证码：'
+            );
+            
+            if (!verificationCode) {
+                alert('验证码不能为空，注销操作已取消。');
+                return;
+            }
+        }
+
+        // 第四步：执行注销
+        const deleteResponse = await fetch(`/api/users/${userId}/verify-and-delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Login-User-Id': userId
+            },
+            body: JSON.stringify({
+                confirmText: userInput,
+                verificationCode: verificationCode
+            })
+        });
+
+        const deleteResult = await deleteResponse.json();
+
+        if (deleteResponse.ok) {
+            alert('账户注销成功！所有数据已彻底删除。');
+            // 清除本地存储并跳转到登录页
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userId');
+            window.location.href = './account/login.html';
+        } else {
+            throw new Error(deleteResult.message || '注销失败');
+        }
+    } catch (error) {
+        console.error('注销账户失败：', error);
+        alert(`注销失败：${error.message}`);
+    }
+}
+
+/**
  * 登出功能
  */
 function logout() {
-    // 清除本地存储的用户信息
     localStorage.removeItem('currentUser');
     localStorage.removeItem('userId');
-    
-    // 跳转登录页
-    window.location.href = 'login.html';
+    window.location.href = './account/login.html';
+}
+
+/**
+ * 设置头像
+ */
+function changeAvatar() {
+    window.location.href = 'avatar.html';
 }
 
 /**

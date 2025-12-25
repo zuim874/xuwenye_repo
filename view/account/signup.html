@@ -294,8 +294,8 @@
         <div class="container header-content">
             <a href="index.html" class="logo">CS2UTIL</a>
             <div class="nav-links">
-                <a href="index.html">首页</a>
-                <a href="community.html">社区</a>
+                <a href="../index.html">首页</a>
+                <a href="../community.html">社区</a>
             </div>
             <button class="mobile-menu-btn">☰</button>
         </div>
@@ -319,6 +319,21 @@
                         <label for="username" class="form-label">用户名</label>
                         <input type="text" id="username" class="form-input" placeholder="请输入用户名（3-20个字符）">
                         <div class="error-message" id="usernameError">用户名必须为3-20个字符，只能包含字母、数字和下划线</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email" id="email" class="form-input" placeholder="请输入有效的邮箱地址">
+                        <div class="error-message" id="emailError">请输入有效的邮箱地址</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="verificationCode" class="form-label">邮箱验证码</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="verificationCode" class="form-input" placeholder="请输入邮箱验证码" style="flex: 1;">
+                            <button type="button" class="submit-btn" id="sendCodeBtn" style="width: auto; padding: 12px 20px;">发送验证码</button>
+                        </div>
+                        <div class="error-message" id="verificationCodeError">验证码错误或已过期</div>
                     </div>
                     
                     <div class="form-group">
@@ -361,6 +376,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('signupForm');
     const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirmPassword');
     const togglePasswordBtn = document.getElementById('togglePassword');
@@ -368,9 +384,15 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // 错误提示元素
     const usernameError = document.getElementById('usernameError');
+    const emailError = document.getElementById('emailError');
     const passwordError = document.getElementById('passwordError');
     const confirmPasswordError = document.getElementById('confirmPasswordError');
     const successMessage = document.getElementById('successMessage');
+
+    //邮箱验证元素
+    const verificationCodeInput = document.getElementById('verificationCode');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    const verificationCodeError = document.getElementById('verificationCodeError');
 
     // 1. 密码显示/隐藏切换
     togglePasswordBtn.addEventListener('click', function () {
@@ -380,14 +402,64 @@ document.addEventListener('DOMContentLoaded', function () {
         this.textContent = type === 'password' ? '显示' : '隐藏';
     });
 
+    // 发送验证码按钮点击事件
+    sendCodeBtn.addEventListener('click', async function () {
+        const email = emailInput.value.trim();
+        
+        // 验证邮箱格式
+        const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailReg.test(email)) {
+            emailError.textContent = '请输入有效的邮箱地址';
+            emailError.style.display = 'block';
+            return;
+        }
+        
+        // 禁用按钮并显示倒计时
+        sendCodeBtn.disabled = true;
+        let countdown = 60;
+        
+        const countdownInterval = setInterval(() => {
+            sendCodeBtn.textContent = `重新发送(${countdown})`;
+            countdown--;
+            
+            if (countdown < 0) {
+                clearInterval(countdownInterval);
+                sendCodeBtn.disabled = false;
+                sendCodeBtn.textContent = '发送验证码';
+            }
+        }, 1000);
+        
+        try {
+            const res = await fetch('/api/register/send-verification-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.message || '发送验证码失败');
+            }
+            
+            alert('验证码发送成功，请查看邮箱');
+        } catch (err) {
+            clearInterval(countdownInterval);
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.textContent = '发送验证码';
+            alert(err.message || '发送验证码失败');
+        }
+    });
+
     // 2. 完善前端校验函数（密码改为：至少6位数字）
     function validateForm() {
         let isValid = true;
         const username = usernameInput.value.trim();
+        const email = emailInput.value.trim(); // 新增
         const password = passwordInput.value;
         const confirmPassword = confirmInput.value;
 
-        // 用户名校验：3-20字符，仅字母、数字、下划线（保持不变）
+        // 用户名校验
         const usernameReg = /^[a-zA-Z0-9_]{3,20}$/;
         if (!username) {
             usernameError.textContent = '用户名不能为空';
@@ -401,7 +473,21 @@ document.addEventListener('DOMContentLoaded', function () {
             usernameError.style.display = 'none';
         }
 
-        // 密码校验：改为「至少6位数字」（核心修改）
+        // 邮箱校验（新增）
+        const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            emailError.textContent = '邮箱不能为空';
+            emailError.style.display = 'block';
+            isValid = false;
+        } else if (!emailReg.test(email)) {
+            emailError.textContent = '请输入有效的邮箱地址';
+            emailError.style.display = 'block';
+            isValid = false;
+        } else {
+            emailError.style.display = 'none';
+        }
+
+        // 密码校验
         const passwordReg = /^\d{6,}$/;
         if (!password) {
             passwordError.textContent = '密码不能为空';
@@ -415,12 +501,22 @@ document.addEventListener('DOMContentLoaded', function () {
             passwordError.style.display = 'none';
         }
 
-        // 确认密码校验（保持不变：需与密码一致）
+        // 确认密码校验
         if (password !== confirmPassword) {
             confirmPasswordError.style.display = 'block';
             isValid = false;
         } else {
             confirmPasswordError.style.display = 'none';
+        }
+
+        // 验证码验证
+        const verificationCode = verificationCodeInput.value.trim();
+        if (!verificationCode) {
+            verificationCodeError.textContent = '验证码不能为空';
+            verificationCodeError.style.display = 'block';
+            isValid = false;
+        } else {
+            verificationCodeError.style.display = 'none';
         }
 
         return isValid;
@@ -437,7 +533,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // 构造请求数据（仅用户名和密码）
         const payload = {
             username: usernameInput.value.trim(),
-            password: passwordInput.value
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+            verificationCode: verificationCodeInput.value.trim()
         };
 
         // 按钮状态切换
@@ -461,8 +559,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.location.href = 'login.html'; // 跳转到登录页
                 }, 1500);
             } else {
-                // 注册失败：显示后端返回的错误（如用户名已存在）
-                alert(data.message || '注册失败，请稍后重试');
+                // 注册失败：显示错误信息
+                if (data.message.includes('验证码')) {
+                    verificationCodeError.textContent = data.message;
+                    verificationCodeError.style.display = 'block';
+                } else {
+                    alert(data.message || '注册失败，请稍后重试');
+                }
             }
         } catch (err) {
             console.error('注册网络错误:', err);

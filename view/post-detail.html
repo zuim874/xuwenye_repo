@@ -215,6 +215,17 @@
             padding: 8px 12px;
             border-radius: 8px;
         }
+
+        .like-count,
+        .favorite-count {
+            font-weight: bold;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .action-text {
+            margin-left: 2px;
+        }
         
         .action-btn:hover {
             color: var(--text);
@@ -224,6 +235,15 @@
         
         .action-btn.liked, .action-btn.favorited {
             color: #e63946;
+        }
+
+        /* 收藏按钮特殊状态 */
+        .action-btn.favorited {
+            color: #ffd700; /* 金色 */
+        }
+
+        .action-btn.favorited .favorite-icon {
+            color: #ffd700;
         }
 
         .author-avatar img, .comment-avatar img {
@@ -582,7 +602,7 @@
                     </div>
                 </div>
                 <div id="loginBtnArea">
-                    <a href="login.html">登录</a>
+                    <a href="./account/login.html">登录</a>
                 </div>
             </div>
         </div>

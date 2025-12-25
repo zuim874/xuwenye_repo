@@ -489,7 +489,7 @@
             userId = localStorage.getItem('userId');
             
             if (!currentUser || !userId) {
-                window.location.href = 'login.html';
+                window.location.href = './account/login.html';
                 return false;
             }
             
@@ -626,7 +626,7 @@
             if (!userId || !currentUser) {
                 showMsg('请先登录');
                 setTimeout(() => {
-                    window.location.href = 'login.html';
+                    window.location.href = './account/login.html';
                 }, 1500);
                 return;
             }
@@ -708,7 +708,7 @@
             localStorage.removeItem('currentUser');
             localStorage.removeItem('userId');
             localStorage.removeItem('isAdmin');
-            window.location.href = 'login.html';
+            window.location.href = './account/login.html';
         });
 
         adminBtn.addEventListener('click', (e) => {

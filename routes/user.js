@@ -237,6 +237,562 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+/**
+ * 发送注销账户验证码
+ * POST /api/users/:id/send-delete-verification
+ */
+router.post('/:id/send-delete-verification', async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+
+        // 验证登录状态和权限
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            return res.status(403).json({ code: 403, message: '无权限操作他人账户' });
+        }
+
+        // 查询用户信息
+        const [users] = await pool.execute(
+            'SELECT id, username, email FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        const user = users[0];
+
+        // 检查用户是否有邮箱
+        if (!user.email) {
+            return res.status(200).json({
+                code: 200,
+                message: '用户未绑定邮箱，可直接注销',
+                data: { hasEmail: false }
+            });
+        }
+
+        // 生成6位数字验证码
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const codeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10分钟过期
+
+        // 保存验证码到数据库
+        await pool.execute(
+            'UPDATE users SET delete_verification_code = ?, delete_code_expiry = ? WHERE id = ?',
+            [verificationCode, codeExpiry, targetUserId]
+        );
+
+        // 发送验证码邮件
+        await emailService.sendDeleteVerificationCode(user.email, user.username, verificationCode);
+
+        res.status(200).json({
+            code: 200,
+            message: '验证码已发送到您的注册邮箱，请查收',
+            data: { 
+                hasEmail: true,
+                emailMask: maskEmail(user.email) // 部分隐藏邮箱地址
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '发送注销验证码');
+    }
+});
+
+/**
+ * 验证注销验证码并执行注销
+ * POST /api/users/:id/verify-and-delete
+ */
+router.post('/:id/verify-and-delete', async (req, res) => {
+    const connection = await pool.getConnection();
+    
+    try {
+        await connection.beginTransaction();
+
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+        const { verificationCode, confirmText } = req.body;
+
+        // 1. 基础验证
+        if (!loginUserId) {
+            await connection.rollback();
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            await connection.rollback();
+            return res.status(403).json({ code: 403, message: '无权限注销他人账户' });
+        }
+
+        if (!confirmText || confirmText !== 'DELETE') {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '请输入"DELETE"确认注销操作' });
+        }
+
+        // 2. 验证用户存在性
+        const [userCheck] = await connection.execute(
+            'SELECT id, username, email, delete_verification_code, delete_code_expiry FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        if (userCheck.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ code: 404, message: '用户不存在或登录状态异常' });
+        }
+
+        const user = userCheck[0];
+
+        // 3. 验证码逻辑（如果有邮箱）
+        if (user.email) {
+            if (!verificationCode) {
+                await connection.rollback();
+                return res.status(400).json({ code: 400, message: '请提供验证码' });
+            }
+
+            // 检查验证码是否正确且未过期
+            if (user.delete_verification_code !== verificationCode) {
+                await connection.rollback();
+                return res.status(400).json({ code: 400, message: '验证码错误' });
+            }
+
+            if (new Date() > new Date(user.delete_code_expiry)) {
+                await connection.rollback();
+                return res.status(400).json({ code: 400, message: '验证码已过期，请重新获取' });
+            }
+        }
+
+        // 4. 执行注销操作（复用原有的注销逻辑）
+        console.log(`开始注销用户 ${user.username} (ID: ${user.id})...`);
+
+        // 5. 按照依赖关系顺序删除数据（从叶子节点到根节点）
+
+        // 5.1 先删除帖子相关的点赞记录
+        console.log('删除帖子点赞记录...');
+        await connection.execute(
+            'DELETE pl FROM post_likes pl ' +
+            'INNER JOIN posts p ON pl.post_id = p.id ' +
+            'WHERE p.user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.2 删除帖子相关的收藏记录
+        console.log('删除帖子收藏记录...');
+        await connection.execute(
+            'DELETE pf FROM post_favorites pf ' +
+            'INNER JOIN posts p ON pf.post_id = p.id ' +
+            'WHERE p.user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.3 删除用户对他人帖子的点赞记录
+        console.log('删除用户点赞记录...');
+        await connection.execute(
+            'DELETE FROM post_likes WHERE user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.4 删除用户对他人帖子的收藏记录
+        console.log('删除用户收藏记录...');
+        await connection.execute(
+            'DELETE FROM post_favorites WHERE user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.5 删除帖子的评论（先删除评论的依赖关系）
+        console.log('删除帖子评论...');
+        await connection.execute(
+            'DELETE c FROM comments c ' +
+            'INNER JOIN posts p ON c.post_id = p.id ' +
+            'WHERE p.user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.6 删除用户发布的评论
+        console.log('删除用户评论...');
+        await connection.execute(
+            'DELETE FROM comments WHERE user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.7 删除用户帖子（此时外键约束已清理）
+        console.log('删除用户帖子...');
+        const [userPosts] = await connection.execute(
+            'SELECT id, video_url FROM posts WHERE user_id = ?',
+            [targetUserId]
+        );
+
+        // 删除帖子关联的视频文件
+        for (const post of userPosts) {
+            if (post.video_url && post.video_url.startsWith('/uploads/videos/')) {
+                const videoPath = path.join(__dirname, '..', post.video_url);
+                try {
+                    if (fs.existsSync(videoPath)) {
+                        fs.unlinkSync(videoPath);
+                        console.log(`删除视频文件: ${post.video_url}`);
+                    }
+                } catch (fileError) {
+                    console.error(`删除视频文件失败 ${post.video_url}:`, fileError);
+                }
+            }
+        }
+
+        await connection.execute(
+            'DELETE FROM posts WHERE user_id = ?',
+            [targetUserId]
+        );
+
+        // 5.8 删除用户头像文件
+        console.log('删除用户头像...');
+        const [userAvatar] = await connection.execute(
+            'SELECT avatar FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        if (userAvatar.length > 0 && userAvatar[0].avatar) {
+            const avatarUrl = userAvatar[0].avatar;
+            if (avatarUrl.startsWith('/uploads/avatar/')) {
+                const avatarPath = path.join(__dirname, '..', avatarUrl);
+                try {
+                    if (fs.existsSync(avatarPath)) {
+                        fs.unlinkSync(avatarPath);
+                        console.log(`删除头像文件: ${avatarUrl}`);
+                    }
+                } catch (fileError) {
+                    console.error(`删除头像文件失败 ${avatarUrl}:`, fileError);
+                }
+            }
+        }
+
+        // 5.9 最后删除用户主记录
+        console.log('删除用户主记录...');
+        await connection.execute(
+            'DELETE FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        // 在删除用户前清除验证码
+        await connection.execute(
+            'UPDATE users SET delete_verification_code = NULL, delete_code_expiry = NULL WHERE id = ?',
+            [targetUserId]
+        );
+
+        // 提交事务
+        await connection.commit();
+        
+        console.log(`用户 ${user.username} 注销完成`);
+
+        res.status(200).json({
+            code: 200,
+            message: '账户注销成功，所有相关数据已彻底删除',
+            data: {
+                deletedUserId: targetUserId,
+                deletedUsername: user.username,
+                deletedAt: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('验证并注销过程中发生错误:', error);
+        handleError(res, error, '验证并注销账户');
+    } finally {
+        connection.release();
+    }
+});
+
+// 辅助函数：隐藏邮箱地址
+function maskEmail(email) {
+    if (!email) return '';
+    const [localPart, domain] = email.split('@');
+    if (localPart.length <= 2) {
+        return localPart[0] + '***@' + domain;
+    }
+    return localPart[0] + '***' + localPart.slice(-1) + '@' + domain;
+}
+
+/**
+ * 发送换绑邮箱验证码（到当前邮箱）
+ * POST /api/users/:id/send-change-email-code
+ */
+router.post('/:id/send-change-email-code', async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+
+        // 验证登录状态和权限
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            return res.status(403).json({ code: 403, message: '无权限操作他人账户' });
+        }
+
+        // 查询用户信息
+        const [users] = await pool.execute(
+            'SELECT id, username, email FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        const user = users[0];
+
+        // 检查用户是否已绑定邮箱
+        if (!user.email) {
+            return res.status(400).json({ 
+                code: 400, 
+                message: '您尚未绑定邮箱，无法进行换绑操作' 
+            });
+        }
+
+        // 生成6位数字验证码
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const codeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10分钟过期
+
+        // 保存验证码到数据库
+        await pool.execute(
+            'UPDATE users SET change_email_code = ?, change_email_code_expiry = ? WHERE id = ?',
+            [verificationCode, codeExpiry, targetUserId]
+        );
+
+        // 发送验证码邮件
+        await emailService.sendChangeEmailVerification(user.email, user.username, verificationCode);
+
+        res.status(200).json({
+            code: 200,
+            message: '验证码已发送到您的注册邮箱，请查收',
+            data: { 
+                emailMask: maskEmail(user.email) // 部分隐藏邮箱地址
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '发送换绑验证码');
+    }
+});
+
+/**
+ * 验证当前邮箱验证码并发送新邮箱验证码
+ * POST /api/users/:id/verify-and-send-new
+ */
+router.post('/:id/verify-and-send-new', async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+        const { currentEmailCode, newEmail } = req.body;
+
+        // 验证登录状态和权限
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            return res.status(403).json({ code: 403, message: '无权限操作他人账户' });
+        }
+
+        // 验证参数
+        if (!currentEmailCode) {
+            return res.status(400).json({ code: 400, message: '请输入当前邮箱验证码' });
+        }
+
+        if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+            return res.status(400).json({ code: 400, message: '请输入有效的新邮箱地址' });
+        }
+
+        // 检查新邮箱是否已被其他用户使用
+        const [existingEmail] = await pool.execute(
+            'SELECT id FROM users WHERE email = ? AND id != ?',
+            [newEmail, targetUserId]
+        );
+
+        if (existingEmail.length > 0) {
+            return res.status(400).json({ code: 400, message: '该邮箱已被其他用户使用' });
+        }
+
+        // 查询用户信息
+        const [users] = await pool.execute(
+            'SELECT id, username, email, change_email_code, change_email_code_expiry FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        const user = users[0];
+
+        // 验证当前邮箱验证码
+        if (!user.change_email_code || user.change_email_code !== currentEmailCode) {
+            return res.status(400).json({ code: 400, message: '验证码错误' });
+        }
+
+        if (new Date() > new Date(user.change_email_code_expiry)) {
+            return res.status(400).json({ code: 400, message: '验证码已过期，请重新获取' });
+        }
+
+        // 生成新邮箱验证码
+        const newEmailCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const newCodeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10分钟过期
+
+        // 保存新邮箱和验证码到数据库
+        await pool.execute(
+            'UPDATE users SET new_email = ?, new_email_verification_code = ?, new_email_code_expiry = ? WHERE id = ?',
+            [newEmail, newEmailCode, newCodeExpiry, targetUserId]
+        );
+
+        // 发送新邮箱验证码
+        await emailService.sendNewEmailVerification(newEmail, newEmailCode);
+
+        res.status(200).json({
+            code: 200,
+            message: '验证码已发送到新邮箱，请查收',
+            data: { 
+                newEmailMask: maskEmail(newEmail)
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '验证并发送新邮箱验证码');
+    }
+});
+
+/**
+ * 验证新邮箱验证码并完成换绑
+ * POST /api/users/:id/confirm-change-email
+ */
+router.post('/:id/confirm-change-email', async (req, res) => {
+    const connection = await pool.getConnection();
+    
+    try {
+        await connection.beginTransaction();
+
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+        const { newEmailCode } = req.body;
+
+        // 验证登录状态和权限
+        if (!loginUserId) {
+            await connection.rollback();
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            await connection.rollback();
+            return res.status(403).json({ code: 403, message: '无权限操作他人账户' });
+        }
+
+        if (!newEmailCode) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '请输入新邮箱验证码' });
+        }
+
+        // 查询用户信息
+        const [users] = await connection.execute(
+            `SELECT id, username, email, new_email, new_email_verification_code, new_email_code_expiry 
+             FROM users WHERE id = ?`,
+            [targetUserId]
+        );
+
+        if (users.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        const user = users[0];
+
+        // 验证新邮箱验证码
+        if (!user.new_email_verification_code || user.new_email_verification_code !== newEmailCode) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '新邮箱验证码错误' });
+        }
+
+        if (new Date() > new Date(user.new_email_code_expiry)) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '新邮箱验证码已过期，请重新获取' });
+        }
+
+        if (!user.new_email) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '未找到待验证的新邮箱' });
+        }
+
+        // 最终检查新邮箱是否已被使用（防止并发冲突）
+        const [emailCheck] = await connection.execute(
+            'SELECT id FROM users WHERE email = ? AND id != ?',
+            [user.new_email, targetUserId]
+        );
+
+        if (emailCheck.length > 0) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '该邮箱已被其他用户使用，请更换邮箱' });
+        }
+
+        // 更新邮箱
+        await connection.execute(
+            'UPDATE users SET email = ?, change_email_code = NULL, change_email_code_expiry = NULL, new_email = NULL, new_email_verification_code = NULL, new_email_code_expiry = NULL WHERE id = ?',
+            [user.new_email, targetUserId]
+        );
+
+        await connection.commit();
+
+        res.status(200).json({
+            code: 200,
+            message: '邮箱换绑成功',
+            data: {
+                oldEmail: user.email,
+                newEmail: user.new_email,
+                updatedAt: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        handleError(res, error, '确认换绑邮箱');
+    } finally {
+        connection.release();
+    }
+});
+
+/**
+ * 取消换绑邮箱流程
+ * POST /api/users/:id/cancel-change-email
+ */
+router.post('/:id/cancel-change-email', async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+
+        if (!loginUserId) {
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            return res.status(403).json({ code: 403, message: '无权限操作他人账户' });
+        }
+
+        // 清除换绑相关数据
+        await pool.execute(
+            'UPDATE users SET change_email_code = NULL, change_email_code_expiry = NULL, new_email = NULL, new_email_verification_code = NULL, new_email_code_expiry = NULL WHERE id = ?',
+            [targetUserId]
+        );
+
+        res.status(200).json({
+            code: 200,
+            message: '换绑流程已取消'
+        });
+
+    } catch (error) {
+        handleError(res, error, '取消换绑邮箱');
+    }
+});
+
 // ==================== 用户帖子管理接口 ====================
 
 /**
@@ -836,6 +1392,286 @@ router.get('/:id/public-posts', async (req, res) => {
 
     } catch (error) {
         handleError(res, error, '查询作者帖子列表');
+    }
+});
+
+// ==================== 密码重置相关接口 ====================
+
+const emailService = require('../services/emailService');
+
+/**
+ * 忘记密码 - 发送重置邮件（仅通过邮箱）
+ * POST /api/users/forgot-password
+ */
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email?.trim()) {
+            return res.status(400).json({
+                code: 400,
+                message: '请输入邮箱地址'
+            });
+        }
+
+        // 验证邮箱格式
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            return res.status(400).json({
+                code: 400,
+                message: '请输入有效的邮箱地址'
+            });
+        }
+
+        // 查询用户是否存在（仅通过邮箱）
+        const [users] = await pool.execute(
+            'SELECT id, username, email FROM users WHERE email = ?',
+            [email.trim()]
+        );
+
+        if (users.length === 0) {
+            // 出于安全考虑，不透露邮箱是否注册的信息
+            return res.status(200).json({
+                code: 200,
+                message: '如果该邮箱已注册，重置链接将发送到您的邮箱'
+            });
+        }
+
+        const user = users[0];
+        
+        // 生成安全的重置令牌
+        const resetToken = require('crypto').randomBytes(32).toString('hex');
+        const tokenExpiry = new Date(Date.now() + 3600000); // 1小时后过期
+
+        // 保存重置令牌到数据库
+        await pool.execute(
+            'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
+            [resetToken, tokenExpiry, user.id]
+        );
+
+        // 发送邮件
+        await emailService.sendPasswordResetEmail(user.email, user.username, resetToken);
+        
+        res.status(200).json({
+            code: 200,
+            message: '重置链接已发送到您的邮箱，请查收'
+        });
+
+    } catch (error) {
+        console.error('发送重置邮件错误:', error);
+        
+        // 如果是邮件发送失败，提供更友好的错误信息
+        if (error.message.includes('邮件发送失败')) {
+            return res.status(500).json({
+                code: 500,
+                message: '邮件服务暂时不可用，请稍后重试'
+            });
+        }
+        
+        handleError(res, error, '发送重置邮件');
+    }
+});
+
+/**
+ * 重置密码
+ * POST /api/users/reset-password
+ */
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                code: 400,
+                message: '重置令牌和新密码不能为空'
+            });
+        }
+
+        if (!/^\d{6,}$/.test(newPassword)) {
+            return res.status(400).json({
+                code: 400,
+                message: '新密码必须至少6位数字'
+            });
+        }
+
+        // 验证令牌有效性
+        const [users] = await pool.execute(
+            'SELECT id, reset_token_expiry FROM users WHERE reset_token = ?',
+            [token]
+        );
+
+        if (users.length === 0) {
+            return res.status(400).json({
+                code: 400,
+                message: '无效的重置令牌'
+            });
+        }
+
+        const user = users[0];
+        
+        // 检查令牌是否过期
+        if (new Date() > new Date(user.reset_token_expiry)) {
+            return res.status(400).json({
+                code: 400,
+                message: '重置链接已过期，请重新申请'
+            });
+        }
+
+        // 更新密码并清除重置令牌
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+        await pool.execute(
+            'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
+            [newPasswordHash, user.id]
+        );
+
+        res.status(200).json({
+            code: 200,
+            message: '密码重置成功'
+        });
+
+    } catch (error) {
+        handleError(res, error, '重置密码');
+    }
+});
+
+/**
+ * 修改用户密码（需要验证当前密码）
+ * POST /api/users/:id/change-password
+ */
+router.post('/:id/change-password', async (req, res) => {
+    const connection = await pool.getConnection();
+    
+    try {
+        await connection.beginTransaction();
+
+        const targetUserId = req.params.id;
+        const loginUserId = req.headers['x-login-user-id'];
+        const { currentPassword, newPassword } = req.body;
+
+        // 1. 基础验证
+        if (!loginUserId) {
+            await connection.rollback();
+            return res.status(401).json({ code: 401, message: '未登录，请先登录' });
+        }
+
+        if (targetUserId !== loginUserId) {
+            await connection.rollback();
+            return res.status(403).json({ code: 403, message: '无权限修改他人密码' });
+        }
+
+        if (!currentPassword || !newPassword) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '当前密码和新密码不能为空' });
+        }
+
+        if (newPassword.length < 6) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '新密码必须至少6位' });
+        }
+
+        // 2. 验证用户存在性并获取当前密码哈希
+        const [users] = await connection.execute(
+            'SELECT id, username, password_hash FROM users WHERE id = ?',
+            [targetUserId]
+        );
+
+        if (users.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ code: 404, message: '用户不存在' });
+        }
+
+        const user = users[0];
+
+        // 3. 验证当前密码是否正确
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isCurrentPasswordValid) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '当前密码错误' });
+        }
+
+        // 4. 验证新密码不能与旧密码相同
+        const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+        if (isSamePassword) {
+            await connection.rollback();
+            return res.status(400).json({ code: 400, message: '新密码不能与当前密码相同' });
+        }
+
+        // 5. 加密新密码
+        const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+        // 6. 更新密码
+        await connection.execute(
+            'UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [newPasswordHash, targetUserId]
+        );
+
+        // 7. 记录密码修改日志（可选）
+        await connection.execute(
+            'INSERT INTO password_change_logs (user_id, change_type, ip_address) VALUES (?, ?, ?)',
+            [targetUserId, 'manual_change', req.ip || req.connection.remoteAddress]
+        );
+
+        await connection.commit();
+
+        // 8. 发送密码修改通知邮件（可选）
+        try {
+            await emailService.sendPasswordChangeNotification(user.username, user.email);
+        } catch (emailError) {
+            console.error('发送密码修改通知邮件失败：', emailError);
+            // 邮件发送失败不影响主要操作
+        }
+
+        res.status(200).json({
+            code: 200,
+            message: '密码修改成功',
+            data: {
+                userId: targetUserId,
+                username: user.username,
+                changedAt: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('修改密码失败：', error);
+        handleError(res, error, '修改密码');
+    } finally {
+        connection.release();
+    }
+});
+
+// ==================== 邮箱相关接口 ====================
+
+/**
+ * 验证邮箱是否已存在
+ * GET /api/users/check-email?email=xxx
+ */
+router.get('/check-email', async (req, res) => {
+    try {
+        const { email } = req.query;
+
+        if (!email?.trim()) {
+            return res.status(400).json({
+                code: 400,
+                message: '邮箱参数不能为空'
+            });
+        }
+
+        const [users] = await pool.execute(
+            'SELECT id FROM users WHERE email = ?',
+            [email.trim()]
+        );
+
+        res.status(200).json({
+            code: 200,
+            data: {
+                email: email.trim(),
+                exists: users.length > 0
+            }
+        });
+
+    } catch (error) {
+        handleError(res, error, '检查邮箱');
     }
 });
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>作者主页 - CS2UTIL</title>
     <style>
-        /* 使用与myinfo.html相同的样式，这里简化展示关键部分 */
+        /* 使用与myinfo.html相同的样式 */
         * {
             margin: 0;
             padding: 0;
@@ -45,7 +45,7 @@
             padding: 0 20px;
         }
 
-        /* 导航栏样式 - 与community.html一致 */
+        /* 导航栏样式 - 与myinfo.html一致 */
         header {
             position: sticky;
             top: 0;
@@ -84,9 +84,72 @@
             transition: background-color .18s var(--ease), color .18s var(--ease);
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover,
+        .nav-links a.active {
             color: var(--text);
             background: rgba(255,255,255,.06);
+        }
+
+        /* 用户信息样式 - 与myinfo.html一致 */
+        .user-info {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-initial {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 16px;
+            transition: all .18s var(--ease);
+        }
+
+        .user-info:hover .user-initial {
+            background: rgba(255,255,255,.1);
+            border-color: rgba(255,255,255,.22);
+            transform: translateY(-1px);
+        }
+
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 10px 0;
+            display: none;
+            margin-top: 8px;
+            min-width: 120px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .user-menu.show {
+            display: block;
+        }
+
+        .user-menu button {
+            width: 100%;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: background-color .18s var(--ease);
+            font-size: 13px;
+        }
+
+        .user-menu button:hover {
+            background: rgba(230, 57, 70, 0.1);
         }
 
         /* 主内容区域 */
@@ -106,8 +169,13 @@
             color: var(--text);
         }
 
-        /* 作者资料区域 */
-        .author-profile {
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        /* 个人资料区域 - 使用myinfo.html的卡片样式 */
+        .profile-section {
             display: flex;
             align-items: center;
             gap: 30px;
@@ -120,7 +188,7 @@
             backdrop-filter: blur(10px);
         }
 
-        .author-avatar {
+        .profile-avatar {
             width: 150px;
             height: 150px;
             border-radius: 50%;
@@ -132,32 +200,24 @@
             font-size: 64px;
             color: var(--accent);
             font-weight: bold;
-            overflow: hidden;
         }
 
-        .author-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .author-info {
+        .profile-info {
             flex: 1;
         }
 
-        .author-name {
+        .profile-name {
             font-size: 30px;
             margin-bottom: 10px;
             color: var(--text);
         }
 
-        .author-joined {
+        .profile-joined {
             color: var(--muted);
             margin-bottom: 20px;
         }
 
-        .author-stats {
+        .profile-stats {
             display: flex;
             gap: 40px;
         }
@@ -180,7 +240,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* 作者帖子区域 */
+        /* 作者帖子区域 - 移除编辑删除按钮 */
         .author-posts-section {
             background: var(--panel);
             border: 1px solid var(--line);
@@ -262,6 +322,7 @@
             font-size: 14px;
         }
 
+        /* 状态提示样式 */
         .loading-indicator, .error-message, .empty-message {
             text-align: center;
             padding: 40px 20px;
@@ -285,22 +346,120 @@
             to { transform: rotate(360deg); }
         }
 
+        .error-message {
+            color: var(--accent);
+        }
+
+        /* 页脚样式 - 与myinfo.html一致 */
+        footer {
+            background: var(--panel);
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid var(--line);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 8px;
+        }
+
+        .footer-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .18s var(--ease);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 14px;
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
-            .author-profile {
+            .profile-section {
                 flex-direction: column;
                 text-align: center;
+                padding: 30px 20px;
                 gap: 25px;
             }
 
-            .author-stats {
+            .profile-stats {
                 justify-content: center;
                 flex-wrap: wrap;
                 gap: 20px;
             }
 
+            .section-header {
+                padding: 20px;
+            }
+
+            .posts-list {
+                padding: 20px;
+            }
+
             .page-title {
                 font-size: 28px;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 48px;
+            }
+
+            .profile-name {
+                font-size: 26px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
             }
         }
     </style>
@@ -317,10 +476,13 @@
                 <div id="userArea" style="display: none;">
                     <div class="user-info">
                         <span class="user-initial" id="userNamePrefix"></span>
+                        <div class="user-menu" id="userMenu">
+                            <button id="logoutBtn">退出登录</button>
+                        </div>
                     </div>
                 </div>
                 <div id="loginBtnArea">
-                    <a href="login.html">登录</a>
+                    <a href="./account/login.html">登录</a>
                 </div>
             </div>
         </div>
@@ -330,10 +492,11 @@
     <div class="container main-content">
         <div class="page-header">
             <h1 class="page-title" id="pageTitle">作者主页</h1>
+            <p class="page-subtitle" id="pageSubtitle">查看作者的社区贡献和互动</p>
         </div>
         
         <!-- 作者资料区域 -->
-        <div class="author-profile" id="authorProfile">
+        <div class="profile-section" id="authorProfile">
             <div class="loading-indicator">加载作者信息中...</div>
         </div>
         
@@ -347,6 +510,36 @@
             </div>
         </div>
     </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>CS2UTIL</h3>
+                    <p>提供最全面的CS2实用指南，帮助玩家提升游戏水平。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="community.html">社区</a></li>
+                        <li><a href="myinfo.html">我的</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>其他链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="https://www.cs2util.com/player">职业选手设置</a></li>
+                        <li><a href="https://www.cs2util.com/crosshairs">准星库</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 CS2 Utility Guide.</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="user-avatar.js"></script>
     <script>
@@ -376,13 +569,14 @@
             const { user, stats, recent_posts } = data;
             
             document.getElementById('pageTitle').textContent = `${user.username}的主页`;
+            document.getElementById('pageSubtitle').textContent = `查看${user.username}的社区贡献和互动`;
             
             const profileHTML = `
-                <div class="author-avatar" data-user-id="${user.id}" data-user-name="${user.username}"></div>
-                <div class="author-info">
-                    <h2 class="author-name">${escapeHtml(user.username)}</h2>
-                    <div class="author-joined">加入时间: ${user.join_date}</div>
-                    <div class="author-stats">
+                <div class="profile-avatar" data-user-id="${user.id}" data-user-name="${user.username}"></div>
+                <div class="profile-info">
+                    <h2 class="profile-name">${escapeHtml(user.username)}</h2>
+                    <div class="profile-joined">加入时间: ${user.join_date}</div>
+                    <div class="profile-stats">
                         <div class="stat-item">
                             <div class="stat-value">${stats.post_count}</div>
                             <div class="stat-label">发布帖子</div>
@@ -402,14 +596,14 @@
             document.getElementById('authorProfile').innerHTML = profileHTML;
             
             // 渲染头像
-            const avatarEl = document.querySelector('.author-avatar');
+            const avatarEl = document.querySelector('.profile-avatar');
             renderUserAvatar(avatarEl, user.id, user.username);
             
             // 渲染最近帖子
             renderRecentPosts(recent_posts);
         }
 
-        // 渲染最近帖子
+        // 渲染最近帖子（移除编辑删除功能）
         function renderRecentPosts(posts) {
             const postsList = document.getElementById('authorPostsList');
             
@@ -454,6 +648,34 @@
             return date.toLocaleDateString('zh-CN');
         }
 
+        // 用户菜单功能
+        function setupUserMenu() {
+            const userInfo = document.querySelector('.user-info');
+            const userMenu = document.getElementById('userMenu');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (userInfo && userMenu) {
+                userInfo.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('show');
+                });
+
+                // 点击其他地方关闭菜单
+                document.addEventListener('click', () => {
+                    userMenu.classList.remove('show');
+                });
+
+                // 退出登录功能
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('userId');
+                        window.location.href = 'index.html';
+                    });
+                }
+            }
+        }
+
         // 页面加载时执行
         document.addEventListener('DOMContentLoaded', function() {
             // 检查authorId是否有效
@@ -466,16 +688,21 @@
                 setTimeout(() => {
                     window.location.href = 'community.html';
                 }, 3000);
-                return; // ✅ 现在这个return在函数内部，是合法的
+                return;
             }
 
             // 检查登录状态
             const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
+            const userId = localStorage.getItem('userId');
+            
+            if (currentUser && userId) {
                 document.getElementById('userArea').style.display = 'block';
                 document.getElementById('loginBtnArea').style.display = 'none';
                 document.getElementById('userNamePrefix').textContent = 
                     currentUser.substring(0, 3).toUpperCase();
+                
+                // 设置用户菜单
+                setupUserMenu();
             } else {
                 document.getElementById('userArea').style.display = 'none';
                 document.getElementById('loginBtnArea').style.display = 'block';

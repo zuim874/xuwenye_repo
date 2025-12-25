@@ -7,7 +7,19 @@ function getPostIdFromUrl() {
 // 获取帖子详情
 async function fetchPostDetail(postId) {
     try {
-        const response = await fetch(`/api/posts/${postId}`);
+        // 构建请求头，包含用户身份信息
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            headers['x-login-user-id'] = userId;
+        }
+        
+        const response = await fetch(`/api/posts/${postId}`, {
+            headers: headers
+        });
         const result = await response.json();
         
         if (result.code === 200) {
@@ -46,13 +58,29 @@ function renderPostDetail(post) {
     // 生成作者头像首字母
     const authorInitials = post.author_name.substring(0, 1).toUpperCase();
     
+    // 增强状态字段处理逻辑
+    const userLiked = Boolean(post.user_liked) || post.user_liked === 1 || post.user_liked === '1';
+    const userFavorited = Boolean(post.user_favorited) || post.user_favorited === 1 || post.user_favorited === '1';
+    
+    // 确保收藏数有值，处理undefined/null的情况
+    const favoriteCount = (post.favorite_count !== undefined && post.favorite_count !== null) 
+        ? post.favorite_count 
+        : 0;
+    
+    // 调试信息
+    console.log('帖子详情数据:', {
+        postId: post.id,
+        favorite_count: post.favorite_count,
+        processed_favorite_count: favoriteCount,
+        user_favorited: post.user_favorited
+    });
+    
     // 渲染帖子内容
     postDetailElement.innerHTML = `
         <div class="post-header">
             <h1 class="post-title">${post.title}</h1>
             <div class="post-meta">
                 <div class="author-info">
-                    <!-- 确保data-author-id属性正确设置 -->
                     <div class="author-avatar" data-author-id="${post.user_id}">${authorInitials}</div>
                     <div>
                         <div class="author-name">${post.author_name}</div>
@@ -72,17 +100,19 @@ function renderPostDetail(post) {
         </div>
         
         <div class="post-actions">
-            <button class="action-btn ${post.user_liked ? 'liked' : ''}" id="likeBtn" data-post-id="${post.id}">
+            <button class="action-btn ${userLiked ? 'liked' : ''}" id="likeBtn" data-post-id="${post.id}">
                 <i class="like-icon">❤️</i>
-                <span class="like-count">${post.like_count}</span>
+                <span class="like-count">${post.like_count || 0}</span>
+                <span class="action-text">${userLiked ? '已点赞' : '点赞'}</span>
             </button>
-            <button class="action-btn ${post.user_favorited ? 'favorited' : ''}" id="favoriteBtn" data-post-id="${post.id}">
+            <button class="action-btn ${userFavorited ? 'favorited' : ''}" id="favoriteBtn" data-post-id="${post.id}">
                 <i class="favorite-icon">⭐</i>
-                <span class="favorite-count">收藏</span>
+                <span class="favorite-count">${favoriteCount}</span>
+                <span class="action-text">${userFavorited ? '已收藏' : '收藏'}</span>
             </button>
             <button class="action-btn" id="shareBtn">
-                <i class="share-icon">🔗</i>
-                <span>分享</span>
+                <i class="share-icon">🔗🔗</i>
+                <span class="action-text">分享</span>
             </button>
         </div>
     `;
@@ -91,10 +121,9 @@ function renderPostDetail(post) {
     bindActionButtons(post.id);
 
     // 确保使用正确的用户ID加载头像
-    if (post.user_id) {  // 这里原来是post.authorId，与data属性不一致
-        // 确保DOM已渲染后再加载头像
+    if (post.user_id) {
         requestAnimationFrame(() => {
-            loadAuthorAvatar(post.user_id,post.author_name);
+            loadAuthorAvatar(post.user_id, post.author_name);
         });
     }
 }
@@ -129,9 +158,14 @@ async function toggleLike(postId, button) {
         const userId = localStorage.getItem('userId');
         if (!userId) {
             alert('请先登录才能点赞');
-            window.location.href = `login.html?redirect=post-detail.html?id=${postId}`;
+            window.location.href = `./account/login.html?redirect=post-detail.html?id=${postId}`;
             return;
         }
+        
+        const isCurrentlyLiked = button.classList.contains('liked');
+        const likeCountElement = button.querySelector('.like-count');
+        const actionTextElement = button.querySelector('.action-text');
+        const currentCount = parseInt(likeCountElement.textContent) || 0;
         
         const response = await fetch(`/api/posts/${postId}/like`, {
             method: 'POST',
@@ -140,7 +174,8 @@ async function toggleLike(postId, button) {
                 'x-login-user-id': userId
             },
             body: JSON.stringify({ 
-                username: localStorage.getItem('currentUser') 
+                username: localStorage.getItem('currentUser'),
+                action: isCurrentlyLiked ? 'unlike' : 'like'
             })
         });
         
@@ -148,11 +183,21 @@ async function toggleLike(postId, button) {
         
         if (result.code === 200) {
             // 更新按钮状态和点赞数
-            const isLiked = button.classList.toggle('liked');
-            const likeCountElement = button.querySelector('.like-count');
-            const currentCount = parseInt(likeCountElement.textContent);
+            const newLikedState = !isCurrentlyLiked;
+            button.classList.toggle('liked', newLikedState);
             
-            likeCountElement.textContent = isLiked ? currentCount + 1 : currentCount - 1;
+            const newCount = newLikedState ? currentCount + 1 : currentCount - 1;
+            likeCountElement.textContent = Math.max(0, newCount);
+            actionTextElement.textContent = newLikedState ? '已点赞' : '点赞';
+            
+            // 更新本地状态
+            updateLocalInteractionStatus(postId, 'liked', newLikedState);
+            
+            // 添加视觉反馈
+            button.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 300);
         } else {
             alert(result.message || '操作失败，请稍后重试');
         }
@@ -169,8 +214,18 @@ async function toggleFavorite(postId, button) {
         const userId = localStorage.getItem('userId');
         if (!userId) {
             alert('请先登录才能收藏');
-            window.location.href = `login.html?redirect=post-detail.html?id=${postId}`;
+            window.location.href = `./account/login.html?redirect=post-detail.html?id=${postId}`;
             return;
+        }
+        
+        const isCurrentlyFavorited = button.classList.contains('favorited');
+        const favoriteCountElement = button.querySelector('.favorite-count');
+        const actionTextElement = button.querySelector('.action-text');
+        
+        // 确保收藏数有初始值，处理各种边界情况
+        let currentCount = parseInt(favoriteCountElement.textContent);
+        if (isNaN(currentCount)) {
+            currentCount = 0;
         }
         
         const response = await fetch(`/api/posts/${postId}/favorite`, {
@@ -179,17 +234,31 @@ async function toggleFavorite(postId, button) {
                 'Content-Type': 'application/json',
                 'x-login-user-id': userId
             },
-            body: JSON.stringify({ 
-                username: localStorage.getItem('currentUser') 
+            body: JSON.stringify({
+                action: isCurrentlyFavorited ? 'unfavorite' : 'favorite'
             })
         });
         
         const result = await response.json();
         
         if (result.code === 200) {
-            // 更新按钮状态
-            const isFavorited = button.classList.toggle('favorited');
-            button.querySelector('.favorite-count').textContent = isFavorited ? '已收藏' : '收藏';
+            // 更新按钮状态和收藏数
+            const newFavoritedState = !isCurrentlyFavorited;
+            button.classList.toggle('favorited', newFavoritedState);
+            
+            // 更新收藏数量
+            const newCount = newFavoritedState ? currentCount + 1 : currentCount - 1;
+            favoriteCountElement.textContent = Math.max(0, newCount);
+            actionTextElement.textContent = newFavoritedState ? '已收藏' : '收藏';
+            
+            // 更新本地状态
+            updateLocalInteractionStatus(postId, 'favorited', newFavoritedState);
+            
+            // 添加视觉反馈
+            button.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 300);
         } else {
             alert(result.message || '操作失败，请稍后重试');
         }
@@ -366,7 +435,7 @@ async function submitComment(postId) {
     const userId = localStorage.getItem('userId');
     if (!userId) {
         alert('请先登录才能评论');
-        window.location.href = `login.html?redirect=post-detail.html?id=${postId}`;
+        window.location.href = `./account/login.html?redirect=post-detail.html?id=${postId}`;
         return;
     }
     
@@ -423,8 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化用户状态
     initUserStatus();
-
-    renderPostDetail();
 });
 
 // 初始化用户状态显示（使用currentUser）
@@ -444,6 +511,39 @@ function initUserStatus() {
         userArea.style.display = 'none';
         loginBtnArea.style.display = 'block';
     }
+}
+
+// 检查本地交互状态作为备用方案
+function checkLocalInteractionStatus(postId) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return { liked: false, favorited: false };
+    
+    try {
+        const userInteractions = JSON.parse(localStorage.getItem(`userInteractions_${userId}`) || '{}');
+        const postInteraction = userInteractions[postId] || {};
+        
+        return {
+            liked: Boolean(postInteraction.liked),
+            favorited: Boolean(postInteraction.favorited)
+        };
+    } catch (error) {
+        console.error('读取本地交互状态失败:', error);
+        return { liked: false, favorited: false };
+    }
+}
+
+// 更新本地交互状态（在点赞/收藏成功后调用）
+function updateLocalInteractionStatus(postId, type, status) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+    
+    const userInteractions = JSON.parse(localStorage.getItem(`userInteractions_${userId}`) || '{}');
+    if (!userInteractions[postId]) {
+        userInteractions[postId] = {};
+    }
+    
+    userInteractions[postId][type] = status;
+    localStorage.setItem(`userInteractions_${userId}`, JSON.stringify(userInteractions));
 }
 
 // 修改loadAuthorAvatar函数的选择器逻辑

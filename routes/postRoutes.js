@@ -108,7 +108,7 @@ router.get('/', async (req, res) => {
 
         const sql = `
             SELECT 
-                p.id, p.user_id, p.title, p.content, p.tags, p.video_url, p.updated_at,
+                p.id, p.user_id, p.title, p.content, p.tags, p.video_url, p.created_at,
                 IFNULL(p.like_count, 0) AS like_count,
                 IFNULL(p.comment_count, 0) AS comment_count,
                 IFNULL(p.view_count, 0) AS view_count,
@@ -171,6 +171,7 @@ router.get('/:id', async (req, res) => {
                 IFNULL(p.like_count, 0) AS like_count,
                 IFNULL(p.comment_count, 0) AS comment_count,
                 IFNULL(p.view_count, 0) AS view_count,
+                (SELECT COUNT(*) FROM post_favorites WHERE post_id = p.id) AS favorite_count,
                 u.username AS author_name,
                 EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = ?) AS user_liked,
                 EXISTS(SELECT 1 FROM post_favorites WHERE post_id = p.id AND user_id = ?) AS user_favorited

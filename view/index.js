@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (loginBtn) {
     loginBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      window.location.href = 'login.html';
+      window.location.href = './account/login.html';
     });
   }
   // 我的信息按钮跳转
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // 检查：如果currentUser不存在（已注销/过期），停止心跳并跳登录页
       if (!currentUser) {
         stopHeartbeat();
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
         return;
       }
 
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('心跳错误:', error);
         stopHeartbeat();
         localStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
       }
     }, 30000);
 
@@ -170,7 +170,7 @@ function resetInactivityTimer() {
       const username = localStorage.getItem('currentUser');
       if (!username) {
         console.log('未找到登录用户，直接跳转登录页');
-        window.location.href = 'login.html';
+        window.location.href = './account/login.html';
         return;
       }
 
@@ -195,7 +195,7 @@ function resetInactivityTimer() {
       // 4. 无论接口是否成功，都清除本地用户信息并跳转登录页
       localStorage.removeItem('currentUser');
       localStorage.removeItem('userId');
-      window.location.href = 'login.html';
+      window.location.href = './account/login.html';
     }
   }, 300000); // 300秒阈值 
   }

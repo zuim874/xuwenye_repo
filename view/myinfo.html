@@ -130,10 +130,15 @@
         min-width: 120px;
         box-shadow: var(--shadow);
         z-index: 100;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
     }
 
     .user-menu.show {
         display: block;
+        opacity: 1;
+        transform: translateY(0);
     }
 
     .user-menu button {
@@ -585,12 +590,16 @@
                     <div class="user-info">
                         <span class="user-initial" id="userNamePrefix"></span>
                         <div class="user-menu" id="userMenu">
-                            <button id="logoutBtn">退出登录</button>
+                            <button id="changeEmailBtn">换绑邮箱</button>
+                            <button id="changePasswordBtn">更改密码</button>
+                            <button id="changeAvatarBtn">设置头像</button>
+                            <button id="logoutBtn">登出</button>
+                            <button id="deleteAccountBtn">注销</button>
                         </div>
                     </div>
                 </div>
                 <div id="loginBtnArea">
-                    <a href="login.html">登录</a>
+                    <a href="./account/login.html">登录</a>
                 </div>
             </div>
         </div>

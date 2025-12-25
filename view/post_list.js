@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
             postCard.className = 'post-card';
 
             // 格式化日期、处理标签
-            const formattedDate = formatRelativeDate(post.updated_at);
+            const formattedDate = formatRelativeDate(post.created_at);
             const tags = post.tags || [];
             const authorId = post.authorId;
             const authorName = post.author_name || '匿名用户';
