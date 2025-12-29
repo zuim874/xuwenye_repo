@@ -572,6 +572,134 @@
             flex-direction: column;
             gap: 20px;
         }
+
+        /* 审核状态标签样式 */
+        .approval-tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .approval-tag.pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+
+        .approval-tag.approved {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+
+        /* 审核未通过标签样式 */
+        .approval-tag.rejected {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+
+        /* 未审核帖子通知样式 */
+        .approval-notice {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #ffc107;
+            text-align: center;
+        }
+
+        /* 审核未通过通知样式 */
+        .approval-notice.rejected {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        /* 未审核帖子的特殊边框样式 */
+        .post-card:has(.approval-tag.pending) {
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        /* 审核未通过帖子的特殊边框样式 */
+        .post-card:has(.approval-tag.rejected) {
+            border: 2px solid rgba(244, 67, 54, 0.3);
+            background: rgba(244, 67, 54, 0.05);
+        }
+
+        /* 帖子操作按钮样式调整 */
+        .post-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all .18s var(--ease);
+            font-size: 14px;
+        }
+
+        .edit-btn {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .edit-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .delete-btn {
+            background: rgba(230, 57, 70, 0.1);
+            color: var(--accent);
+        }
+
+        .delete-btn:hover {
+            background: rgba(230, 57, 70, 0.2);
+            transform: translateY(-1px);
+        }
+    }
+
+    /* Toast 提示样式 */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        z-index: 10000;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-weight: 500;
+    }
+    .toast.success {
+        background-color: #4caf50;
+    }
+    .toast.error {
+        background-color: #e63946;
+    }
+    .toast.info {
+        background-color: #2196f3;
+    }
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0);
     }
     </style>
     <link rel="stylesheet" href="post_list.css">

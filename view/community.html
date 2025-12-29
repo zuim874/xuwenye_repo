@@ -658,6 +658,149 @@
             padding: 6px 8px;
             border: 1px solid var(--line);
         }
+
+                /* 新增搜索框样式 */
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(255,255,255,.03);
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.3s var(--ease);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: rgba(230, 57, 70, 0.6);
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.8) 0%, rgba(193, 18, 31, 0.8) 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s var(--ease), background-color 0.2s var(--ease);
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(230, 57, 70, 1) 0%, rgba(193, 18, 31, 1) 100%);
+        }
+
+        .search-results-info {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,.02);
+            border-radius: 8px;
+            border-left: 3px solid rgba(230, 57, 70, 0.6);
+        }
+
+        .clear-search {
+            background: rgba(255,255,255,.05);
+            color: var(--muted);
+            border: 1px solid var(--line);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s var(--ease);
+        }
+
+        .clear-search:hover {
+            background: rgba(255,255,255,.1);
+            color: var(--text);
+        }
+
+        .search-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .search-tag {
+            background: rgba(230, 57, 70, 0.1);
+            color: rgba(230, 57, 70, 0.8);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            border: 1px solid rgba(230, 57, 70, 0.3);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+
+        .search-tag:hover {
+            background: rgba(230, 57, 70, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .search-btn {
+                width: 100%;
+            }
+        }
+        
+        /* 统一的toast通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+        }
+        
+        .toast.success {
+            background-color: #4caf50;
+        }
+        
+        .toast.error {
+            background-color: #e63946;
+        }
+        
+        .toast.info {
+            background-color: #2196f3;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
     <link rel="stylesheet" href="avatar.css"> <!-- 引入头像样式文件 -->
     <link rel="stylesheet" href="post_list.css"> <!-- 引入帖子样式文件 -->
@@ -700,32 +843,47 @@
                     <h2 class="section-title">最新帖子</h2>
                     <button class="new-post-btn">发布新帖子</button>
                 </div>
+
+                <!-- 新增搜索区域 -->
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="搜索帖子标题、内容或标签...">
+                    <button id="searchBtn" class="search-btn">搜索</button>
+                </div>
+                
+                <!-- 搜索结果显示区域 -->
+                <div id="searchResultsInfo" class="search-results-info" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="searchResultsText"></span>
+                        <button id="clearSearch" class="clear-search">清除搜索</button>
+                    </div>
+                    <div class="search-tags" id="searchTags" style="display: none;"></div>
+                </div>
                 
                 <div class="posts-list" id="postsList">
-            <!-- 这里将由JavaScript动态填充 -->
-            <div class="loading-indicator">加载中...</div>
+                <!-- 这里将由JavaScript动态填充 -->
+                <div class="loading-indicator">加载中...</div>
+            </div>
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+            <div class="pagination">
+                <!-- 新增：第一页按钮 -->
+                <button class="pagination-btn pagination-first" id="firstPage" disabled>« 第一页</button>
+                <button class="pagination-btn" id="prevPage" disabled>‹ 上一页</button>
+                
+                <div class="page-numbers" id="pageNumbers"></div>
+                
+                <button class="pagination-btn" id="nextPage">下一页 ›</button>
+                <!-- 新增：最后一页按钮 -->
+                <button class="pagination-btn pagination-last" id="lastPage">最后一页 »</button>
+            </div>
+            
+            <!-- 新增：页码跳转输入框 -->
+            <div class="page-jump">
+                <span>跳转到</span>
+                <input type="number" id="pageInput" min="1" max="1" value="1">
+                <span>页</span>
+                <button class="pagination-btn" id="jumpBtn">跳转</button>
+            </div>
         </div>
-<div class="pagination-container" id="paginationContainer" style="display: none;">
-    <div class="pagination">
-        <!-- 新增：第一页按钮 -->
-        <button class="pagination-btn pagination-first" id="firstPage" disabled>« 第一页</button>
-        <button class="pagination-btn" id="prevPage" disabled>‹ 上一页</button>
-        
-        <div class="page-numbers" id="pageNumbers"></div>
-        
-        <button class="pagination-btn" id="nextPage">下一页 ›</button>
-        <!-- 新增：最后一页按钮 -->
-        <button class="pagination-btn pagination-last" id="lastPage">最后一页 »</button>
-    </div>
-    
-    <!-- 新增：页码跳转输入框 -->
-    <div class="page-jump">
-        <span>跳转到</span>
-        <input type="number" id="pageInput" min="1" max="1" value="1">
-        <span>页</span>
-        <button class="pagination-btn" id="jumpBtn">跳转</button>
-    </div>
-</div>
         <div class="pagination-info">
             <span id="pageInfo">第 1 页，共 1 页</span>
         </div>
@@ -868,17 +1026,6 @@
                     navLinks.style.display = 'none';
                 }
             });
-            
-            // 标签点击功能
-            const tags = document.querySelectorAll('.tag');
-            
-            tags.forEach(tag => {
-                tag.addEventListener('click', function(e) {
-                    e.stopPropagation(); // 阻止事件冒泡
-                    const tagName = this.textContent;
-                    alert(`在实际应用中，这里会筛选显示与"${tagName}"相关的帖子。`);
-                });
-            });
         });
 
         //定义全局缓存，避免无参/请求失败时清空列表
@@ -904,6 +1051,8 @@
                 console.error('更新在线用户失败:', err);
                 // 失败时：用缓存渲染，不清空列表
                 renderOnlineUsers(cachedOnlineUsers);
+                // 添加用户提示
+                showAlert('更新在线用户列表失败', 'error');
             }
         }
 
@@ -923,7 +1072,10 @@
                         console.error('接口未返回total字段', data);
                     }
                 })
-                .catch(error => console.error('更新总用户数失败:', error));
+                .catch(error => {
+            console.error('更新总用户数失败:', error);
+            showAlert('更新总用户数失败', 'error');
+        });
         }
 
         // 定义获取并更新帖子总数的函数
@@ -943,6 +1095,7 @@
             })
             .catch(error => {
                 console.error('更新帖子总数失败：', error);
+                showAlert('更新帖子总数失败', 'error');
             });
         }
 
@@ -964,9 +1117,10 @@
                     console.error('❌ 访问量接口返回失败:', result.message);
                 }
             } catch (error) {
-                console.error('❌ 访问量获取失败：', error);
-                document.getElementById('totalLooks').textContent = '获取失败';
-            }
+            console.error('❌ 访问量获取失败：', error);
+            document.getElementById('totalLooks').textContent = '获取失败';
+            showAlert('获取访问量数据失败', 'error');
+        }
         }
 
         // 页面加载时立即执行
@@ -1023,6 +1177,714 @@
                 container.appendChild(item);
             });
         }
+
+        // 增强版搜索功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const searchResultsInfo = document.getElementById('searchResultsInfo');
+            const searchResultsText = document.getElementById('searchResultsText');
+            const searchTags = document.getElementById('searchTags');
+            const clearSearch = document.getElementById('clearSearch');
+            
+            let currentSearchKeyword = '';
+            let currentSearchType = 'all'; // all, title, content, tags, author
+            let isSearching = false;
+
+            // 搜索类型选择器
+            const searchTypeSelector = document.createElement('div');
+            searchTypeSelector.className = 'search-type-selector';
+            searchTypeSelector.innerHTML = `
+                <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="searchType" value="all" checked> 全部
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="searchType" value="title"> 标题
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="searchType" value="content"> 内容
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="searchType" value="tags"> 标签
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="searchType" value="author"> 作者
+                    </label>
+                </div>
+            `;
+            
+            // 将搜索类型选择器插入到搜索框下方
+            searchInput.parentNode.insertBefore(searchTypeSelector, searchInput.nextSibling);
+
+            // 搜索类型变更事件
+            searchTypeSelector.addEventListener('change', function(e) {
+                if (e.target.name === 'searchType') {
+                    currentSearchType = e.target.value;
+                    // 如果当前有搜索关键词，重新搜索
+                    if (currentSearchKeyword && isSearching) {
+                        performSearch();
+                    }
+                }
+            });
+
+            // 搜索按钮点击事件
+            searchBtn.addEventListener('click', performSearch);
+            
+            // 回车键搜索
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // 输入时实时搜索建议（防抖）
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const keyword = searchInput.value.trim();
+                    if (keyword.length > 1) {
+                        showSearchSuggestions(keyword);
+                    }
+                }, 300);
+            });
+
+            // 清除搜索
+            clearSearch.addEventListener('click', function() {
+                location.reload();
+            });
+
+            // 热门标签点击搜索
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('tag')) {
+                    const tagName = e.target.textContent;
+                    searchInput.value = tagName;
+                    currentSearchType = 'tags';
+                    // 设置对应的单选按钮
+                    document.querySelector('input[name="searchType"][value="tags"]').checked = true;
+                    performSearch();
+                }
+            });
+
+            function performSearch() {
+                const keyword = searchInput.value.trim();
+                if (!keyword) {
+                    showAlert('请输入搜索关键词', 'info');
+                    return;
+                }
+                
+                currentSearchKeyword = keyword;
+                isSearching = true;
+                
+                // 显示搜索中状态
+                searchResultsText.innerHTML = `搜索中: "<strong>${escapeHtml(keyword)}</strong>" (${getSearchTypeText()})`;
+                searchResultsInfo.style.display = 'block';
+                searchTags.style.display = 'none';
+                
+                // 隐藏常规分页，显示搜索分页
+                document.getElementById('paginationContainer').style.display = 'none';
+                
+                // 调用搜索API
+                searchPosts(keyword, currentSearchType, 1);
+            }
+
+            async function searchPosts(keyword, searchType = 'all', page = 1) {
+                try {
+                    console.log('🔍 开始搜索:', keyword);
+                    
+                    // 临时使用简化版搜索接口
+                    const params = new URLSearchParams({
+                        keyword: encodeURIComponent(keyword),
+                        page: page,
+                        limit: 5
+                    });
+
+                    const response = await fetch(`/api/search/posts/simple?${params}`);
+                    
+                    console.log('📡 搜索响应状态:', response.status);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('📊 搜索API响应:', result);
+                    
+                    if (result.code === 200) {
+                        displaySearchResults(result.data, keyword, searchType);
+                        showAlert(`找到 ${result.data.pagination.total} 条结果`, 'success');
+                    } else {
+                        throw new Error(result.message || '搜索失败');
+                    }
+                } catch (error) {
+                    console.error('❌ 搜索失败:', error);
+                    showAlert(`搜索失败: ${error.message}`, 'error');
+                    
+                    // 备用方案：使用前端过滤
+                    fallbackSearch(keyword, searchType);
+                }
+            }
+
+            function displaySearchResults(data, keyword, searchType) {
+                const posts = data.posts || [];
+                const pagination = data.pagination;
+                
+                // 更新搜索结果显示
+                if (posts.length === 0) {
+                    searchResultsText.innerHTML = 
+                        `没有找到包含 "<strong>${escapeHtml(keyword)}</strong>" 的帖子 (${getSearchTypeText()})`;
+                } else {
+                    searchResultsText.innerHTML = 
+                        `找到 ${pagination.total} 条包含 "<strong>${escapeHtml(keyword)}</strong>" 的帖子 (${getSearchTypeText()})`;
+                    
+                    // 显示相关标签和作者
+                    showSearchHighlights(posts, keyword);
+                }
+                
+                // 修复：直接渲染帖子到容器
+                renderPostsToContainer(posts);
+                
+                // 更新分页信息
+                updateSearchPagination(pagination, keyword, searchType);
+            }
+
+            // 新增：渲染帖子到容器的函数
+            function renderPostsToContainer(posts) {
+                const postsList = document.getElementById('postsList');
+                
+                if (posts.length === 0) {
+                    postsList.innerHTML = '<div class="no-posts">暂无帖子</div>';
+                    return;
+                }
+                
+                let html = '';
+                posts.forEach(post => {
+                    // 格式化日期
+                    const postDate = new Date(post.createdAt).toLocaleDateString('zh-CN');
+                    
+                    // 处理内容摘要（限制长度）
+                    const contentPreview = post.content.length > 150 
+                        ? post.content.substring(0, 150) + '...' 
+                        : post.content;
+                    
+                    // 构建标签HTML
+                    let tagsHtml = '';
+                    if (post.tags && post.tags.length > 0) {
+                        post.tags.forEach(tag => {
+                            tagsHtml += `<span class="post-tag">${escapeHtml(tag)}</span>`;
+                        });
+                    }
+                    
+                    html += `
+                        <div class="post-card" data-post-id="${post.id}" onclick="window.location.href='post-detail.html?id=${post.id}'">
+                            <div class="post-header">
+                                <div class="post-author">
+                                    <div class="author-avatar clickable-avatar" 
+                                        data-user-id="${post.userId}" 
+                                        data-user-name="${post.authorName}">
+                                        ${post.authorName ? post.authorName.substring(0, 2).toUpperCase() : 'U'}
+                                    </div>
+                                    <div class="author-info">
+                                        <h4>${post.authorName || '未知用户'}</h4>
+                                        <div class="post-date">${postDate}</div>
+                                    </div>
+                                </div>
+                                <div class="post-tags">
+                                    ${tagsHtml}
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <h3>${escapeHtml(post.title)}</h3>
+                                <p>${escapeHtml(contentPreview)}</p>
+                            </div>
+                            <div class="post-stats">
+                                <div class="post-stat">
+                                    <span>👍 ${post.likeCount || 0}</span>
+                                </div>
+                                <div class="post-stat">
+                                    <span>💬 ${post.commentCount || 0}</span>
+                                </div>
+                                <div class="post-stat">
+                                    <span>👁️ ${post.viewCount || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                postsList.innerHTML = html;
+                
+                // 绑定头像点击事件
+                bindAvatarClickEvents();
+            }
+
+            // 新增：更新搜索分页
+            function updateSearchPagination(pagination, keyword, searchType) {
+                const paginationContainer = document.getElementById('paginationContainer');
+                const pageInfo = document.getElementById('pageInfo');
+                
+                if (pagination.totalPages <= 1) {
+                    paginationContainer.style.display = 'none';
+                } else {
+                    paginationContainer.style.display = 'block';
+                    
+                    // 更新分页按钮状态
+                    document.getElementById('prevPage').disabled = pagination.page <= 1;
+                    document.getElementById('nextPage').disabled = pagination.page >= pagination.totalPages;
+                    document.getElementById('firstPage').disabled = pagination.page <= 1;
+                    document.getElementById('lastPage').disabled = pagination.page >= pagination.totalPages;
+                    
+                    // 更新页码输入框
+                    document.getElementById('pageInput').max = pagination.totalPages;
+                    document.getElementById('pageInput').value = pagination.page;
+                    
+                    // 更新页码显示
+                    pageInfo.textContent = `第 ${pagination.page} 页，共 ${pagination.totalPages} 页，共 ${pagination.total} 条结果`;
+                    
+                    // 重新绑定分页事件（使用搜索功能）
+                    bindSearchPaginationEvents(keyword, searchType, pagination);
+                }
+            }
+
+            // 新增：绑定搜索分页事件
+            function bindSearchPaginationEvents(keyword, searchType, pagination) {
+                // 移除旧的事件监听器
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                const firstBtn = document.getElementById('firstPage');
+                const lastBtn = document.getElementById('lastPage');
+                const jumpBtn = document.getElementById('jumpBtn');
+                
+                // 克隆并替换按钮以移除旧事件
+                function replaceButton(buttonId) {
+                    const oldButton = document.getElementById(buttonId);
+                    const newButton = oldButton.cloneNode(true);
+                    oldButton.parentNode.replaceChild(newButton, oldButton);
+                    return newButton;
+                }
+                
+                const newPrevBtn = replaceButton('prevPage');
+                const newNextBtn = replaceButton('nextPage');
+                const newFirstBtn = replaceButton('firstPage');
+                const newLastBtn = replaceButton('lastPage');
+                const newJumpBtn = replaceButton('jumpBtn');
+                
+                // 绑定新事件
+                newPrevBtn.addEventListener('click', () => {
+                    if (pagination.page > 1) {
+                        searchPosts(keyword, searchType, pagination.page - 1);
+                    }
+                });
+                
+                newNextBtn.addEventListener('click', () => {
+                    if (pagination.page < pagination.totalPages) {
+                        searchPosts(keyword, searchType, pagination.page + 1);
+                    }
+                });
+                
+                newFirstBtn.addEventListener('click', () => {
+                    searchPosts(keyword, searchType, 1);
+                });
+                
+                newLastBtn.addEventListener('click', () => {
+                    searchPosts(keyword, searchType, pagination.totalPages);
+                });
+                
+                newJumpBtn.addEventListener('click', () => {
+                    const pageInput = document.getElementById('pageInput');
+                    const pageNum = parseInt(pageInput.value);
+                    if (pageNum >= 1 && pageNum <= pagination.totalPages) {
+                        searchPosts(keyword, searchType, pageNum);
+                    }
+                });
+                
+                // 输入框回车事件
+                document.getElementById('pageInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        newJumpBtn.click();
+                    }
+                });
+            }
+
+            // 新增：绑定头像点击事件
+            function bindAvatarClickEvents() {
+                document.querySelectorAll('.clickable-avatar').forEach(avatar => {
+                    avatar.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const userId = this.getAttribute('data-user-id');
+                        const userName = this.getAttribute('data-user-name');
+                        if (userId && userName) {
+                            window.location.href = `user-info.html?id=${userId}&name=${encodeURIComponent(userName)}`;
+                        }
+                    });
+                });
+            }
+
+            function showSearchHighlights(posts, keyword) {
+                const tagMap = new Map();
+                const authorMap = new Map();
+                
+                posts.forEach(post => {
+                    // 提取相关标签
+                    if (post.tags && Array.isArray(post.tags)) {
+                        post.tags.forEach(tag => {
+                            if (tag.toLowerCase().includes(keyword.toLowerCase())) {
+                                tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+                            }
+                        });
+                    }
+                    
+                    // 提取相关作者
+                    if (post.author_name && post.author_name.toLowerCase().includes(keyword.toLowerCase())) {
+                        authorMap.set(post.author_name, (authorMap.get(post.author_name) || 0) + 1);
+                    }
+                });
+                
+                searchTags.innerHTML = '';
+                
+                // 显示相关标签
+                if (tagMap.size > 0) {
+                    const tagSection = document.createElement('div');
+                    tagSection.innerHTML = '<div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">相关标签:</div>';
+                    const tagsContainer = document.createElement('div');
+                    tagsContainer.className = 'search-tags';
+                    
+                    const sortedTags = Array.from(tagMap.entries())
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5);
+                    
+                    sortedTags.forEach(([tag, count]) => {
+                        const tagElement = document.createElement('span');
+                        tagElement.className = 'search-tag';
+                        tagElement.textContent = `${tag} (${count})`;
+                        tagElement.addEventListener('click', () => {
+                            searchInput.value = tag;
+                            currentSearchType = 'tags';
+                            document.querySelector('input[name="searchType"][value="tags"]').checked = true;
+                            performSearch();
+                        });
+                        tagsContainer.appendChild(tagElement);
+                    });
+                    
+                    tagSection.appendChild(tagsContainer);
+                    searchTags.appendChild(tagSection);
+                }
+                
+                // 显示相关作者
+                if (authorMap.size > 0) {
+                    const authorSection = document.createElement('div');
+                    authorSection.innerHTML = '<div style="font-size: 12px; color: var(--muted); margin-bottom: 5px; margin-top: 10px;">相关作者:</div>';
+                    const authorsContainer = document.createElement('div');
+                    authorsContainer.className = 'search-tags';
+                    
+                    const sortedAuthors = Array.from(authorMap.entries())
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3);
+                    
+                    sortedAuthors.forEach(([author, count]) => {
+                        const authorElement = document.createElement('span');
+                        authorElement.className = 'search-tag';
+                        authorElement.textContent = `${author} (${count})`;
+                        authorElement.addEventListener('click', () => {
+                            searchInput.value = author;
+                            currentSearchType = 'author';
+                            document.querySelector('input[name="searchType"][value="author"]').checked = true;
+                            performSearch();
+                        });
+                        authorsContainer.appendChild(authorElement);
+                    });
+                    
+                    authorSection.appendChild(authorsContainer);
+                    searchTags.appendChild(authorSection);
+                }
+                
+                if (tagMap.size > 0 || authorMap.size > 0) {
+                    searchTags.style.display = 'block';
+                }
+            }
+
+            // 搜索建议功能
+            async function showSearchSuggestions(keyword) {
+                try {
+                    // 这里可以调用后端获取搜索建议，暂时使用前端缓存
+                    const suggestions = await getSearchSuggestions(keyword);
+                    showSuggestionDropdown(suggestions);
+                } catch (error) {
+                    console.error('获取搜索建议失败:', error);
+                }
+            }
+
+            function getSearchSuggestions(keyword) {
+                // 模拟搜索建议数据，实际应该从后端获取
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const mockSuggestions = [
+                            { type: 'tag', text: 'Mirage', count: 15 },
+                            { type: 'tag', text: '烟雾弹', count: 8 },
+                            { type: 'author', text: 'CS2玩家', count: 3 },
+                            { type: 'title', text: 'Mirage A点进攻战术', count: 5 }
+                        ].filter(item => 
+                            item.text.toLowerCase().includes(keyword.toLowerCase())
+                        );
+                        resolve(mockSuggestions);
+                    }, 100);
+                });
+            }
+
+            function showSuggestionDropdown(suggestions) {
+                // 移除现有的下拉框
+                const existingDropdown = document.querySelector('.search-suggestions');
+                if (existingDropdown) {
+                    existingDropdown.remove();
+                }
+
+                if (suggestions.length === 0) return;
+
+                const dropdown = document.createElement('div');
+                dropdown.className = 'search-suggestions';
+                dropdown.style.cssText = `
+                    position: absolute;
+                    background: var(--panel);
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    padding: 10px;
+                    margin-top: 5px;
+                    width: calc(100% - 32px);
+                    max-width: 400px;
+                    box-shadow: var(--shadow);
+                    z-index: 1000;
+                `;
+
+                suggestions.forEach(suggestion => {
+                    const item = document.createElement('div');
+                    item.style.cssText = `
+                        padding: 8px;
+                        cursor: pointer;
+                        border-radius: 4px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    `;
+                    item.innerHTML = `
+                        <span>${suggestion.text}</span>
+                        <span style="font-size: 12px; color: var(--muted);">${suggestion.count}条</span>
+                    `;
+                    item.addEventListener('click', () => {
+                        searchInput.value = suggestion.text;
+                        if (suggestion.type === 'tag') {
+                            currentSearchType = 'tags';
+                            document.querySelector('input[name="searchType"][value="tags"]').checked = true;
+                        } else if (suggestion.type === 'author') {
+                            currentSearchType = 'author';
+                            document.querySelector('input[name="searchType"][value="author"]').checked = true;
+                        }
+                        dropdown.remove();
+                        performSearch();
+                    });
+                    item.addEventListener('mouseenter', () => {
+                        item.style.background = 'rgba(255,255,255,.05)';
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.style.background = 'transparent';
+                    });
+                    dropdown.appendChild(item);
+                });
+
+                searchInput.parentNode.appendChild(dropdown);
+
+                // 点击页面其他区域关闭下拉框
+                const closeDropdown = (e) => {
+                    if (!dropdown.contains(e.target) && e.target !== searchInput) {
+                        dropdown.remove();
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                };
+                setTimeout(() => {
+                    document.addEventListener('click', closeDropdown);
+                }, 0);
+            }
+
+            // 增强的备用搜索方案
+            async function fallbackSearch(keyword, searchType) {
+                try {
+                    console.log('🔄 使用备用搜索方案');
+                    
+                    // 尝试通过帖子列表接口获取数据
+                    const response = await fetch('/api/posts?page=1&limit=100');
+                    
+                    if (!response.ok) {
+                        throw new Error('无法获取帖子列表');
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.code === 200 && result.data.posts) {
+                        const searchText = keyword.toLowerCase();
+                        const filteredPosts = result.data.posts.filter(post => {
+                            if (!post || post.is_deleted === 1) return false;
+                            
+                            const conditions = [];
+                            const title = (post.title || '').toLowerCase();
+                            const content = (post.content || '').toLowerCase();
+                            const tags = post.tags || [];
+                            const author = (post.author_name || '').toLowerCase();
+                            
+                            if (searchType === 'all' || searchType === 'title') {
+                                conditions.push(title.includes(searchText));
+                            }
+                            if (searchType === 'all' || searchType === 'content') {
+                                conditions.push(content.includes(searchText));
+                            }
+                            if (searchType === 'all' || searchType === 'tags') {
+                                conditions.push(
+                                    Array.isArray(tags) && tags.some(tag => 
+                                        tag.toLowerCase().includes(searchText)
+                                    )
+                                );
+                            }
+                            if (searchType === 'all' || searchType === 'author') {
+                                conditions.push(author.includes(searchText));
+                            }
+                            
+                            return conditions.some(condition => condition);
+                        });
+                        
+                        console.log('🔍 备用搜索结果:', {
+                            关键词: keyword,
+                            匹配帖子数: filteredPosts.length
+                        });
+                        
+                        if (filteredPosts.length > 0) {
+                            displaySearchResults({
+                                posts: filteredPosts,
+                                pagination: {
+                                    page: 1,
+                                    limit: 5,
+                                    total: filteredPosts.length,
+                                    totalPages: Math.ceil(filteredPosts.length / 5)
+                                }
+                            }, keyword, searchType);
+                            showAlert(`找到 ${filteredPosts.length} 条结果 (备用搜索)`, 'success');
+                        } else {
+                            showAlert(`未找到包含"${keyword}"的帖子`, 'info');
+                        }
+                    } else {
+                        throw new Error('获取帖子数据失败');
+                    }
+                } catch (error) {
+                    console.error('❌ 备用搜索也失败:', error);
+                    showAlert('搜索功能暂时不可用，请稍后重试', 'error');
+                }
+            }
+
+            function getSearchTypeText() {
+                const typeMap = {
+                    'all': '全部',
+                    'title': '标题',
+                    'content': '内容',
+                    'tags': '标签',
+                    'author': '作者'
+                };
+                return typeMap[currentSearchType] || '全部';
+            }
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // 统一的toast通知函数
+            function showAlert(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                // 显示toast
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                // 3秒后隐藏并移除toast
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // 修改原有的帖子加载逻辑，保存所有帖子用于前端搜索
+            if (window.fetchPosts) {
+                const originalFetchPosts = window.fetchPosts;
+                window.fetchPosts = function(page) {
+                    return originalFetchPosts(page).then(data => {
+                        if (data && data.posts) {
+                            window.allPosts = data.posts;
+                        }
+                        return data;
+                    });
+                };
+            }
+        });
+
+        // 添加搜索建议的CSS样式
+        const searchStyles = `
+        .search-type-selector {
+            margin-bottom: 15px;
+        }
+
+        .search-type-selector label {
+            padding: 5px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            transition: all 0.2s var(--ease);
+        }
+
+        .search-type-selector label:hover {
+            background: rgba(255,255,255,.06);
+        }
+
+        .search-type-selector input[type="radio"]:checked + span {
+            color: rgba(230, 57, 70, 0.8);
+        }
+
+        .search-suggestions {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .search-suggestions div {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .search-suggestions div:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .search-type-selector {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .search-type-selector label {
+                flex: 1;
+                text-align: center;
+            }
+        }
+        `;
+
+        // 将样式添加到页面
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = searchStyles;
+        document.head.appendChild(styleSheet);
     </script>
 
     <!-- 所有页面都添加这行引入，位置建议在其他脚本之前 -->

@@ -20,7 +20,7 @@ router.post('/send-verification-code', async (req, res) => {
 
         // 参数校验
         if (!email) {
-            return res.status(400).json({ message: '邮箱不能为空' });
+            return res.status(400).json({ message: '请输入邮箱地址以获取验证码' });
         }
 
         // 邮箱格式验证
@@ -63,18 +63,19 @@ router.post('/send-verification-code', async (req, res) => {
             console.log(`验证码已发送到 ${email}`);
             
             res.status(200).json({ 
-                message: '验证码发送成功'
-            });
+            message: '验证码发送成功，请注意查收邮件',
+            code: 200
+        });
         } catch (emailError) {
             console.error('发送邮件失败:', emailError);
             // 如果邮件发送失败，删除存储的验证码
             verificationCodes.delete(email);
-            return res.status(500).json({ message: '验证码发送失败，请稍后重试' });
+            return res.status(500).json({ message: '验证码发送失败，请检查邮箱地址或稍后重试', code: 500 });
         }
 
     } catch (err) {
         console.error('发送验证码错误:', err);
-        return res.status(500).json({ message: '服务器内部错误，发送验证码失败' });
+        return res.status(500).json({ message: '服务器内部错误，验证码发送失败', code: 500 });
     }
 });
 
@@ -88,7 +89,7 @@ router.post('/verify-code', async (req, res) => {
 
         // 参数校验
         if (!email || !verificationCode) {
-            return res.status(400).json({ message: '邮箱和验证码不能为空' });
+            return res.status(400).json({ message: '请同时输入邮箱地址和验证码', code: 400 });
         }
 
         // 验证验证码
@@ -98,12 +99,13 @@ router.post('/verify-code', async (req, res) => {
         }
 
         res.status(200).json({ 
-            message: '验证码验证成功'
+            message: '验证码验证成功，可以继续注册',
+            code: 200
         });
 
     } catch (err) {
         console.error('验证验证码错误:', err);
-        return res.status(500).json({ message: '服务器内部错误，验证验证码失败' });
+        return res.status(500).json({ message: '服务器内部错误，验证码验证失败', code: 500 });
     }
 });
 
@@ -117,7 +119,7 @@ router.post('/', async (req, res) => {
 
         // 1. 后端参数校验
         if (!username || !password || !email || !verificationCode) {
-            return res.status(400).json({ message: '用户名、邮箱、密码和验证码不能为空' });
+            return res.status(400).json({ message: '请填写完整的注册信息，包括用户名、邮箱、密码和验证码', code: 400 });
         }
         
         // 用户名验证
@@ -137,9 +139,9 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ message: '请输入有效的邮箱地址' });
         }
         
-        // 密码验证：至少6位数字
-        if (!/^\d{6,}$/.test(password)) {
-            return res.status(400).json({ message: '密码必须至少6位数字' });
+        // 密码验证：至少6位，包含字母和数字
+        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/.test(password)) {
+            return res.status(400).json({ message: '密码必须至少6位，包含字母和数字' });
         }
 
         // 验证验证码
@@ -181,7 +183,8 @@ router.post('/', async (req, res) => {
 
         // 7. 返回成功响应
         return res.status(200).json({ 
-            message: '注册成功',
+            message: '注册成功！您可以使用新账号登录了',
+            code: 200,
             data: {
                 username: username,
                 email: email
@@ -201,7 +204,7 @@ router.post('/', async (req, res) => {
             }
         }
         
-        return res.status(500).json({ message: '服务器内部错误，注册失败' });
+        return res.status(500).json({ message: '服务器内部错误，注册失败，请稍后重试', code: 500 });
     }
 });
 

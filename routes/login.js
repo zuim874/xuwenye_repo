@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
     
     // 参数校验
     if (!username || !password) {
-        return res.status(400).json({ message: '用户名和密码为必填项' });
+        return res.status(400).json({ code: 400, message: '请输入用户名和密码以登录' });
     }
 
     try {
@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
         // 返回成功响应
         res.status(200).json({
             code: 200,
-            message: '登录成功',
+            message: '登录成功！欢迎回来',
             data: { 
                 username: user.username,
                 user_id: user.id,
@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
 
     } catch (err) {
         console.error('登录接口错误:', err);
-        res.status(500).json({ code: 500, message: '服务器内部错误' });
+        res.status(500).json({ code: 500, message: '服务器内部错误，登录失败，请稍后重试' });
     }
 });
 

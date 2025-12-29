@@ -15,3 +15,14 @@ CREATE TABLE IF NOT EXISTS posts (
     -- 外键约束：确保 user_id 必须在 users 表中存在（可选，增强数据完整性）
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- 在posts表中添加审核状态字段
+ALTER TABLE `posts` 
+ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0 COMMENT '帖子状态：0-待审核，1-审核通过，2-审核不通过';
+
+-- 创建索引优化审核查询
+CREATE INDEX `idx_posts_status` ON `posts`(`status`);
+CREATE INDEX `idx_posts_status_created` ON `posts`(`status`, `created_at`);
+
+-- 为posts表增加reviewed_at字段
+ALTER TABLE posts ADD COLUMN reviewed_at datetime DEFAULT NULL COMMENT '审核时间';

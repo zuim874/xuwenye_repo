@@ -5,6 +5,17 @@ COLLATE utf8mb4_unicode_ci;
 
 USE `cs2_utility`;
 
+-- 修改整个数据库的字符集
+ALTER DATABASE `cs2_utility` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 修改posts表的字符集
+ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 修改特定字段的字符集
+ALTER TABLE posts MODIFY title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE posts MODIFY content TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE posts MODIFY tags VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- 用户表
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -85,6 +96,16 @@ CREATE TABLE IF NOT EXISTS `posts` (
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- 在posts表中添加审核状态字段
+ALTER TABLE `posts` 
+ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0 COMMENT '帖子状态：0-待审核，1-审核通过，2-审核不通过';
+
+-- 创建索引优化审核查询
+CREATE INDEX `idx_posts_status` ON `posts`(`status`);
+CREATE INDEX `idx_posts_status_created` ON `posts`(`status`, `created_at`);
+
+-- 为posts表增加reviewed_at字段
+ALTER TABLE posts ADD COLUMN reviewed_at datetime DEFAULT NULL COMMENT '审核时间';
 
 -- 帖子点赞表
 CREATE TABLE IF NOT EXISTS `post_likes` (

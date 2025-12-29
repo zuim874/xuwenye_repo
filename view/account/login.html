@@ -214,7 +214,13 @@
         .success-message {
             color: #4CAF50;
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
             display: none;
         }
 
@@ -261,6 +267,28 @@
             }
         }
 
+        /* 密码显示/隐藏样式 */
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color .18s var(--ease);
+        }
+
+        .password-toggle:hover {
+            color: var(--text);
+        }
+
         /* 加载动画 */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -296,13 +324,16 @@
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="username" class="form-label">用户名</label>
-                        <input type="text" id="username" class="form-input" placeholder="请输入用户名或邮箱">
-                        <div class="error-message" id="usernameError">请输入有效的用户名或邮箱</div>
+                        <input type="text" id="username" class="form-input" placeholder="请输入用户名">
+                        <div class="error-message" id="usernameError">请输入用户名</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="password" class="form-label">密码</label>
-                        <input type="password" id="password" class="form-input" placeholder="请输入密码">
+                        <div class="password-container">
+                            <input type="password" id="password" class="form-input" placeholder="请输入密码（至少6位，包含字母和数字）">
+                            <button type="button" class="password-toggle" id="togglePassword">显示</button>
+                        </div>
                         <div class="error-message" id="passwordError">密码不能为空</div>
                     </div>
                     
@@ -394,6 +425,20 @@
             // 可根据业务需求选择显示到某个 error 元素，或统一提示
             alert(errorMsg);
         }
+        });
+
+        // 密码显示/隐藏功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.getElementById('togglePassword');
+
+            toggleButton.addEventListener('click', function() {
+                // 切换密码可见性
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                // 更新按钮文本
+                toggleButton.textContent = type === 'password' ? '显示' : '隐藏';
+            });
         });
 
         // 心跳函数（全局定义，登录成功后调用）

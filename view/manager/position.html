@@ -733,6 +733,7 @@
                 <a href="manager.html">管理员中心</a>
                 <a href="map.html">地图管理</a>
                 <a href="position.html" class="active">点位管理</a>
+                <a href="post-audit.html">帖子审核</a>
                 <a href="../index.html">返回首页</a>
             </div>
         </header>
@@ -1386,7 +1387,6 @@
                         <textarea class="form-control" disabled>${throwItem.throw_desc || ''}</textarea>
                     </div>
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button class="btn" onclick="editThrow(${throwItem.throw_id})">编辑</button>
                         <button class="btn" onclick="deleteThrow(${throwItem.throw_id})">删除</button>
                     </div>
                 `;
@@ -1496,12 +1496,6 @@
         // 取消添加投掷点
         window.cancelAddThrow = function() {
             renderThrowsList();
-        };
-
-        // 编辑投掷点
-        window.editThrow = async function(throwId) {
-            // 这里可以实现投掷点编辑功能
-            alert('投掷点编辑功能待实现');
         };
 
         // 删除投掷点

@@ -19,6 +19,33 @@ const DOM = {
     userInfo: document.querySelector('.user-info')
 };
 
+// 全局状态管理
+const AppState = {
+    isDeletingAccount: false, // 标记是否正在进行注销操作
+    deleteAccountProcess: null // 用于存储注销过程中的请求或数据
+};
+
+/**
+ * 显示提示信息（toast）
+ * @param {string} message - 提示内容
+ * @param {string} type - 提示类型：success, error, info
+ */
+function showAlert(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // 显示toast
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // 3秒后自动隐藏并移除
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 // 页面初始化入口（DOM加载完成后执行）
 document.addEventListener('DOMContentLoaded', () => {
     const userId = localStorage.getItem('userId');
@@ -60,6 +87,40 @@ function bindEvents() {
     document.addEventListener('click', (e) => {
         if (!DOM.userInfo.contains(e.target)) {
             DOM.userMenu.classList.remove('show');
+        }
+    });
+
+    // 页面导航检测 - 监听beforeunload事件（关闭页面或刷新）
+    window.addEventListener('beforeunload', (e) => {
+        if (AppState.isDeletingAccount) {
+            // 取消注销操作
+            AppState.isDeletingAccount = false;
+            // 显示提示
+            showAlert('注销操作已取消，您已退出注销流程。', 'info');
+        }
+    });
+
+    // 页面导航检测 - 监听所有锚点点击
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('a');
+        if (target && AppState.isDeletingAccount && target.href) {
+            // 阻止默认跳转
+            e.preventDefault();
+            // 取消注销操作
+            AppState.isDeletingAccount = false;
+            // 显示提示
+            showAlert('注销操作已取消，您已退出注销流程。', 'info');
+        }
+    });
+
+    // 页面导航检测 - 监听所有按钮点击（可能导致页面跳转的按钮）
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('button');
+        if (target && AppState.isDeletingAccount && target.id !== 'deleteAccountBtn') {
+            // 对于可能导致页面跳转的按钮，显示提示
+            showAlert('注销操作已取消，您已退出注销流程。', 'info');
+            // 取消注销操作
+            AppState.isDeletingAccount = false;
         }
     });
 }
@@ -183,13 +244,34 @@ async function fetchUserPosts(userId) {
 }
 
 /**
- * 更新用户统计数据（帖子数、获赞数、评论数）
+ * 更新用户统计数据
  * @param {Object} stats - 后端返回的统计对象
  */
 function updateUserStats(stats = {}) {
     DOM.postCount.textContent = stats.post_count || 0;
     DOM.likeCount.textContent = stats.total_likes || 0;
     DOM.commentCount.textContent = stats.total_comments || 0;
+    
+    // 添加审核状态提示
+    if (stats.pending_count > 0) {
+        const pendingNotice = document.createElement('div');
+        pendingNotice.className = 'pending-notice';
+        pendingNotice.innerHTML = `📋 您有 ${stats.pending_count} 篇帖子等待审核`;
+        pendingNotice.style.cssText = `
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            color: #ffc107;
+            font-size: 14px;
+            text-align: center;
+        `;
+        
+        // 插入到统计信息后面
+        const statsContainer = document.querySelector('.profile-stats');
+        statsContainer.parentNode.insertBefore(pendingNotice, statsContainer.nextSibling);
+    }
 }
 
 /**
@@ -207,12 +289,30 @@ function renderUserPosts(posts) {
     posts.forEach(post => {
         const postCard = document.createElement('div');
         postCard.className = 'post-card';
+        
+        // 检查帖子状态
+        const isApproved = post.status === 1; // status=1表示已审核通过
+        const isRejected = post.status === 2;  // status=2表示审核未通过
+        const isPending = post.status === 0;   // status=0表示待审核
+        
+        let approvalTag = '';
+        let approvalNotice = '';
+        
+        if (isApproved) {
+            approvalTag = '<span class="approval-tag approved">✅ 已审核</span>';
+        } else if (isRejected) {
+            approvalTag = '<span class="approval-tag rejected">❌ 审核未通过</span>';
+            approvalNotice = '<div class="approval-notice rejected">⚠️ 此帖子审核未通过，建议您重新编辑或删除后重新发布</div>';
+        } else { // isPending
+            approvalTag = '<span class="approval-tag pending">⏳ 待审核</span>';
+            approvalNotice = '<div class="approval-notice">📢 此帖子正在等待审核，审核通过后将对其他用户可见</div>';
+        }
 
         // 格式化帖子数据
         const formattedDate = formatRelativeDate(post.created_at);
         const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
 
-        // 帖子卡片HTML结构
+        // 帖子卡片HTML结构 - 添加不同状态的标识
         postCard.innerHTML = `
             <div class="post-header">
                 <div class="post-author">
@@ -223,9 +323,11 @@ function renderUserPosts(posts) {
                     </div>
                 </div>
                 <div class="post-tags">
+                    ${approvalTag}
                     ${tags.map(tag => `<span class="post-tag">${escapeHtml(tag)}</span>`).join('')}
                 </div>
             </div>
+            ${approvalNotice}
             <div class="post-content">
                 <h3>${escapeHtml(post.title)}</h3>
                 <p>${escapeHtml(truncateContent(post.content, 100))}</p>
@@ -245,12 +347,7 @@ function renderUserPosts(posts) {
         `;
 
         const avatarEl = postCard.querySelector('.author-avatar');
-
-        renderUserAvatar(
-            avatarEl,
-            post.user_id,                 // ✅ 当前帖子作者ID
-            DOM.profileName.textContent   // ✅ 用户名兜底
-        );
+        renderUserAvatar(avatarEl, post.user_id, DOM.profileName.textContent);
 
         // 点击帖子卡片跳转到详情页（排除操作按钮）
         postCard.addEventListener('click', (e) => {
@@ -304,11 +401,11 @@ async function deletePost(postId) {
 
         // 删除成功后重新加载帖子列表
         fetchUserPosts(userId);
-        alert('帖子删除成功！');
+        showAlert('帖子删除成功！', 'success');
 
     } catch (error) {
         console.error('删除帖子失败：', error);
-        alert(`删除失败：${error.message}`);
+        showAlert(`删除失败：${error.message}`, 'error');
         handleAuthError(error.message);
     }
 }
@@ -390,7 +487,7 @@ async function changeEmail() {
             throw new Error(confirmResult.message || '换绑失败');
         }
 
-        alert('邮箱换绑成功！');
+        showAlert('邮箱换绑成功！', 'success');
         
         // 可选：刷新页面或更新用户信息
         window.location.reload();
@@ -411,7 +508,7 @@ async function changeEmail() {
             console.error('取消换绑流程失败：', cancelError);
         }
         
-        alert(`换绑失败：${error.message}`);
+        showAlert(`换绑失败：${error.message}`, 'error');
     }
 }
 
@@ -470,7 +567,7 @@ function showChangeEmailStep1(emailMask) {
                 modal.remove();
                 resolve(code);
             } else {
-                alert('请输入6位验证码');
+                showAlert('请输入6位验证码', 'error');
             }
         };
 
@@ -502,7 +599,7 @@ function showChangeEmailStep2() {
                 modal.remove();
                 resolve(email);
             } else {
-                alert('请输入有效的邮箱地址');
+                showAlert('请输入有效的邮箱地址', 'error');
             }
         };
 
@@ -534,7 +631,7 @@ function showChangeEmailStep3(newEmailMask) {
                 modal.remove();
                 resolve(code);
             } else {
-                alert('请输入6位验证码');
+                showAlert('请输入6位验证码', 'error');
             }
         };
 
@@ -604,8 +701,9 @@ async function changePassword() {
             throw new Error('新密码和确认密码不一致');
         }
 
-        if (newPassword.length < 6) {
-            throw new Error('新密码必须至少6位');
+        // 增强：使用与后端一致的密码规则验证
+        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/.test(newPassword)) {
+            throw new Error('新密码必须至少6位，包含字母和数字');
         }
 
         // 发送修改密码请求
@@ -627,17 +725,14 @@ async function changePassword() {
             throw new Error(resultData.message || '修改密码失败');
         }
 
-        alert('密码修改成功！');
+        showAlert('密码修改成功！即将自动登出...', 'success');
         
-        // 可选：密码修改成功后强制重新登录
-        const shouldRelogin = confirm('密码修改成功，是否立即重新登录？');
-        if (shouldRelogin) {
-            logout();
-        }
+        // 密码修改成功后立即登出并跳转至登录页
+        setTimeout(logout, 1500);
 
     } catch (error) {
         console.error('修改密码失败：', error);
-        alert(`修改密码失败：${error.message}`);
+        showAlert(`修改密码失败：${error.message}`, 'error');
     }
 }
 
@@ -656,7 +751,7 @@ function showChangePasswordModal() {
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: bold;">新密码</label>
-                    <input type="password" id="newPassword" placeholder="请输入新密码（至少6位）" 
+                    <input type="password" id="newPassword" placeholder="请输入新密码（至少6位，包含字母和数字）" 
                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
                 </div>
                 <div style="margin-bottom: 20px;">
@@ -668,7 +763,8 @@ function showChangePasswordModal() {
                     <p>🔒 密码要求：</p>
                     <ul style="margin: 5px 0; padding-left: 15px;">
                         <li>至少6位字符</li>
-                        <li>建议使用字母、数字和符号组合</li>
+                        <li>必须包含字母和数字</li>
+                        <li>可以包含特殊符号(@$!%*#?&)</li>
                     </ul>
                 </div>
             </div>
@@ -686,19 +782,19 @@ function showChangePasswordModal() {
 
             // 验证输入
             if (!currentPassword) {
-                alert('请输入当前密码');
+                showAlert('请输入当前密码', 'error');
                 return;
             }
             if (!newPassword) {
-                alert('请输入新密码');
+                showAlert('请输入新密码', 'error');
                 return;
             }
             if (newPassword.length < 6) {
-                alert('新密码必须至少6位');
+                showAlert('新密码必须至少6位', 'error');
                 return;
             }
             if (newPassword !== confirmPassword) {
-                alert('新密码和确认密码不一致');
+                showAlert('新密码和确认密码不一致', 'error');
                 return;
             }
 
@@ -738,6 +834,9 @@ async function deleteAccount() {
             throw new Error('用户未登录');
         }
 
+        // 设置注销状态为true
+        AppState.isDeletingAccount = true;
+
         // 第一步：确认删除
         const confirmDelete = confirm(
             '警告：此操作将永久删除您的账户和所有数据！\n\n' +
@@ -749,11 +848,15 @@ async function deleteAccount() {
             '此操作不可撤销！'
         );
         
-        if (!confirmDelete) return;
+        if (!confirmDelete) {
+            AppState.isDeletingAccount = false;
+            return;
+        }
         
         const userInput = prompt('请输入"DELETE"确认注销账户：');
         if (userInput !== 'DELETE') {
-            alert('输入不匹配，注销操作已取消。');
+            showAlert('输入不匹配，注销操作已取消。', 'info');
+            AppState.isDeletingAccount = false;
             return;
         }
 
@@ -783,7 +886,10 @@ async function deleteAccount() {
                 '验证码发送失败：' + error.message + 
                 '\n\n是否继续注销？这将降低安全性。'
             );
-            if (!continueWithoutCode) return;
+            if (!continueWithoutCode) {
+                AppState.isDeletingAccount = false;
+                return;
+            }
         }
 
         // 第三步：验证验证码（如果有邮箱）
@@ -795,7 +901,8 @@ async function deleteAccount() {
             );
             
             if (!verificationCode) {
-                alert('验证码不能为空，注销操作已取消。');
+                showAlert('验证码不能为空，注销操作已取消。', 'error');
+                AppState.isDeletingAccount = false;
                 return;
             }
         }
@@ -816,17 +923,19 @@ async function deleteAccount() {
         const deleteResult = await deleteResponse.json();
 
         if (deleteResponse.ok) {
-            alert('账户注销成功！所有数据已彻底删除。');
+            showAlert('账户注销成功！所有数据已彻底删除。', 'success');
             // 清除本地存储并跳转到登录页
             localStorage.removeItem('currentUser');
             localStorage.removeItem('userId');
+            AppState.isDeletingAccount = false;
             window.location.href = './account/login.html';
         } else {
             throw new Error(deleteResult.message || '注销失败');
         }
     } catch (error) {
         console.error('注销账户失败：', error);
-        alert(`注销失败：${error.message}`);
+        showAlert(`注销失败：${error.message}`, 'error');
+        AppState.isDeletingAccount = false;
     }
 }
 

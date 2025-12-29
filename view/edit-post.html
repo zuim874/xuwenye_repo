@@ -502,6 +502,37 @@
                 padding: 10px 12px;
             }
         }
+        
+        /* Toast 通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+        .toast.success {
+            background-color: #4caf50;
+        }
+        .toast.error {
+            background-color: #e63946;
+        }
+        .toast.info {
+            background-color: #2196f3;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -608,12 +639,29 @@
     </div>
     
     <script>
+        // 统一的提示框函数
+        function showAlert(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // 添加显示动画
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // 自动隐藏
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             // 获取URL中的帖子ID
             const urlParams = new URLSearchParams(window.location.search);
             const postId = urlParams.get('id');
             if (!postId) {
-                alert('未找到帖子ID');
+                showAlert('未找到帖子ID', 'error');
                 window.location.href = 'myinfo.html';
                 return;
             }
@@ -679,10 +727,10 @@
                     populatePostForm(post);
                     
                 } catch (error) {
-                    console.error('加载帖子失败:', error);
-                    alert(`加载帖子失败: ${error.message}`);
-                    window.location.href = 'myinfo.html';
-                }
+                console.error('加载帖子失败:', error);
+                showAlert(`加载帖子失败: ${error.message}`, 'error');
+                window.location.href = 'myinfo.html';
+            }
             }
             
             // 填充表单数据
@@ -796,7 +844,7 @@
                         selectedTags.add(tagValue);
                         this.classList.add('selected');
                     } else {
-                        alert('最多只能选择5个标签');
+                        showAlert('最多只能选择5个标签', 'info');
                     }
                     
                     hideError('tagsError');
@@ -809,12 +857,12 @@
                 
                 if (tagText && tagText.length <= 10) {
                     if ([...selectedTags].includes(tagText)) {
-                        alert('该标签已被选择');
+                        showAlert('该标签已被选择', 'info');
                         return;
                     }
                     
                     if (selectedTags.size >= 5) {
-                        alert('最多只能选择5个标签');
+                        showAlert('最多只能选择5个标签', 'info');
                         return;
                     }
                     
@@ -824,7 +872,7 @@
                     customTagInput.value = '';
                     hideError('tagsError');
                 } else if (tagText.length > 10) {
-                    alert('标签不能超过10个字符');
+                    showAlert('标签不能超过10个字符', 'info');
                 }
             });
             
@@ -919,11 +967,11 @@
                     }, 3000);
                     
                 } catch (error) {
-                    console.error('更新帖子失败:', error);
-                    alert(`更新失败: ${error.message}`);
-                    document.getElementById('submitBtn').disabled = false;
-                    document.getElementById('submitBtn').textContent = '更新帖子';
-                }
+                console.error('更新帖子失败:', error);
+                showAlert(`更新失败: ${error.message}`, 'error');
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').textContent = '更新帖子';
+            }
             });
             
             // 错误提示函数

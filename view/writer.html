@@ -520,6 +520,39 @@
         ::-webkit-scrollbar-thumb:hover {
             background-color: rgba(230, 57, 70, 0.8);
         }
+
+        /* Toast通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #e63946;
+        }
+
+        .toast.info {
+            background-color: #2196f3;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -647,6 +680,19 @@
     </footer>
 
     <script>
+        // Toast通知函数
+        function showAlert(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // 视频上传功能
             const videoUploadArea = document.getElementById('videoUploadArea');
@@ -687,6 +733,8 @@
                 const fileURL = URL.createObjectURL(file);
                 previewVideo.src = fileURL;
                 videoPreview.classList.add('active');
+                
+                
             }
             
             // 移除视频
@@ -714,7 +762,7 @@
                         selectedTags.add(tagValue);
                         this.classList.add('selected');
                     } else {
-                        alert('最多只能选择5个标签');
+                        showAlert('最多只能选择5个标签', 'info');
                     }
                     
                     hideError('tagsError');
@@ -732,13 +780,13 @@
                 if (tagText && tagText.length <= 10) {
                     // 检查是否已存在相同标签
                     if ([...selectedTags].includes(tagText)) {
-                        alert('该标签已被选择');
+                        showAlert('该标签已被选择', 'info');
                         return;
                     }
                     
                     // 检查是否已达到标签上限
                     if (selectedTags.size >= 5) {
-                        alert('最多只能选择5个标签');
+                        showAlert('最多只能选择5个标签', 'info');
                         return;
                     }
                     
@@ -763,7 +811,7 @@
                     
                     hideError('tagsError');
                 } else if (tagText.length > 10) {
-                    alert('标签不能超过10个字符');
+                    showAlert('标签不能超过10个字符', 'info');
                 }
             });
             
@@ -864,6 +912,9 @@
                     // 发布成功处理
                     document.getElementById('successMessage').classList.add('active');
                     
+                    // 添加视频审核提示
+                    showAlert('视频已提交，正在审核中，请耐心等待', 'info');
+                    
                     // 3秒后跳转到社区页面
                     setTimeout(() => {
                         window.location.href = 'community.html';
@@ -871,7 +922,7 @@
 
                 } catch (error) {
                     console.error('发布帖子失败:', error);
-                    alert(`发布失败: ${error.message}`);
+                    showAlert(`发布失败: ${error.message}`, 'error');
                     // 恢复按钮状态
                     submitBtn.disabled = false;
                     submitBtn.textContent = '发布帖子';
@@ -934,7 +985,7 @@
                         .catch(error => {
                             console.error('获取用户ID失败详情：', error.message); // 打印具体失败原因
                             // 优化：只在“登录失效”时跳转，获取ID失败不清除登录状态（避免误跳）
-                            alert(`获取用户信息失败：${error.message}\n但您已登录，可尝试重新发布`);
+                            showAlert(`获取用户信息失败：${error.message}\n但您已登录，可尝试重新发布`, 'error');
                             // 注释掉这两行，避免误清除登录状态和跳转
                             // localStorage.removeItem('currentUser');
                             // window.location.href = 'login.html';

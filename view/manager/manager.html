@@ -159,6 +159,39 @@
         .card-button:hover {
             background-color: rgba(230, 57, 70, 0.25);
         }
+
+        /* Toast通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        
+        .toast.success {
+            background-color: #4caf50;
+        }
+        
+        .toast.error {
+            background-color: #e63946;
+        }
+        
+        .toast.info {
+            background-color: #2196f3;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -169,7 +202,8 @@
 
         <!-- 权限不足提示 -->
         <div class="permission-container" id="noPermission">
-            <p class="permission-text">您无权访问此页面，<a href="../index.html" class="back-home">点此返回首页</a></p>
+            <p class="permission-text">🚫 您没有管理员权限，无法访问此页面</p>
+            <p class="permission-text" style="margin-top: 15px;">请联系系统管理员或 <a href="../index.html" class="back-home">点此返回首页</a></p>
         </div>
 
         <!-- 管理员页面主体 -->
@@ -206,11 +240,44 @@
                     <p class="card-description">管理投掷物点位数据，包括添加新点位、编辑点位信息和删除点位。</p>
                     <a href="position.html" class="card-button">进入管理</a>
                 </div>
+
+                <!-- 帖子审核卡片 -->
+                <div class="admin-card audit-card">
+                    <div class="card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12L11 14L15 10M12 3C13.3968 3 14.6831 3.43373 15.75 4.18316C17.0154 5.07836 18 6.43373 18 8.2C18 9.96627 17.0154 11.3216 15.75 12.2168C14.6831 12.9663 13.3968 13.4 12 13.4C10.6032 13.4 9.31687 12.9663 8.25 12.2168C6.98462 11.3216 6 9.96627 6 8.2C6 6.43373 6.98462 5.07836 8.25 4.18316C9.31687 3.43373 10.6032 3 12 3Z" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 21C13.3968 21 14.6831 20.5663 15.75 19.8168C17.0154 18.9216 18 17.5663 18 15.8C18 14.0337 17.0154 12.6784 15.75 11.7832C14.6831 11.0337 13.3968 10.6 12 10.6C10.6032 10.6 9.31687 11.0337 8.25 11.7832C6.98462 12.6784 6 14.0337 6 15.8C6 17.5663 6.98462 18.9216 8.25 19.8168C9.31687 20.5663 10.6032 21 12 21Z" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">帖子审核</h3>
+                    <p class="card-description">审核和管理用户提交的帖子内容，确保社区内容质量。</p>
+                    <a href="post-audit.html" class="card-button">进入审核</a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Toast通知函数
+        function showAlert(message, type = 'info') {
+            // 创建toast元素
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(toast);
+            
+            // 显示toast
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // 3秒后隐藏并移除
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         // 核心：校验用户是否为管理员（user_power是否为0）
         function checkAdminPermission() {
             // 从localStorage获取用户权限（沿用原有页面的存储逻辑）

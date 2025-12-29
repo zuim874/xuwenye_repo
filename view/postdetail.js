@@ -4,6 +4,23 @@ function getPostIdFromUrl() {
     return params.get('id');
 }
 
+// Toast提示函数
+function showAlert(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // 显示toast
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // 3秒后隐藏并移除
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 // 获取帖子详情
 async function fetchPostDetail(postId) {
     try {
@@ -157,7 +174,7 @@ async function toggleLike(postId, button) {
         // 检查用户是否登录
         const userId = localStorage.getItem('userId');
         if (!userId) {
-            alert('请先登录才能点赞');
+            showAlert('请先登录才能点赞', 'info');
             window.location.href = `./account/login.html?redirect=post-detail.html?id=${postId}`;
             return;
         }
@@ -199,11 +216,11 @@ async function toggleLike(postId, button) {
                 button.style.transform = 'scale(1)';
             }, 300);
         } else {
-            alert(result.message || '操作失败，请稍后重试');
+            showAlert(result.message || '操作失败，请稍后重试', 'error');
         }
     } catch (error) {
         console.error('点赞失败:', error);
-        alert('点赞失败，请稍后重试');
+        showAlert('点赞失败，请稍后重试', 'error');
     }
 }
 
@@ -213,7 +230,7 @@ async function toggleFavorite(postId, button) {
         // 检查用户是否登录
         const userId = localStorage.getItem('userId');
         if (!userId) {
-            alert('请先登录才能收藏');
+            showAlert('请先登录才能收藏', 'info');
             window.location.href = `./account/login.html?redirect=post-detail.html?id=${postId}`;
             return;
         }
@@ -260,11 +277,11 @@ async function toggleFavorite(postId, button) {
                 button.style.transform = 'scale(1)';
             }, 300);
         } else {
-            alert(result.message || '操作失败，请稍后重试');
+            showAlert(result.message || '操作失败，请稍后重试', 'error');
         }
     } catch (error) {
         console.error('收藏失败:', error);
-        alert('收藏失败，请稍后重试');
+        showAlert('收藏失败，请稍后重试', 'error');
     }
 }
 
@@ -290,10 +307,10 @@ function sharePost(postId) {
 // 复制到剪贴板
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        alert('链接已复制到剪贴板');
+        showAlert('链接已复制到剪贴板', 'success');
     }).catch(error => {
         console.error('复制失败:', error);
-        alert('复制失败，请手动复制链接');
+        showAlert('复制失败，请手动复制链接', 'error');
     });
 }
 
@@ -396,7 +413,7 @@ async function deleteComment(postId, commentId) {
     try {
         const userId = localStorage.getItem('userId');
         if (!userId) {
-            alert('请先登录');
+            showAlert('请先登录', 'info');
             return;
         }
         
@@ -413,11 +430,11 @@ async function deleteComment(postId, commentId) {
             // 删除成功，重新加载评论列表
             fetchComments(postId);
         } else {
-            alert(result.message || '删除评论失败，请稍后重试');
+            showAlert(result.message || '删除评论失败，请稍后重试', 'error');
         }
     } catch (error) {
         console.error('删除评论失败:', error);
-        alert('删除评论失败，请稍后重试');
+        showAlert('删除评论失败，请稍后重试', 'error');
     }
 }
 
@@ -427,14 +444,14 @@ async function submitComment(postId) {
     const content = commentInput.value.trim();
     
     if (!content) {
-        alert('请输入评论内容');
+        showAlert('请输入评论内容', 'info');
         return;
     }
     
     // 检查用户是否登录
     const userId = localStorage.getItem('userId');
     if (!userId) {
-        alert('请先登录才能评论');
+        showAlert('请先登录才能评论', 'info');
         window.location.href = `./account/login.html?redirect=post-detail.html?id=${postId}`;
         return;
     }
@@ -459,17 +476,23 @@ async function submitComment(postId) {
             commentInput.value = '';
             fetchComments(postId);
         } else {
-            alert(result.message || '评论失败，请稍后重试');
+            showAlert(result.message || '评论失败，请稍后重试', 'error');
         }
     } catch (error) {
         console.error('提交评论失败:', error);
-        alert('评论失败，请稍后重试');
+        showAlert('评论失败，请稍后重试', 'error');
     }
 }
 
 // 检查用户是否登录（与community.js保持一致）
 function isUserLoggedIn() {
     return !!localStorage.getItem('currentUser');
+}
+
+// 检查用户是否为管理员
+function checkAdminPermission() {
+    const userPower = localStorage.getItem('userPower');
+    return userPower && userPower === '0'; // 0表示管理员
 }
 
 // 页面加载完成后初始化

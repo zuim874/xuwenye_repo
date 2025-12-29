@@ -544,14 +544,19 @@ router.post('/:id/send-change-email-code', async (req, res) => {
 
         const user = users[0];
 
-        // 检查用户是否已绑定邮箱
+        // 修改：如果用户没有绑定邮箱，直接返回可以绑定新邮箱的状态
         if (!user.email) {
-            return res.status(400).json({ 
-                code: 400, 
-                message: '您尚未绑定邮箱，无法进行换绑操作' 
+            return res.status(200).json({
+                code: 200,
+                message: '您尚未绑定邮箱，可以直接绑定新邮箱',
+                data: { 
+                    hasEmail: false, // 新增字段，表示用户没有邮箱
+                    canBindDirectly: true // 新增字段，表示可以直接绑定
+                }
             });
         }
 
+        // 原有逻辑：用户有邮箱的情况
         // 生成6位数字验证码
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         const codeExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10分钟过期
@@ -569,6 +574,7 @@ router.post('/:id/send-change-email-code', async (req, res) => {
             code: 200,
             message: '验证码已发送到您的注册邮箱，请查收',
             data: { 
+                hasEmail: true, // 用户有邮箱
                 emailMask: maskEmail(user.email) // 部分隐藏邮箱地址
             }
         });
@@ -812,21 +818,23 @@ router.get('/:id/posts', async (req, res) => {
             return res.status(403).json({ code: 403, message: '无权限查看他人帖子' });
         }
 
-        // 查询帖子列表
+        // 查询帖子列表 - 使用status字段替代is_approved
         const [posts] = await pool.execute(
             `SELECT id, user_id, title, content, tags, video_url, created_at, 
-                    view_count, like_count, comment_count 
+                    view_count, like_count, comment_count, status 
              FROM posts 
              WHERE user_id = ? AND is_deleted = 0 
              ORDER BY created_at DESC`,
             [userId]
         );
 
-        // 查询统计信息
+        // 查询统计信息 - 使用status字段
         const [statsRows] = await pool.execute(
             `SELECT COUNT(*) as post_count, 
                     SUM(like_count) as total_likes, 
-                    SUM(comment_count) as total_comments 
+                    SUM(comment_count) as total_comments,
+                    SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as approved_count,
+                    SUM(CASE WHEN status = 0 OR status IS NULL THEN 1 ELSE 0 END) as pending_count
              FROM posts WHERE user_id = ? AND is_deleted = 0`,
             [userId]
         );
@@ -840,7 +848,9 @@ router.get('/:id/posts', async (req, res) => {
                 stats: {
                     post_count: stats.post_count || 0,
                     total_likes: stats.total_likes || 0,
-                    total_comments: stats.total_comments || 0
+                    total_comments: stats.total_comments || 0,
+                    approved_count: stats.approved_count || 0,
+                    pending_count: stats.pending_count || 0
                 }
             }
         });
@@ -928,80 +938,6 @@ router.post('/heartbeat', async (req, res) => {
 // ==================== 用户账户管理接口 ====================
 
 /**
- * 修改用户密码
- * PUT /api/users/:username/password
- */
-router.put('/:username/password', async (req, res) => {
-    try {
-        const username = req.params.username.trim();
-        const { newPassword } = req.body || {};
-
-        // 参数校验
-        if (!username) {
-            return res.status(400).json({ message: '用户名不能为空' });
-        }
-        if (!newPassword) {
-            return res.status(400).json({ message: '新密码不能为空' });
-        }
-        if (!/^\d{6,}$/.test(newPassword)) {
-            return res.status(400).json({ message: '新密码必须至少6位数字' });
-        }
-
-        // 验证用户存在性
-        const [existingUsers] = await pool.execute(
-            'SELECT id FROM users WHERE username = ? LIMIT 1',
-            [username]
-        );
-        if (existingUsers.length === 0) {
-            return res.status(404).json({ message: `用户名 "${username}" 不存在` });
-        }
-
-        // 加密并更新密码
-        const newPasswordHash = await bcrypt.hash(newPassword, 10);
-        await pool.execute(
-            'UPDATE users SET password_hash = ? WHERE username = ?',
-            [newPasswordHash, username]
-        );
-
-        res.status(200).json({ message: `用户 "${username}" 的密码已成功修改` });
-
-    } catch (err) {
-        handleError(res, err, '修改密码');
-    }
-});
-
-/**
- * 删除用户
- * DELETE /api/users/:username
- */
-router.delete('/:username', async (req, res) => {
-    try {
-        const username = req.params.username.trim();
-
-        if (!username) {
-            return res.status(400).json({ message: '用户名不能为空' });
-        }
-
-        // 验证用户存在性
-        const [existingUsers] = await pool.execute(
-            'SELECT id FROM users WHERE username = ? LIMIT 1',
-            [username]
-        );
-        if (existingUsers.length === 0) {
-            return res.status(404).json({ message: `用户名 "${username}" 不存在` });
-        }
-
-        // 执行删除
-        await pool.execute('DELETE FROM users WHERE username = ?', [username]);
-
-        res.status(200).json({ message: `用户 "${username}" 已成功删除` });
-
-    } catch (err) {
-        handleError(res, err, '删除用户');
-    }
-});
-
-/**
  * 编辑用户帖子（仅本人可操作）
  * PUT /api/users/:userId/posts/:postId
  */
@@ -1062,7 +998,7 @@ router.put('/:userId/posts/:postId', upload.single('video'), async (req, res) =>
         // 6. 更新帖子信息
         await pool.execute(
             `UPDATE posts 
-             SET title = ?, content = ?, tags = ?, video_url = ?, updated_at = CURRENT_TIMESTAMP 
+             SET title = ?, content = ?, tags = ?, video_url = ?, status = 0, updated_at = CURRENT_TIMESTAMP 
              WHERE id = ? AND user_id = ?`,
             [title.trim(), content.trim(), tags.trim(), videoUrl, postId, loginUserId]
         );
@@ -1487,10 +1423,10 @@ router.post('/reset-password', async (req, res) => {
             });
         }
 
-        if (!/^\d{6,}$/.test(newPassword)) {
+        if (!/^(?=.*[A-Za-z]).{6,}$/.test(newPassword)) {
             return res.status(400).json({
                 code: 400,
-                message: '新密码必须至少6位数字'
+                message: '新密码必须至少6位且包含字母'
             });
         }
 
@@ -1564,14 +1500,14 @@ router.post('/:id/change-password', async (req, res) => {
             return res.status(400).json({ code: 400, message: '当前密码和新密码不能为空' });
         }
 
-        if (newPassword.length < 6) {
+        if (!/^(?=.*[A-Za-z]).{6,}$/.test(newPassword)) {
             await connection.rollback();
-            return res.status(400).json({ code: 400, message: '新密码必须至少6位' });
+            return res.status(400).json({ code: 400, message: '新密码必须至少6位且包含字母' });
         }
 
         // 2. 验证用户存在性并获取当前密码哈希
         const [users] = await connection.execute(
-            'SELECT id, username, password_hash FROM users WHERE id = ?',
+            'SELECT id, username, password_hash, email FROM users WHERE id = ?',
             [targetUserId]
         );
 
@@ -1599,26 +1535,28 @@ router.post('/:id/change-password', async (req, res) => {
         // 5. 加密新密码
         const newPasswordHash = await bcrypt.hash(newPassword, 12);
 
-        // 6. 更新密码
+        // 6. 更新密码（使用last_active字段记录最后活跃时间）
         await connection.execute(
-            'UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            'UPDATE users SET password_hash = ?, last_active = CURRENT_TIMESTAMP WHERE id = ?',
             [newPasswordHash, targetUserId]
-        );
-
-        // 7. 记录密码修改日志（可选）
-        await connection.execute(
-            'INSERT INTO password_change_logs (user_id, change_type, ip_address) VALUES (?, ?, ?)',
-            [targetUserId, 'manual_change', req.ip || req.connection.remoteAddress]
         );
 
         await connection.commit();
 
-        // 8. 发送密码修改通知邮件（可选）
-        try {
-            await emailService.sendPasswordChangeNotification(user.username, user.email);
-        } catch (emailError) {
-            console.error('发送密码修改通知邮件失败：', emailError);
-            // 邮件发送失败不影响主要操作
+        // 7. 发送密码修改通知邮件（可选）
+        if (user.email && isValidEmail(user.email)) {
+            try {
+                await emailService.sendPasswordChangeNotification(user.username, user.email);
+            } catch (emailError) {
+                console.error('发送密码修改通知邮件失败：', emailError);
+            }
+        } else {
+            console.warn('用户未绑定有效邮箱，跳过邮件通知');
+        }
+
+        // 添加邮箱验证函数
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
         res.status(200).json({
@@ -1634,7 +1572,12 @@ router.post('/:id/change-password', async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error('修改密码失败：', error);
-        handleError(res, error, '修改密码');
+        
+        if (error.code === 'ER_BAD_FIELD_ERROR') {
+            return res.status(500).json({ code: 500, message: '数据库字段错误' });
+        }
+        
+        res.status(500).json({ code: 500, message: '服务器内部错误' });
     } finally {
         connection.release();
     }

@@ -14,7 +14,8 @@ const postRoutes = require('./routes/postRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const mapinfoRoutes = require('./routes/mapinfo');
 const positionRouter = require('./routes/position');
-
+const searchRouter = require('./routes/search');
+const managerRouter = require('./routes/manager');
 // 创建 Express 实例
 const app = express();
 
@@ -30,16 +31,37 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false }));
 
-// 记录原始body（调试用，排查后可删除）
-app.use((req, res, next) => {
-  if (req.rawBody !== undefined) {
-    console.log('[RAW BODY]', req.method, req.originalUrl, req.rawBody);
-  }
-  next();
+// 自定义morgan token，过滤静态资源
+morgan.token('custom', (req, res) => {
+    // 过滤静态资源
+    if (req.path.startsWith('/uploads/') || 
+        req.path.startsWith('/static/') || 
+        req.path.startsWith('/assets/')) {
+        return null; // 返回null不记录
+    }
+    
+    return `${req.method} ${req.path} ${res.statusCode} - ${res.get('Content-Length') || 0}b`;
 });
 
-// 日志中间件
-app.use(morgan('dev'));
+// 使用过滤版的morgan
+app.use(morgan((tokens, req, res) => {
+    // 过滤条件
+    if (req.path.startsWith('/uploads/') || 
+        req.path.startsWith('/static/') || 
+        req.path.startsWith('/assets/') ||
+        req.path === '/favicon.ico') {
+        return null;
+    }
+    
+    // 只记录API请求
+    return [
+        tokens.method(req, res),
+        tokens.url(req, res),
+        tokens.status(req, res),
+        tokens.res(req, res, 'content-length'), '-',
+        tokens['response-time'](req, res), 'ms'
+    ].join(' ');
+}));
 
 // JSON解析错误处理
 app.use((err, req, res, next) => {
@@ -70,12 +92,8 @@ app.use('/api/posts', postRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/mapinfo', mapinfoRoutes);
 app.use('/api/position', positionRouter);
-
-// 临时测试路由
-app.post('/api/login-test', (req, res) => {
-  console.log('[TEST] /api/login-test body:', req.body);
-  res.status(200).json({ ok: true, received: req.body });
-});
+app.use('/api/search', searchRouter);
+app.use('/api/manager', managerRouter);
 
 // 全局错误处理中间件
 app.use(errorHandler);

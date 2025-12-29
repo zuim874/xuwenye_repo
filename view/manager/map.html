@@ -246,6 +246,67 @@
             border-color: var(--accent);
         }
 
+        .form-error {
+            color: var(--accent);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-control.error {
+            border-color: var(--accent);
+        }
+
+        /* 自定义提示框样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.success {
+            background-color: #22c55e;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .toast.error {
+            background-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 图片加载状态 */
+        .map-preview {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .map-preview::before {
+            content: '加载中...';
+            position: absolute;
+        }
+
+        .map-preview.loaded::before {
+            display: none;
+        }
+
         .modal-footer {
             padding: 15px 20px;
             border-top: 1px solid var(--line);
@@ -277,6 +338,7 @@
                 <a href="manager.html">管理员中心</a>
                 <a href="map.html" class="active">地图管理</a>
                 <a href="position.html">点位管理</a>
+                <a href="post-audit.html">帖子审核</a>
                 <a href="../index.html">返回首页</a>
             </div>
         </header>
@@ -330,14 +392,17 @@
                         <small style="color: var(--muted); font-size: 12px; margin-top: 5px; display: block;">
                             例如：dust2, mirage（用于系统识别，不可重复）
                         </small>
+                        <div class="form-error" id="mapKeyError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="mapName">地图名称</label>
                         <input type="text" class="form-control" id="mapName" required>
+                        <div class="form-error" id="mapNameError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="mapImageUrl">地图图片URL</label>
                         <input type="url" class="form-control" id="mapImageUrl" required>
+                        <div class="form-error" id="mapImageUrlError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="mapUrl">2D地图地址（URL）</label>
@@ -345,6 +410,7 @@
                         <small style="color: var(--muted); font-size: 12px; margin-top: 5px; display: block;">
                             地图2D全景图的URL地址（用于展示完整地图）
                         </small>
+                        <div class="form-error" id="mapUrlError"></div>
                     </div>
                 </form>
             </div>
@@ -361,13 +427,115 @@
             checkAdminPermission();
             loadMapData();
             
+            // 创建toast元素
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+            
             // 绑定事件
             document.getElementById('addMapBtn').addEventListener('click', openAddModal);
             document.getElementById('closeModal').addEventListener('click', closeModal);
             document.getElementById('cancelBtn').addEventListener('click', closeModal);
             document.getElementById('saveMapBtn').addEventListener('click', saveMap);
             document.getElementById('searchMap').addEventListener('input', filterMaps);
+            
+            // 绑定表单实时验证事件
+            document.getElementById('mapKey').addEventListener('input', validateMapKey);
+            document.getElementById('mapName').addEventListener('input', validateMapName);
+            document.getElementById('mapImageUrl').addEventListener('input', validateMapImageUrl);
+            document.getElementById('mapUrl').addEventListener('input', validateMapUrl);
         });
+        
+        // Toast提示函数
+        function showToast(message, type = 'success') {
+            const toast = document.querySelector('.toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 表单验证函数
+        function validateMapKey() {
+            const mapKey = document.getElementById('mapKey');
+            const errorElement = document.getElementById('mapKeyError');
+            
+            if (!mapKey.value) {
+                mapKey.classList.add('error');
+                errorElement.textContent = '请输入地图标识';
+                errorElement.style.display = 'block';
+                return false;
+            } else if (!/^[a-zA-Z0-9_]+$/.test(mapKey.value)) {
+                mapKey.classList.add('error');
+                errorElement.textContent = '地图标识只能包含字母、数字和下划线';
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                mapKey.classList.remove('error');
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
+        function validateMapName() {
+            const mapName = document.getElementById('mapName');
+            const errorElement = document.getElementById('mapNameError');
+            
+            if (!mapName.value) {
+                mapName.classList.add('error');
+                errorElement.textContent = '请输入地图名称';
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                mapName.classList.remove('error');
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
+        function validateMapImageUrl() {
+            const mapImageUrl = document.getElementById('mapImageUrl');
+            const errorElement = document.getElementById('mapImageUrlError');
+            
+            if (!mapImageUrl.value) {
+                mapImageUrl.classList.add('error');
+                errorElement.textContent = '请输入地图图片URL';
+                errorElement.style.display = 'block';
+                return false;
+            } else if (!/^(https?:\/\/).+\.(jpg|jpeg|png|gif|webp)$/i.test(mapImageUrl.value)) {
+                mapImageUrl.classList.add('error');
+                errorElement.textContent = '请输入有效的图片URL（支持jpg/jpeg/png/gif/webp）';
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                mapImageUrl.classList.remove('error');
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
+        function validateMapUrl() {
+            const mapUrl = document.getElementById('mapUrl');
+            const errorElement = document.getElementById('mapUrlError');
+            
+            if (!mapUrl.value) {
+                mapUrl.classList.add('error');
+                errorElement.textContent = '请输入2D地图地址';
+                errorElement.style.display = 'block';
+                return false;
+            } else if (!/^(https?:\/\/)/i.test(mapUrl.value)) {
+                mapUrl.classList.add('error');
+                errorElement.textContent = '请输入有效的URL地址';
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                mapUrl.classList.remove('error');
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
 
         // 检查管理员权限
         function checkAdminPermission() {
@@ -394,11 +562,11 @@
                 if (result.code === 200) {
                     renderMapTable(result.data);
                 } else {
-                    alert(`加载失败: ${result.message}`);
+                    showToast(`加载失败: ${result.message}`, 'error');
                 }
             } catch (error) {
                 console.error('加载地图数据失败:', error);
-                alert('加载地图数据失败，请重试');
+                showToast('加载地图数据失败，请重试', 'error');
             }
         }
 
@@ -420,7 +588,7 @@
                     <td>${index + 1}</td>
                     <td>${map.map_key}</td>
                     <td>${map.map_name}</td>
-                    <td><img src="${map.map_image_url}" class="map-preview" alt="${map.map_name}"></td>
+                    <td><img src="${map.map_image_url}" class="map-preview" alt="${map.map_name}" onload="this.classList.add('loaded')"></td>
                     <td>
                         <div class="action-buttons">
                             <button class="action-btn edit" data-id="${map.id}" data-key="${map.map_key}">
@@ -483,13 +651,21 @@
                     document.getElementById('mapImageUrl').value = map.map_image_url;
                     document.getElementById('mapUrl').value = map.map_url;
                     
+                    // 清除表单错误状态
+                    document.querySelectorAll('.form-control').forEach(input => {
+                        input.classList.remove('error');
+                    });
+                    document.querySelectorAll('.form-error').forEach(error => {
+                        error.style.display = 'none';
+                    });
+                    
                     document.getElementById('mapModal').style.display = 'flex';
                 } else {
-                    alert(`加载失败: ${result.message}`);
+                    showToast(`加载失败: ${result.message}`, 'error');
                 }
             } catch (error) {
                 console.error('加载地图详情失败:', error);
-                alert('加载地图详情失败，请重试');
+                showToast('加载地图详情失败，请重试', 'error');
             }
         }
 
@@ -500,17 +676,19 @@
 
         // 保存地图数据
         async function saveMap() {
+            // 执行所有表单验证
+            const isValid = validateMapKey() && validateMapName() && validateMapImageUrl() && validateMapUrl();
+            
+            if (!isValid) {
+                showToast('请检查表单填写是否正确', 'error');
+                return;
+            }
+            
             const id = document.getElementById('mapId').value;
             const mapKey = document.getElementById('mapKey').value;
             const mapName = document.getElementById('mapName').value;
             const mapImageUrl = document.getElementById('mapImageUrl').value;
             const mapUrl = document.getElementById('mapUrl').value;
-
-            // 简单验证
-            if (!mapKey || !mapName || !mapImageUrl || !mapUrl) {
-                alert('请填写必填字段');
-                return;
-            }
             
             const mapData = {
                 map_key: mapKey,
@@ -542,19 +720,19 @@
                 if (result.code === 200) {
                     closeModal();
                     loadMapData();
-                    alert(id ? '地图更新成功' : '地图添加成功');
+                    showToast(id ? '✅ 地图更新成功' : '✅ 地图添加成功');
                 } else {
-                    alert(`操作失败: ${result.message}`);
+                    showToast(`❌ 操作失败: ${result.message}`, 'error');
                 }
             } catch (error) {
                 console.error('保存地图失败:', error);
-                alert('保存地图失败，请重试');
+                showToast('❌ 保存地图失败，请重试', 'error');
             }
         }
 
         // 删除地图
         async function deleteMap(id, mapName) {
-            if (!confirm(`确定要删除地图 "${mapName}" 吗？此操作不可恢复！`)) {
+            if (!confirm(`⚠️ 确定要删除地图 "${mapName}" 吗？此操作不可恢复！`)) {
                 return;
             }
             
@@ -569,13 +747,13 @@
                 const result = await response.json();
                 if (result.code === 200) {
                     loadMapData();
-                    alert('地图删除成功');
+                    showToast('🗑️ 地图删除成功');
                 } else {
-                    alert(`删除失败: ${result.message}`);
+                    showToast(`❌ 删除失败: ${result.message}`, 'error');
                 }
             } catch (error) {
                 console.error('删除地图失败:', error);
-                alert('删除地图失败，请重试');
+                showToast('❌ 删除地图失败，请重试', 'error');
             }
         }
 

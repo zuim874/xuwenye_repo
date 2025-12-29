@@ -585,6 +585,39 @@
                 height: 35px !important;
             }
         }
+
+        /* Toast提示样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+        }
+        
+        .toast.success {
+            background-color: #4caf50;
+        }
+        
+        .toast.error {
+            background-color: #e63946;
+        }
+        
+        .toast.info {
+            background-color: #2196f3;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
     <link rel="stylesheet" href="avatar.css"> <!-- 引入头像样式文件 -->
 </head>

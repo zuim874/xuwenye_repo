@@ -115,7 +115,7 @@ router.get('/', async (req, res) => {
                 u.username AS author_name
             FROM posts p
             LEFT JOIN users u ON p.user_id = u.id
-            WHERE p.is_deleted = 0
+            WHERE p.is_deleted = 0 AND p.status = 1  -- 增加status=1条件
             ORDER BY p.created_at DESC
             LIMIT ? OFFSET ?
         `;
@@ -125,7 +125,9 @@ router.get('/', async (req, res) => {
             offset.toString()
         ]);
 
-        const [totalResult] = await pool.execute('SELECT COUNT(*) AS total FROM posts WHERE is_deleted = 0');
+        const [totalResult] = await pool.execute(
+            'SELECT COUNT(*) AS total FROM posts WHERE is_deleted = 0 AND status = 1'  // 增加status=1条件
+        );
         const total = totalResult[0].total;
 
         const formattedPosts = posts.map(post => ({
@@ -162,7 +164,6 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const postId = req.params.id;
-        // 从请求头获取登录用户ID，与user.js保持一致
         const userId = req.headers['x-login-user-id'] || null;
         
         const sql = `
@@ -177,7 +178,7 @@ router.get('/:id', async (req, res) => {
                 EXISTS(SELECT 1 FROM post_favorites WHERE post_id = p.id AND user_id = ?) AS user_favorited
             FROM posts p
             LEFT JOIN users u ON p.user_id = u.id
-            WHERE p.id = ? AND p.is_deleted = 0
+            WHERE p.id = ? AND p.is_deleted = 0 AND p.status = 1  -- 增加status=1条件
             LIMIT 1
         `;
         
@@ -212,7 +213,6 @@ router.get('/:id', async (req, res) => {
 // 帖子点赞（修改登录验证为x-login-user-id）
 router.post('/:id/like', async (req, res) => {
     try {
-        // 从请求头获取登录用户ID，验证登录状态
         const loginUserId = req.headers['x-login-user-id'];
         if (!loginUserId) {
             return res.status(401).json({
@@ -222,11 +222,11 @@ router.post('/:id/like', async (req, res) => {
         }
         
         const postId = req.params.id;
-        const userId = loginUserId; // 使用请求头中的用户ID
+        const userId = loginUserId;
         
-        // 检查帖子是否存在
+        // 检查帖子是否存在且已过审
         const [postCheck] = await pool.execute(
-            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 LIMIT 1',
+            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 AND status = 1 LIMIT 1',  // 增加status=1条件
             [postId]
         );
         
@@ -292,7 +292,6 @@ router.post('/:id/like', async (req, res) => {
 // 帖子收藏（修改登录验证为x-login-user-id）
 router.post('/:id/favorite', async (req, res) => {
     try {
-        // 从请求头获取登录用户ID，验证登录状态
         const loginUserId = req.headers['x-login-user-id'];
         if (!loginUserId) {
             return res.status(401).json({
@@ -302,11 +301,11 @@ router.post('/:id/favorite', async (req, res) => {
         }
         
         const postId = req.params.id;
-        const userId = loginUserId; // 使用请求头中的用户ID
+        const userId = loginUserId;
         
-        // 检查帖子是否存在
+        // 检查帖子是否存在且已过审
         const [postCheck] = await pool.execute(
-            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 LIMIT 1',
+            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 AND status = 1 LIMIT 1',  // 增加status=1条件
             [postId]
         );
         
@@ -362,8 +361,9 @@ router.post('/:id/view', async (req, res) => {
     try {
         const postId = req.params.id;
         
+        // 检查帖子是否存在且已过审
         const [postCheck] = await pool.execute(
-            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 LIMIT 1',
+            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 AND status = 1 LIMIT 1',  // 增加status=1条件
             [postId]
         );
         
@@ -399,8 +399,9 @@ router.get('/:id/comments', async (req, res) => {
     try {
         const postId = req.params.id;
         
+        // 检查帖子是否存在且已过审
         const [postCheck] = await pool.execute(
-            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 LIMIT 1',
+            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 AND status = 1 LIMIT 1',  // 增加status=1条件
             [postId]
         );
         
@@ -439,7 +440,6 @@ router.get('/:id/comments', async (req, res) => {
 // 提交评论（修改登录验证为x-login-user-id）
 router.post('/:id/comments', async (req, res) => {
     try {
-        // 从请求头获取登录用户ID，验证登录状态
         const loginUserId = req.headers['x-login-user-id'];
         if (!loginUserId) {
             return res.status(401).json({
@@ -449,7 +449,7 @@ router.post('/:id/comments', async (req, res) => {
         }
         
         const postId = req.params.id;
-        const userId = loginUserId; // 使用请求头中的用户ID
+        const userId = loginUserId;
         const { content } = req.body;
         
         if (!content || content.trim() === '') {
@@ -459,8 +459,9 @@ router.post('/:id/comments', async (req, res) => {
             });
         }
         
+        // 检查帖子是否存在且已过审
         const [postCheck] = await pool.execute(
-            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 LIMIT 1',
+            'SELECT id FROM posts WHERE id = ? AND is_deleted = 0 AND status = 1 LIMIT 1',  // 增加status=1条件
             [postId]
         );
         
@@ -498,10 +499,8 @@ router.post('/:id/comments', async (req, res) => {
 
 // 删除指定帖子的指定评论
 router.delete('/:postId/comments/:commentId', async (req, res) => {
-    // 声明连接变量，用于后续释放
     let connection;
     try {
-        // 1. 验证登录状态
         const loginUserId = req.headers['x-login-user-id'];
         if (!loginUserId) {
             return res.status(401).json({
@@ -510,19 +509,15 @@ router.delete('/:postId/comments/:commentId', async (req, res) => {
             });
         }
 
-        // 2. 获取路径参数
         const { postId, commentId } = req.params;
-
-        // 3. 从连接池获取单个连接（事务需要基于单个连接执行）
         connection = await pool.getConnection();
 
-        // 4. 检查帖子是否存在且未被删除（使用连接执行查询）
+        // 检查帖子是否存在且已过审
         const [postCheck] = await connection.execute(
-            'SELECT id, user_id FROM posts WHERE id = ? AND is_deleted = 0 LIMIT 1',
+            'SELECT id, user_id FROM posts WHERE id = ? AND is_deleted = 0 AND status = 1 LIMIT 1',  // 增加status=1条件
             [postId]
         );
         if (postCheck.length === 0) {
-            // 释放连接
             connection.release();
             return res.status(404).json({
                 code: 404,
@@ -597,5 +592,7 @@ router.delete('/:postId/comments/:commentId', async (req, res) => {
         });
     }
 });
+
+
 
 module.exports = router;

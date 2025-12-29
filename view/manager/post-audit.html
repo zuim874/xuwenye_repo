@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帖子审核 - CS2UTIL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg: #0b0c0f;
+            --panel: #101218;
+            --text: #f5f7fa;
+            --muted: rgba(245,247,250,.62);
+            --line: rgba(245,247,250,.12);
+            --shadow: 0 18px 60px rgba(0,0,0,.55);
+            --radius: 16px;
+            --accent: #e63946;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text);
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .page-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.8) 0%, rgba(193, 18, 31, 0.8) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(230, 57, 70, 1) 0%, rgba(193, 18, 31, 1) 100%);
+        }
+
+        /* 标签页样式 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background-color: transparent;
+            color: var(--muted);
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background-color: rgba(230, 57, 70, 0.1);
+        }
+
+        .posts-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .post-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,.4);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            border: 2px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--text);
+            font-size: 18px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .author-info h3 {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .post-date {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .post-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .post-content {
+            margin-bottom: 15px;
+        }
+
+        .post-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .post-text {
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .post-text::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(transparent, var(--panel));
+        }
+
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .post-tag {
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--line);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .post-tag:hover {
+            background: rgba(255,255,255,.06);
+            color: var(--text);
+        }
+
+        .post-media {
+            margin-bottom: 15px;
+        }
+
+        .post-video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .post-video video {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid var(--line);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.9) 0%, rgba(56, 142, 60, 0.9) 100%);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(56, 142, 60) 100%);
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.9) 0%, rgba(193, 18, 31, 0.9) 100%);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: linear-gradient(135deg, rgb(230, 57, 70) 0%, rgb(193, 18, 31) 100%);
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            background-color: var(--panel);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,.06);
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Toast通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        
+        .toast.success {
+            background-color: #4caf50;
+        }
+        
+        .toast.error {
+            background-color: #e63946;
+        }
+        
+        .toast.info {
+            background-color: #2196f3;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .post-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .post-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">CS2UTIL 帖子审核</div>
+            <div class="nav-links">
+                <a href="manager.html">管理员中心</a>
+                <a href="map.html">地图管理</a>
+                <a href="position.html">点位管理</a>
+                <a href="post-audit.html" class="active">帖子审核</a>
+                <a href="../index.html">返回首页</a>
+            </div>
+        </header>
+
+        <h1 class="page-title">帖子审核</h1>
+        
+        <div class="tabs">
+            <div class="tab-btn active" data-tab="pending">待审核帖子</div>
+            <div class="tab-btn" data-tab="approved">已通过帖子</div>
+        </div>
+
+        <button class="refresh-btn" id="refreshBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23 4V10H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M1 20V14H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3.51 9.00001C4.01717 7.5668 4.87913 6.28542 6.01547 5.27542C7.1518 4.26543 8.52547 3.55978 10.0083 3.22426C11.4911 2.88874 13.0348 2.93436 14.4952 3.35677C15.9556 3.77918 17.2853 4.56471 18.36 5.64001L23 10M1 14L5.64 18.36C6.71475 19.4353 8.04437 20.2208 9.50481 20.6432C10.9652 21.0656 12.5089 21.1113 13.9917 20.7757C15.4745 20.4402 16.8482 19.7346 17.9845 18.7246C19.1209 17.7146 19.9828 16.4332 20.49 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            刷新列表
+        </button>
+
+        <div class="posts-container" id="postsContainer">
+            <!-- 帖子列表将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <!-- 帖子预览模态框 -->
+    <div class="modal-overlay" id="postModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">帖子预览</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 帖子内容将通过JavaScript动态加载 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-reject" id="rejectBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    拒绝
+                </button>
+                <button class="btn btn-approve" id="approveBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    通过
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">确认操作</h3>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                <!-- 确认消息将通过JavaScript动态加载 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-reject" id="confirmCancelBtn">取消</button>
+                <button class="btn btn-approve" id="confirmOkBtn">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let allPosts = [];
+        let currentPostId = null;
+        let currentTab = 'pending'; // 默认显示待审核帖子
+
+        // Toast通知函数
+        function showAlert(message, type = 'info') {
+            // 创建toast元素
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(toast);
+            
+            // 显示toast
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // 3秒后隐藏并移除
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 自定义确认对话框函数
+        function confirmDialog(message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirmModal');
+                const modalBody = document.getElementById('confirmModalBody');
+                const okBtn = document.getElementById('confirmOkBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+                const closeBtn = document.getElementById('closeConfirmModal');
+                
+                // 设置消息内容
+                modalBody.textContent = message;
+                
+                // 显示模态框
+                modal.style.display = 'flex';
+                
+                // 处理确认
+                const handleOk = () => {
+                    resolve(true);
+                    modal.style.display = 'none';
+                    removeEventListeners();
+                };
+                
+                // 处理取消
+                const handleCancel = () => {
+                    resolve(false);
+                    modal.style.display = 'none';
+                    removeEventListeners();
+                };
+                
+                // 移除事件监听器的函数
+                const removeEventListeners = () => {
+                    okBtn.removeEventListener('click', handleOk);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    closeBtn.removeEventListener('click', handleCancel);
+                    modal.removeEventListener('click', handleModalClick);
+                };
+                
+                // 点击模态框外部关闭
+                const handleModalClick = (e) => {
+                    if (e.target === modal) {
+                        handleCancel();
+                    }
+                };
+                
+                // 绑定事件
+                okBtn.addEventListener('click', handleOk);
+                cancelBtn.addEventListener('click', handleCancel);
+                closeBtn.addEventListener('click', handleCancel);
+                modal.addEventListener('click', handleModalClick);
+            });
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminPermission();
+            loadPosts();
+            bindEvents();
+        });
+
+        // 绑定事件
+        function bindEvents() {
+            document.getElementById('refreshBtn').addEventListener('click', loadPosts);
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('approveBtn').addEventListener('click', approveCurrentPost);
+            document.getElementById('rejectBtn').addEventListener('click', rejectCurrentPost);
+            
+            // 绑定标签页事件
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+        }
+
+        // 检查管理员权限
+        function checkAdminPermission() {
+            const userPower = localStorage.getItem('userPower');
+            if (!userPower || userPower !== '0') {
+                window.location.href = 'manager.html';
+            }
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            if (tab === currentTab) return;
+            
+            // 更新标签页状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            
+            currentTab = tab;
+            loadPosts(); // 加载对应标签页的帖子
+        }
+
+        // 加载帖子数据
+        async function loadPosts() {
+            try {
+                // 显示加载状态
+                document.getElementById('postsContainer').innerHTML = `
+                    <div class="loading">加载中...</div>
+                `;
+
+                // 根据当前标签页选择不同的API接口
+                const url = currentTab === 'pending' 
+                    ? '/api/manager/audit' 
+                    : '/api/manager/audit/approved';
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    allPosts = result.data;
+                    renderPosts(allPosts);
+                } else {
+                    throw new Error(result.message || '加载失败');
+                }
+            } catch (error) {
+                console.error('加载帖子数据失败:', error);
+                document.getElementById('postsContainer').innerHTML = `
+                    <div class="loading">加载失败: ${error.message}</div>
+                `;
+            }
+        }
+
+        // 渲染帖子列表
+        function renderPosts(posts) {
+            const container = document.getElementById('postsContainer');
+            
+            if (!posts || posts.length === 0) {
+                const emptyMessage = currentTab === 'pending' ? '暂无待审核的帖子' : '暂无已通过审核的帖子';
+                container.innerHTML = `
+                    <div class="empty-state">${emptyMessage}</div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            posts.forEach(post => {
+                const postCard = document.createElement('div');
+                postCard.className = 'post-card';
+                
+                // 格式化日期
+                const formattedDate = formatRelativeDate(post.created_at);
+                
+                // 处理标签
+                const tags = post.tags || [];
+                const tagsHtml = tags.map(tag => 
+                    `<span class="post-tag">${escapeHtml(tag)}</span>`
+                ).join('');
+                
+                // 构建视频HTML
+                let videoHtml = '';
+                if (post.video_url) {
+                    videoHtml = `
+                        <div class="post-media">
+                            <div class="post-video">
+                                <video controls style="width: 100%; max-width: 400px; border-radius: 8px;">
+                                    <source src="${post.video_url}" type="video/mp4">
+                                    您的浏览器不支持视频播放
+                                </video>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 作者头像
+                const authorInitial = post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U';
+                
+                // 根据当前标签页确定帖子状态和操作按钮
+                const statusText = currentTab === 'pending' ? '待审核' : '已通过';
+                const statusClass = currentTab === 'pending' ? 'pending' : 'approved';
+                
+                // 操作按钮：已通过帖子只显示拒绝按钮
+                const actionsHtml = currentTab === 'pending' ? `
+                    <div class="post-actions">
+                        <button class="btn btn-reject" data-id="${post.id}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            拒绝
+                        </button>
+                        <button class="btn btn-approve" data-id="${post.id}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            通过
+                        </button>
+                    </div>
+                ` : `
+                    <div class="post-actions">
+                        <button class="btn btn-reject" data-id="${post.id}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            拒绝
+                        </button>
+                    </div>
+                `;
+                
+                postCard.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-author">
+                            <div class="author-avatar" data-user-id="${post.user_id}" data-user-name="${post.author_name}">
+                                ${authorInitial}
+                            </div>
+                            <div class="author-info">
+                                <h3>${escapeHtml(post.author_name || '未知用户')}</h3>
+                                <div class="post-date">${formattedDate}</div>
+                            </div>
+                        </div>
+                        <span class="post-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="post-content">
+                        <h2 class="post-title">${escapeHtml(post.title)}</h2>
+                        <p class="post-text">${escapeHtml(post.content)}</p>
+                        ${videoHtml}
+                        ${tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : ''}
+                    </div>
+                    ${actionsHtml}
+                `;
+                
+                container.appendChild(postCard);
+            });
+            
+            // 绑定按钮事件
+            bindPostEvents();
+        }
+
+        // 辅助函数：格式化相对时间
+        function formatRelativeDate(dateString) {
+            if (!dateString) return '未知时间';
+            const pureDateTime = dateString.slice(0, 19).replace('T', ' ');
+            const reg = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+            return reg.test(pureDateTime) ? pureDateTime : '无效时间';
+        }
+
+        // 绑定帖子事件
+        function bindPostEvents() {
+            document.querySelectorAll('.btn-reject').forEach(btn => {
+                btn.addEventListener('click', () => rejectPost(btn.dataset.id));
+            });
+            
+            document.querySelectorAll('.btn-approve').forEach(btn => {
+                btn.addEventListener('click', () => approvePost(btn.dataset.id));
+            });
+            
+            // 添加头像点击事件（查看用户详情）
+            document.querySelectorAll('.author-avatar').forEach(avatar => {
+                avatar.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const userId = avatar.dataset.userId;
+                    const userName = avatar.dataset.userName;
+                    showAlert(`查看用户: ${userName} (ID: ${userId})`, 'info');
+                });
+            });
+        }
+
+        // 审核通过帖子
+        async function approvePost(id) {
+            if (!(await confirmDialog('确定要通过此帖子吗？'))) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/manager/${id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    // 从列表中移除已审核的帖子
+                    allPosts = allPosts.filter(post => post.id !== id);
+                    renderPosts(allPosts);
+                    showAlert('帖子审核通过', 'success');
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    throw new Error(result.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('审核通过失败:', error);
+                showAlert(`审核失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 审核拒绝帖子
+        async function rejectPost(id) {
+            if (!(await confirmDialog('确定要拒绝此帖子吗？'))) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/manager/${id}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userPower')}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    // 从列表中移除已拒绝的帖子
+                    allPosts = allPosts.filter(post => post.id !== id);
+                    renderPosts(allPosts);
+                    showAlert('帖子已拒绝', 'success');
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    throw new Error(result.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('审核拒绝失败:', error);
+                showAlert(`拒绝失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 审核当前模态框中的帖子
+        async function approveCurrentPost() {
+            if (!currentPostId) return;
+            await approvePost(currentPostId);
+            closeModal();
+        }
+
+        // 拒绝当前模态框中的帖子
+        async function rejectCurrentPost() {
+            if (!currentPostId) return;
+            await rejectPost(currentPostId);
+            closeModal();
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('postModal').style.display = 'none';
+            currentPostId = null;
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

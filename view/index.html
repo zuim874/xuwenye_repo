@@ -679,6 +679,39 @@
         }
     }
 
+    /* Toast通知样式 */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        z-index: 10000;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-weight: 500;
+    }
+    
+    .toast.success {
+        background-color: #4caf50;
+    }
+    
+    .toast.error {
+        background-color: #e63946;
+    }
+    
+    .toast.info {
+        background-color: #2196f3;
+    }
+    
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     /* 响应式调整 */
     @media (max-width: 768px) {
         .team-options {
@@ -694,6 +727,11 @@
         #videoModal video {
             max-width: 95%;
             max-height: 60%;
+        }
+        
+        .toast {
+            left: 20px;
+            right: 20px;
         }
     }
 
@@ -804,6 +842,24 @@
 
   </div>
   <script>
+    // Toast通知函数
+    function showAlert(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 添加显示动画
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            toast.classList.remove('show');
+            // 等待动画结束后移除元素
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', function() {
       // ========== 第一步：先获取所有DOM元素（优先，避免后续绑定事件时元素未获取） ==========
@@ -934,6 +990,7 @@ function makeMarker({ mapCanvas, className, text, px, py, size, title, onClick }
           return mapData;
         } catch (error) {
           console.error('获取地图数据失败:', error);
+          showAlert('获取地图数据失败，请稍后重试', 'error');
           throw error;
         }
       }
@@ -1017,6 +1074,7 @@ function makeMarker({ mapCanvas, className, text, px, py, size, title, onClick }
           }
         } catch (error) {
           console.error('❌ 加载投掷点数据失败：', error.message);
+          showAlert('加载投掷点数据失败，使用默认数据', 'info');
           // 加载失败时使用默认数据
           window.nadeSpots = {
             dust2: [
@@ -1071,7 +1129,7 @@ function makeMarker({ mapCanvas, className, text, px, py, size, title, onClick }
 function initMap(mapId) {
   if (!mapId || !mapData[mapId]) {
     console.error(`地图ID ${mapId} 不存在！当前 mapData 包含：`, Object.keys(mapData));
-    alert(`未找到地图 ${mapId} 的数据，请检查配置`);
+    showAlert(`未找到地图 ${mapId} 的数据，请检查配置`, 'error');
     return;
   }  
 
@@ -1202,6 +1260,7 @@ function initMap(mapId) {
   img.onerror = function() {
     console.error('❌ 图片加载失败:', img.src);
     loadingText.textContent = '图片加载失败';
+    showAlert('地图图片加载失败', 'error');
   };
 }
 
