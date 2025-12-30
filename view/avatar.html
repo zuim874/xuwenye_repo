@@ -443,7 +443,7 @@
                 <div class="avatar-content">
                     <!-- 头像预览 -->
                     <div class="avatar-preview">
-                        
+                        <img id="avatarImg" src="" alt="头像预览">
                     </div>
 
                     <!-- 操作区 -->
@@ -552,9 +552,7 @@
                         avatarUrl.value = data.avatarUrl;
                         
                         // 设置导航栏头像
-                        const avatarHtml = ``;
-                        const fallbackHtml = `<div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: var(--accent); color: white; font-weight: bold; font-size: 18px;">${currentUser.charAt(0).toUpperCase()}</div>`;
-                        userAvatar.innerHTML = avatarHtml + fallbackHtml;
+                        userAvatar.innerHTML = `<img src="${data.avatarUrl}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
                     } else {
                         // 没有头像时显示首字母
                         showUserInitial();

@@ -231,8 +231,20 @@ async function fetchUserPosts(userId) {
         }
 
         const { posts, stats } = result.data;
-        updateUserStats(stats); // 更新统计数据
-        renderUserPosts(posts); // 渲染帖子列表
+        
+        // 过滤出审核通过的帖子（status=1）
+        const approvedPosts = posts.filter(post => post.status === 1);
+        
+        // 重新计算统计数据，只包含审核通过的帖子
+        const approvedStats = {
+            post_count: approvedPosts.length,
+            total_likes: approvedPosts.reduce((sum, post) => sum + (post.like_count || 0), 0),
+            total_comments: approvedPosts.reduce((sum, post) => sum + (post.comment_count || 0), 0),
+            pending_count: stats.pending_count || 0
+        };
+        
+        updateUserStats(approvedStats); // 更新统计数据
+        renderUserPosts(posts); // 渲染所有帖子（包括待审核和未通过的）
 
     } catch (error) {
         console.error('获取用户帖子失败：', error);

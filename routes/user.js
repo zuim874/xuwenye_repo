@@ -1224,20 +1224,20 @@ router.get('/:id/profile', async (req, res) => {
 
         const user = userRows[0];
 
-        // 查询用户帖子统计
+        // 查询用户帖子统计（只包含审核通过的帖子）
         const [postStats] = await pool.execute(
             `SELECT COUNT(*) as post_count, 
                     SUM(like_count) as total_likes,
                     SUM(comment_count) as total_comments
-             FROM posts WHERE user_id = ? AND is_deleted = 0`,
+             FROM posts WHERE user_id = ? AND is_deleted = 0 AND status = 1`,
             [userId]
         );
 
-        // 查询用户最近发布的帖子（公开可见）
+        // 查询用户最近发布的帖子（只包含审核通过的）
         const [recentPosts] = await pool.execute(
-            `SELECT id, title, created_at, like_count, comment_count, view_count
+            `SELECT id, title, created_at, like_count, comment_count, view_count, status, video_url
              FROM posts 
-             WHERE user_id = ? AND is_deleted = 0 
+             WHERE user_id = ? AND is_deleted = 0 AND status = 1
              ORDER BY created_at DESC 
              LIMIT 5`,
             [userId]
@@ -1291,20 +1291,20 @@ router.get('/:id/public-posts', async (req, res) => {
             });
         }
 
-        // 查询帖子列表
+        // 查询帖子列表（只包含审核通过的）
         const [posts] = await pool.execute(
-            `SELECT id, title, content, tags, created_at, 
-                    like_count, comment_count, view_count
+            `SELECT id, title, content, tags, created_at, video_url, 
+                    like_count, comment_count, view_count, status
              FROM posts 
-             WHERE user_id = ? AND is_deleted = 0 
+             WHERE user_id = ? AND is_deleted = 0 AND status = 1
              ORDER BY created_at DESC 
              LIMIT ? OFFSET ?`,
             [userId, limit, offset]
         );
 
-        // 查询总数
+        // 查询总数（只包含审核通过的）
         const [totalResult] = await pool.execute(
-            'SELECT COUNT(*) as total FROM posts WHERE user_id = ? AND is_deleted = 0',
+            'SELECT COUNT(*) as total FROM posts WHERE user_id = ? AND is_deleted = 0 AND status = 1',
             [userId]
         );
 

@@ -337,6 +337,20 @@
             gap: 5px;
         }
 
+        /* 视频预览样式 */
+        .post-video {
+            margin: 15px 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        .post-video video {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+        }
+
         .post-date {
             color: var(--muted);
             font-size: 14px;
@@ -591,6 +605,9 @@
             document.getElementById('pageTitle').textContent = `${user.username}的主页`;
             document.getElementById('pageSubtitle').textContent = `查看${user.username}的社区贡献和互动`;
             
+            // 前端二次过滤，确保只显示审核通过的帖子（status=1）
+            const approvedPosts = recent_posts.filter(post => post.status === 1);
+            
             const profileHTML = `
                 <div class="profile-avatar" data-user-id="${user.id}" data-user-name="${user.username}"></div>
                 <div class="profile-info">
@@ -619,8 +636,8 @@
             const avatarEl = document.querySelector('.profile-avatar');
             renderUserAvatar(avatarEl, user.id, user.username);
             
-            // 渲染最近帖子
-            renderRecentPosts(recent_posts);
+            // 渲染最近帖子（只显示审核通过的）
+            renderRecentPosts(approvedPosts);
         }
 
         // 渲染最近帖子（移除编辑删除功能）
@@ -639,6 +656,9 @@
                         <div class="post-date">${formatDate(post.created_at)}</div>
                     </div>
                     <div class="post-content">${escapeHtml(post.content || '')}</div>
+                    ${post.video_url ? `<div class="post-video">
+                        <video src="${escapeHtml(post.video_url)}" controls></video>
+                    </div>` : ''}
                     <div class="post-stats">
                         <div class="post-stat">👍 ${post.like_count || 0}</div>
                         <div class="post-stat">💬 ${post.comment_count || 0}</div>

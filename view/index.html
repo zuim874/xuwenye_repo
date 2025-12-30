@@ -359,7 +359,7 @@
     .nade-option.smoke  .nade-icon{ color: var(--smoke); --mask: var(--ico-smoke); }
     .nade-option.flash  .nade-icon{ color: var(--flash); --mask: var(--ico-flash); }
     .nade-option.molotov .nade-icon{ color: var(--molo);  --mask: var(--ico-molo); }
-    .nade-option.grenade .nade-icon{ color: var(--nade);  --mask: var(--ico-nade); }
+    .nade-option.he .nade-icon{ color: var(--nade);  --mask: var(--ico-nade); }
 
     /* all 的图标：做一个简洁的“网格/点阵”感觉（不用新增 SVG） */
     .nade-option.all .nade-icon{
@@ -574,14 +574,14 @@
     /* —— 按类型指定 icon + 点缀色 —— */
     .nade-marker.smoke{ color: var(--smoke); --mask: var(--ico-smoke); }
     .nade-marker.flash{ color: var(--flash); --mask: var(--ico-flash); }
-    .nade-marker.molotov{ color: var(--molo); --mask: var(--ico-molo); }
-    .nade-marker.grenade{ color: var(--nade); --mask: var(--ico-nade); }
+    .nade-marker.molotov{ color: var(--molo);  --mask: var(--ico-molo); }
+    .nade-marker.he{ color: var(--nade); --mask: var(--ico-nade); }
 
     /* —— 高级感：只做“轻微光晕”，不破坏黑白整体 —— */
     .nade-marker.smoke{ box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(207,214,223,.18), 0 0 24px rgba(207,214,223,.18); }
     .nade-marker.flash{ box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(255,209,102,.18), 0 0 24px rgba(255,209,102,.16); }
     .nade-marker.molotov{ box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(255,159,28,.18), 0 0 24px rgba(255,159,28,.16); }
-    .nade-marker.grenade{ box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(255,77,109,.18), 0 0 24px rgba(255,77,109,.16); }
+    .nade-marker.he{ box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(255,77,109,.18), 0 0 24px rgba(255,77,109,.16); }
 
     /* —— 投掷点 marker：边框更亮一点，强调可点击 —— */
     .nade-marker.throw{
@@ -831,7 +831,7 @@
               <span class="nade-text">燃烧弹</span>
             </div>
 
-            <div class="nade-option grenade" data-type="grenade">
+            <div class="nade-option he" data-type="he">
               <span class="nade-icon"></span>
               <span class="nade-text">高爆手雷</span>
             </div>
@@ -912,6 +912,7 @@
         return type === 'smoke' ? 'S' :
               type === 'flash' ? 'F' :
               type === 'molotov' ? 'M' :
+              type === 'he' ? 'G' :
               type === 'grenade' ? 'G' : '?';
       }
       // 清空所有覆盖层（标记和线条）
